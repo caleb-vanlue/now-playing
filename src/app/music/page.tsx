@@ -1,4 +1,3 @@
-// app/music/page.tsx - Updated with last updated info
 "use client";
 
 import Link from "next/link";
@@ -9,7 +8,6 @@ export default function MusicPage() {
   const { mediaData, loading, error, lastUpdated, refreshData } =
     useMediaData();
 
-  // Format the last updated time
   const formattedTime = lastUpdated.toLocaleTimeString();
 
   if (loading && !mediaData) {

@@ -1,75 +1,32 @@
+// app/tvshows/page.tsx
+"use client";
+
 import Link from "next/link";
+import { useMediaData } from "../../hooks/useMediaData";
 import MovieCard from "../../components/MovieCard";
 
-interface TVShow {
-  id: string;
-  title: string;
-  year: string;
-  creator: string;
-  poster: string;
-  user: {
-    name: string;
-  };
-  isPlaying?: boolean;
-}
-
 export default function TVShowsPage() {
-  const tvShows: TVShow[] = [
-    {
-      id: "1",
-      title: "Breaking Bad",
-      year: "2008-2013",
-      creator: "Vince Gilligan",
-      poster: "/posters/breakingbad.jpg",
-      user: { name: "Emma" },
-      isPlaying: true,
-    },
-    {
-      id: "2",
-      title: "Stranger Things",
-      year: "2016-Present",
-      creator: "The Duffer Brothers",
-      poster: "/posters/strangerthings.jpg",
-      user: { name: "Kyle" },
-    },
-    {
-      id: "3",
-      title: "The Office",
-      year: "2005-2013",
-      creator: "Greg Daniels",
-      poster: "/posters/office.jpg",
-      user: { name: "Sarah" },
-    },
-    {
-      id: "4",
-      title: "Game of Thrones",
-      year: "2011-2019",
-      creator: "David Benioff, D.B. Weiss",
-      poster: "/posters/got.jpg",
-      user: { name: "Tom" },
-    },
-    {
-      id: "5",
-      title: "The Mandalorian",
-      year: "2019-Present",
-      creator: "Jon Favreau",
-      poster: "/posters/mandalorian.jpg",
-      user: { name: "Alex" },
-    },
-    {
-      id: "6",
-      title: "The Witcher",
-      year: "2019-Present",
-      creator: "Lauren Schmidt Hissrich",
-      poster: "/posters/witcher.jpg",
-      user: { name: "Maya" },
-    },
-  ];
+  const { mediaData, loading, error, lastUpdated, refreshData } =
+    useMediaData();
+
+  // Format the last updated time
+  const formattedTime = lastUpdated.toLocaleTimeString();
+
+  if (loading && !mediaData) {
+    return <div className="p-8 text-white">Loading...</div>;
+  }
+
+  const episodes = mediaData?.episodes || [];
 
   return (
-    <div className="min-h-screen p-8">
+    <div className="min-h-screen bg-[#141414] p-8 text-white">
       <header className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-12 gap-4">
-        <h1 className="text-4xl font-bold">Now Playing</h1>
+        <div>
+          <h1 className="text-4xl font-bold">NOW PLAYING</h1>
+          <div className="text-gray-400 text-sm mt-1">
+            Last updated: {formattedTime}
+          </div>
+        </div>
         <nav className="flex space-x-8">
           <Link href="/music" className="pb-2 text-gray-400 hover:text-white">
             Music
@@ -87,22 +44,42 @@ export default function TVShowsPage() {
       </header>
 
       <main>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-          {tvShows.map((show) => (
-            <MovieCard
-              key={show.id}
-              id={show.id}
-              title={show.title}
-              year={show.year}
-              creator={show.creator}
-              poster={show.poster}
-              user={show.user}
-              isPlaying={show.isPlaying}
-              type="tvshow"
-            />
-          ))}
-        </div>
+        {episodes.length === 0 ? (
+          <div className="text-center text-gray-500 py-20">
+            <p className="text-xl">No TV shows currently playing</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+            {episodes.map((episode) => (
+              <MovieCard
+                key={episode.id}
+                id={episode.id}
+                title={episode.title}
+                // Format the "year" field to show Season and Episode
+                year={`S${episode.season}:E${episode.episode}`}
+                // Use the show title instead of director
+                director={episode.showTitle}
+                userId={episode.userId}
+                state={episode.state}
+                thumbnailFileId={episode.thumbnailFileId}
+              />
+            ))}
+          </div>
+        )}
       </main>
+
+      {error && (
+        <div className="fixed bottom-4 right-4 bg-red-900/80 text-white p-4 rounded-lg shadow-lg max-w-md">
+          <h3 className="font-bold mb-1">Error refreshing data</h3>
+          <p className="text-sm mb-2">{error.message}</p>
+          <button
+            onClick={refreshData}
+            className="text-xs bg-red-700 hover:bg-red-600 px-3 py-1 rounded transition-colors"
+          >
+            Retry Now
+          </button>
+        </div>
+      )}
     </div>
   );
 }

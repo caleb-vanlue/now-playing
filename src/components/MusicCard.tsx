@@ -1,4 +1,3 @@
-// components/MediaCard.tsx
 import React from "react";
 
 interface MediaCardProps {
