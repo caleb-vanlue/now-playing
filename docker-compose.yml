@@ -1,0 +1,28 @@
+version: "3.8"
+
+services:
+  plex-dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_MEDIA_API_URL=${NEXT_PUBLIC_MEDIA_API_URL}
+        - NEXT_PUBLIC_FILES_API_URL=${NEXT_PUBLIC_FILES_API_URL}
+    container_name: plex-dashboard
+    ports:
+      - "3002:3002"
+    networks:
+      - host-network
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - NEXT_PUBLIC_MEDIA_API_URL=${NEXT_PUBLIC_MEDIA_API_URL}
+      - NEXT_PUBLIC_FILES_API_URL=${NEXT_PUBLIC_FILES_API_URL}
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+networks:
+  host-network:
+    name: host-network
+    driver: bridge
+    external: false
