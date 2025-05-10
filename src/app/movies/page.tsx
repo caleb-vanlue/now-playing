@@ -71,7 +71,7 @@ export default function MoviesPage() {
       <header className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-12 gap-4">
         <h1 className="text-4xl font-bold">NOW PLAYING</h1>
         <nav className="flex space-x-8">
-          <Link href="/" className="pb-2 text-gray-400 hover:text-white">
+          <Link href="/music" className="pb-2 text-gray-400 hover:text-white">
             Music
           </Link>
           <Link
