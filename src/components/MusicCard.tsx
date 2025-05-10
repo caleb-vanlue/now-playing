@@ -30,14 +30,6 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
   const thumbnailUrl = getThumbnailUrl(thumbnailFileId);
   const bgColorClass = "bg-gray-800";
 
-  const handleImageError = () => {
-    setImageError(true);
-  };
-
-  const handleImageLoaded = () => {
-    setImageLoaded(true);
-  };
-
   const startedAt = new Date(startTime);
   const timeAgo = getTimeAgo(startedAt);
 
