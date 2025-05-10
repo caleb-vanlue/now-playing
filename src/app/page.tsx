@@ -1,5 +1,3 @@
-// page.tsx - adding just the header
-import Image from "next/image";
 import Link from "next/link";
 
 export default function Home() {
@@ -23,27 +21,24 @@ export default function Home() {
         </nav>
       </header>
 
-      <main className="flex flex-col gap-[32px] items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+      <main>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3, 4, 5, 6].map((item) => (
+            <div
+              key={item}
+              className="bg-[#171717] rounded-lg overflow-hidden p-4"
+            >
+              <div className="aspect-square bg-gray-800 mb-4"></div>
+              <h2 className="text-xl font-bold">Album Title</h2>
+              <p>Artist Name</p>
+              <p className="text-gray-400">Album Name</p>
+              <div className="mt-4 flex items-center">
+                <div className="w-8 h-8 rounded-full bg-gray-700"></div>
+                <span className="ml-2">Username</span>
+              </div>
+            </div>
+          ))}
+        </div>
       </main>
     </div>
   );
