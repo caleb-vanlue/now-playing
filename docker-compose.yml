@@ -8,6 +8,7 @@ services:
       args:
         - NEXT_PUBLIC_MEDIA_API_URL=${NEXT_PUBLIC_MEDIA_API_URL}
         - NEXT_PUBLIC_FILES_API_URL=${NEXT_PUBLIC_FILES_API_URL}
+        - HOSTNAME=0.0.0.0
         - PORT=3002
 
     container_name: plex-dashboard
