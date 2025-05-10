@@ -1,46 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
-
-export interface User {
-  name: string;
-}
-
-export interface MediaBase {
-  id: string;
-  title: string;
-  thumbnailFileId?: string;
-  state: "playing" | "paused";
-  userId: string;
-  player: string;
-  startTime: string;
-  sessionId: string;
-}
-
-export interface Track extends MediaBase {
-  artist: string;
-  album: string;
-}
-
-export interface Movie extends MediaBase {
-  year: number;
-  director: string;
-  studio: string;
-  duration: number;
-  summary: string;
-}
-
-export interface Episode extends MediaBase {
-  showTitle: string;
-  season: number;
-  episode: number;
-  duration: number;
-  summary: string;
-}
-
-export interface MediaData {
-  tracks: Track[];
-  movies: Movie[];
-  episodes: Episode[];
-}
+import { MediaData } from "../../types/media";
+import { fetchMediaData } from "../../utils/api";
 
 const DEFAULT_POLLING_INTERVAL = 5000;
 
@@ -52,13 +12,7 @@ export function useMediaData(pollingInterval = DEFAULT_POLLING_INTERVAL) {
 
   const fetchData = useCallback(async () => {
     try {
-      const response = await fetch("http://localhost:3000/media/current");
-
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
-      }
-
-      const data = await response.json();
+      const data = await fetchMediaData();
       setMediaData(data);
       setLastUpdated(new Date());
       setLoading(false);
@@ -78,6 +32,7 @@ export function useMediaData(pollingInterval = DEFAULT_POLLING_INTERVAL) {
     fetchData();
 
     const intervalId = setInterval(fetchData, pollingInterval);
+
     return () => {
       clearInterval(intervalId);
     };

@@ -1,4 +1,6 @@
-import React from "react";
+"use client";
+import React, { useState } from "react";
+import { getThumbnailUrl } from "../../utils/api";
 
 interface MovieCardProps {
   id: string;
@@ -19,28 +21,29 @@ export default function MovieCard({
   state,
   thumbnailFileId,
 }: MovieCardProps) {
-  const thumbnailUrl = thumbnailFileId
-    ? `http://localhost:3001/files/id/${thumbnailFileId}`
-    : null;
+  const [imageError, setImageError] = useState<boolean>(false);
+  const thumbnailUrl = getThumbnailUrl(thumbnailFileId);
 
-  const movieColors: Record<string, string> = {
-    Tangerine: "bg-orange-600",
-    Inception: "bg-blue-800",
-    "The Godfather": "bg-gray-900",
-    "Pulp Fiction": "bg-yellow-600 text-black",
-    default: "bg-gray-800",
+  const bgColorClass = "bg-gray-800";
+
+  const handleImageError = () => {
+    setImageError(true);
   };
 
-  const bgColorClass = movieColors[title] || movieColors.default;
+  const isTvShow = typeof year === "string" && year.includes("S");
 
   return (
     <div className="bg-[#1c1c1c] rounded-lg overflow-hidden transition-transform duration-200 hover:-translate-y-1 hover:shadow-lg">
       <div className="relative">
-        {thumbnailUrl ? (
-          <div
-            className="aspect-[2/3] bg-cover bg-center"
-            style={{ backgroundImage: `url('${thumbnailUrl}')` }}
-          />
+        {thumbnailUrl && !imageError ? (
+          <div className="aspect-[2/3] relative">
+            <img
+              src={thumbnailUrl}
+              alt={title}
+              className="w-full h-full object-cover"
+              onError={handleImageError}
+            />
+          </div>
         ) : (
           <div
             className={`aspect-[2/3] ${bgColorClass} flex items-center justify-center p-4 text-center`}
@@ -53,17 +56,25 @@ export default function MovieCard({
             state === "playing" ? "bg-green-500" : "bg-gray-700"
           }`}
         >
-          {state === "playing" ? "Playing" : "Paused"}
+          {state === "playing" ? (
+            <div className="flex items-center">
+              <span className="mr-1">Playing</span>
+              <span className="flex space-x-0.5">
+                <span className="w-0.5 h-2 bg-white animate-pulse"></span>
+                <span className="w-0.5 h-2 bg-white animate-pulse delay-75"></span>
+                <span className="w-0.5 h-2 bg-white animate-pulse delay-150"></span>
+              </span>
+            </div>
+          ) : (
+            "Paused"
+          )}
         </div>
       </div>
       <div className="p-4">
         <h2 className="text-xl font-bold">{title}</h2>
         <p>{year}</p>
         <p className="text-gray-400">
-          {typeof year === "string" && year.includes("S")
-            ? "Show:"
-            : "Director:"}{" "}
-          {director}
+          {isTvShow ? "Show:" : "Director:"} {director}
         </p>
         <div className="mt-4 flex items-center">
           <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-xs">

@@ -1,6 +1,8 @@
-import React from "react";
+"use client";
+import React, { useState } from "react";
+import { getThumbnailUrl } from "../../utils/api";
 
-interface MediaCardProps {
+interface MusicCardProps {
   title: string;
   artist: string;
   album: string;
@@ -16,32 +18,28 @@ export default function MusicCard({
   userId,
   state,
   thumbnailFileId,
-}: MediaCardProps) {
-  const thumbnailUrl = thumbnailFileId
-    ? `http://localhost:3001/files/id/${thumbnailFileId}`
-    : null;
+}: MusicCardProps) {
+  const [imageError, setImageError] = useState<boolean>(false);
+  const thumbnailUrl = getThumbnailUrl(thumbnailFileId);
 
-  const albumColors: Record<string, string> = {
-    Blue: "bg-blue-900",
-    Revolver: "bg-gray-200 text-black",
-    Starman: "bg-purple-900",
-    Lungs: "bg-red-700",
-    "Knives Out": "bg-red-900",
-    Rumours: "bg-amber-100 text-black",
-    Africa: "bg-red-700",
-    default: "bg-gray-800",
+  const bgColorClass = "bg-gray-800";
+
+  const handleImageError = () => {
+    setImageError(true);
   };
-
-  const bgColorClass = albumColors[album] || albumColors.default;
 
   return (
     <div className="bg-[#1c1c1c] rounded-lg overflow-hidden transition-transform duration-200 hover:-translate-y-1 hover:shadow-lg">
       <div className="relative">
-        {thumbnailUrl ? (
-          <div
-            className="aspect-square bg-cover bg-center"
-            style={{ backgroundImage: `url('${thumbnailUrl}')` }}
-          />
+        {thumbnailUrl && !imageError ? (
+          <div className="aspect-square relative">
+            <img
+              src={thumbnailUrl}
+              alt={`${album} by ${artist}`}
+              className="w-full h-full object-cover"
+              onError={handleImageError}
+            />
+          </div>
         ) : (
           <div
             className={`aspect-square ${bgColorClass} flex items-center justify-center`}
@@ -54,7 +52,18 @@ export default function MusicCard({
             state === "playing" ? "bg-green-500" : "bg-gray-700"
           }`}
         >
-          {state === "playing" ? "Playing" : "Paused"}
+          {state === "playing" ? (
+            <div className="flex items-center">
+              <span className="mr-1">Playing</span>
+              <span className="flex space-x-0.5">
+                <span className="w-0.5 h-2 bg-white animate-pulse"></span>
+                <span className="w-0.5 h-2 bg-white animate-pulse delay-75"></span>
+                <span className="w-0.5 h-2 bg-white animate-pulse delay-150"></span>
+              </span>
+            </div>
+          ) : (
+            "Paused"
+          )}
         </div>
       </div>
       <div className="p-4">
