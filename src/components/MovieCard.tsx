@@ -253,7 +253,9 @@ export default function MovieCard({ item, type, index = 0 }: MovieCardProps) {
                 </div>
                 <div className="stagger-item stagger-delay-4">
                   <p className="text-gray-400 text-sm">Type</p>
-                  <p className="capitalize">{type}</p>
+                  <p className="capitalize">
+                    {type == "movie" ? "Movie" : "TV Show"}
+                  </p>
                 </div>
                 <div className="stagger-item stagger-delay-5 col-span-2">
                   <p className="text-gray-400 text-sm">Session ID</p>
