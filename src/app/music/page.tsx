@@ -1,4 +1,4 @@
-// app/music/page.tsx - Updated to use MediaCard
+// app/music/page.tsx - Updated with last updated info
 "use client";
 
 import Link from "next/link";
@@ -6,14 +6,14 @@ import { useMediaData } from "../../hooks/useMediaData";
 import MusicCard from "../../components/MusicCard";
 
 export default function MusicPage() {
-  const { mediaData, loading, error } = useMediaData();
+  const { mediaData, loading, error, lastUpdated, refreshData } =
+    useMediaData();
 
-  if (loading) {
+  // Format the last updated time
+  const formattedTime = lastUpdated.toLocaleTimeString();
+
+  if (loading && !mediaData) {
     return <div className="p-8 text-white">Loading...</div>;
-  }
-
-  if (error) {
-    return <div className="p-8 text-red-500">Error: {error.message}</div>;
   }
 
   const tracks = mediaData?.tracks || [];
@@ -21,7 +21,12 @@ export default function MusicPage() {
   return (
     <div className="min-h-screen bg-[#141414] p-8 text-white">
       <header className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-12 gap-4">
-        <h1 className="text-4xl font-bold">NOW PLAYING</h1>
+        <div>
+          <h1 className="text-4xl font-bold">NOW PLAYING</h1>
+          <div className="text-gray-400 text-sm mt-1">
+            Last updated: {formattedTime}
+          </div>
+        </div>
         <nav className="flex space-x-8">
           <Link
             href="/music"
@@ -59,6 +64,19 @@ export default function MusicPage() {
           </div>
         )}
       </main>
+
+      {error && (
+        <div className="fixed bottom-4 right-4 bg-red-900/80 text-white p-4 rounded-lg shadow-lg max-w-md">
+          <h3 className="font-bold mb-1">Error refreshing data</h3>
+          <p className="text-sm mb-2">{error.message}</p>
+          <button
+            onClick={refreshData}
+            className="text-xs bg-red-700 hover:bg-red-600 px-3 py-1 rounded transition-colors"
+          >
+            Retry Now
+          </button>
+        </div>
+      )}
     </div>
   );
 }

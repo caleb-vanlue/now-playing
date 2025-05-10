@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 export interface User {
   name: string;
@@ -42,33 +42,56 @@ export interface MediaData {
   episodes: Episode[];
 }
 
-export function useMediaData() {
+const DEFAULT_POLLING_INTERVAL = 5000;
+
+export function useMediaData(pollingInterval = DEFAULT_POLLING_INTERVAL) {
   const [mediaData, setMediaData] = useState<MediaData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
-  useEffect(() => {
-    const fetchMediaData = async () => {
-      try {
-        const response = await fetch("http://localhost:3000/media/current");
+  const fetchData = useCallback(async () => {
+    try {
+      const response = await fetch("http://localhost:3000/media/current");
 
-        if (!response.ok) {
-          throw new Error(`API error: ${response.status}`);
-        }
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
 
-        const data = await response.json();
-        setMediaData(data);
-        setLoading(false);
-      } catch (err) {
-        setError(
-          err instanceof Error ? err : new Error("An unknown error occurred")
-        );
+      const data = await response.json();
+      setMediaData(data);
+      setLastUpdated(new Date());
+      setLoading(false);
+      setError(null);
+    } catch (err) {
+      console.error("Error fetching media data:", err);
+      setError(
+        err instanceof Error ? err : new Error("An unknown error occurred")
+      );
+      if (loading) {
         setLoading(false);
       }
+    }
+  }, [loading]);
+
+  useEffect(() => {
+    fetchData();
+
+    const intervalId = setInterval(fetchData, pollingInterval);
+    return () => {
+      clearInterval(intervalId);
     };
+  }, [fetchData, pollingInterval]);
 
-    fetchMediaData();
-  }, []);
+  const refreshData = useCallback(() => {
+    fetchData();
+  }, [fetchData]);
 
-  return { mediaData, loading, error };
+  return {
+    mediaData,
+    loading,
+    error,
+    lastUpdated,
+    refreshData,
+  };
 }
