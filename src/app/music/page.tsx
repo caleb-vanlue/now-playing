@@ -1,7 +1,9 @@
+// app/music/page.tsx - Updated to use MediaCard
 "use client";
 
 import Link from "next/link";
 import { useMediaData } from "../../hooks/useMediaData";
+import MusicCard from "../../components/MusicCard";
 
 export default function MusicPage() {
   const { mediaData, loading, error } = useMediaData();
@@ -44,26 +46,15 @@ export default function MusicPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {tracks.map((track) => (
-              <div key={track.id} className="bg-[#1c1c1c] rounded-lg p-4">
-                <h2 className="text-xl font-bold">{track.title}</h2>
-                <p>{track.artist}</p>
-                <p className="text-gray-400">{track.album}</p>
-                <div className="mt-2 flex items-center justify-between">
-                  <div className="flex items-center">
-                    <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-xs">
-                      {track.userId.charAt(0)}
-                    </div>
-                    <span className="ml-2">{track.userId}</span>
-                  </div>
-                  <span
-                    className={`px-2 py-1 rounded text-xs ${
-                      track.state === "playing" ? "bg-green-500" : "bg-gray-600"
-                    }`}
-                  >
-                    {track.state === "playing" ? "Playing" : "Paused"}
-                  </span>
-                </div>
-              </div>
+              <MusicCard
+                key={track.id}
+                title={track.title}
+                artist={track.artist}
+                album={track.album}
+                userId={track.userId}
+                state={track.state}
+                thumbnailFileId={track.thumbnailFileId}
+              />
             ))}
           </div>
         )}
