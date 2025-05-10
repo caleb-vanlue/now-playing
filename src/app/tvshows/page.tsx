@@ -17,16 +17,7 @@ export default function TVShowsPage() {
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
           {episodes.map((episode) => (
-            <MovieCard
-              key={episode.id}
-              id={episode.id}
-              title={episode.title}
-              year={`S${episode.season}:E${episode.episode}`}
-              director={episode.showTitle}
-              userId={episode.userId}
-              state={episode.state}
-              thumbnailFileId={episode.thumbnailFileId}
-            />
+            <MovieCard key={episode.id} item={episode} type="tvshow" />
           ))}
         </div>
       )}

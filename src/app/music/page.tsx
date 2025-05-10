@@ -17,15 +17,7 @@ export default function MusicPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {tracks.map((track) => (
-            <MusicCard
-              key={track.id}
-              title={track.title}
-              artist={track.artist}
-              album={track.album}
-              userId={track.userId}
-              state={track.state}
-              thumbnailFileId={track.thumbnailFileId}
-            />
+            <MusicCard key={track.id} track={track} />
           ))}
         </div>
       )}

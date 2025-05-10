@@ -1,25 +1,28 @@
-"use client";
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
+import { Track } from "../../types/media";
 import { getThumbnailUrl } from "../../utils/api";
 
-interface MusicCardProps {
-  title: string;
-  artist: string;
-  album: string;
-  userId: string;
-  state: "playing" | "paused";
-  thumbnailFileId?: string;
+interface MediaCardProps {
+  track: Track;
 }
 
-export default function MusicCard({
-  title,
-  artist,
-  album,
-  userId,
-  state,
-  thumbnailFileId,
-}: MusicCardProps) {
+export default function MediaCard({ track }: MediaCardProps) {
+  const [showDetails, setShowDetails] = useState<boolean>(false);
   const [imageError, setImageError] = useState<boolean>(false);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  const {
+    title,
+    artist,
+    album,
+    userId,
+    state,
+    thumbnailFileId,
+    player,
+    startTime,
+    sessionId,
+  } = track;
+
   const thumbnailUrl = getThumbnailUrl(thumbnailFileId);
 
   const bgColorClass = "bg-gray-800";
@@ -28,55 +31,165 @@ export default function MusicCard({
     setImageError(true);
   };
 
+  const startedAt = new Date(startTime);
+  const timeAgo = getTimeAgo(startedAt);
+
+  const toggleDetails = () => {
+    setShowDetails(!showDetails);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (cardRef.current && !cardRef.current.contains(event.target as Node)) {
+        setShowDetails(false);
+      }
+    };
+
+    if (showDetails) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showDetails]);
+
   return (
-    <div className="bg-[#1c1c1c] rounded-lg overflow-hidden transition-transform duration-200 hover:-translate-y-1 hover:shadow-lg">
-      <div className="relative">
-        {thumbnailUrl && !imageError ? (
-          <div className="aspect-square relative">
-            <img
-              src={thumbnailUrl}
-              alt={`${album} by ${artist}`}
-              className="w-full h-full object-cover"
-              onError={handleImageError}
-            />
-          </div>
-        ) : (
-          <div
-            className={`aspect-square ${bgColorClass} flex items-center justify-center`}
-          >
-            <span className="text-lg font-bold">{album}</span>
-          </div>
-        )}
-        <div
-          className={`absolute top-2 right-2 text-xs px-2 py-1 rounded-full ${
-            state === "playing" ? "bg-green-500" : "bg-gray-700"
-          }`}
-        >
-          {state === "playing" ? (
-            <div className="flex items-center">
-              <span className="mr-1">Playing</span>
-              <span className="flex space-x-0.5">
-                <span className="w-0.5 h-2 bg-white animate-pulse"></span>
-                <span className="w-0.5 h-2 bg-white animate-pulse delay-75"></span>
-                <span className="w-0.5 h-2 bg-white animate-pulse delay-150"></span>
-              </span>
+    <div
+      ref={cardRef}
+      className="bg-[#1c1c1c] rounded-lg overflow-hidden transition-transform duration-200 hover:-translate-y-1 hover:shadow-lg relative"
+    >
+      <div className="cursor-pointer" onClick={toggleDetails}>
+        <div className="relative">
+          {thumbnailUrl && !imageError ? (
+            <div className="aspect-square relative">
+              <img
+                src={thumbnailUrl}
+                alt={`${album} by ${artist}`}
+                className="w-full h-full object-cover"
+                onError={handleImageError}
+              />
             </div>
           ) : (
-            "Paused"
+            <div
+              className={`aspect-square ${bgColorClass} flex items-center justify-center`}
+            >
+              <span className="text-lg font-bold">{album}</span>
+            </div>
           )}
-        </div>
-      </div>
-      <div className="p-4">
-        <h2 className="text-xl font-bold">{title}</h2>
-        <p>{artist}</p>
-        <p className="text-gray-400">{album}</p>
-        <div className="mt-4 flex items-center">
-          <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-xs">
-            {userId.charAt(0)}
+          <div
+            className={`absolute top-2 right-2 text-xs px-2 py-1 rounded-full ${
+              state === "playing" ? "bg-green-500" : "bg-gray-700"
+            }`}
+          >
+            {state === "playing" ? (
+              <div className="flex items-center">
+                <span className="mr-1">Playing</span>
+                <span className="flex space-x-0.5">
+                  <span className="w-0.5 h-2 bg-white animate-pulse"></span>
+                  <span className="w-0.5 h-2 bg-white animate-pulse delay-75"></span>
+                  <span className="w-0.5 h-2 bg-white animate-pulse delay-150"></span>
+                </span>
+              </div>
+            ) : (
+              "Paused"
+            )}
           </div>
-          <span className="ml-2">{userId}</span>
+        </div>
+        <div className="p-4">
+          <h2 className="text-xl font-bold truncate" title={title}>
+            {title}
+          </h2>
+          <p className="truncate" title={artist}>
+            {artist}
+          </p>
+          <p className="text-gray-400 truncate" title={album}>
+            {album}
+          </p>
+          <div className="mt-4 flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-xs">
+                {userId.charAt(0)}
+              </div>
+              <span className="ml-2 truncate max-w-[80px]" title={userId}>
+                {userId}
+              </span>
+            </div>
+            <span className="text-xs text-gray-500">{timeAgo}</span>
+          </div>
         </div>
       </div>
+
+      {showDetails && (
+        <div className="absolute inset-0 bg-black/85 backdrop-blur-sm z-30 rounded-lg overflow-hidden flex flex-col">
+          <div className="flex justify-between items-start p-4">
+            <h2 className="text-xl font-bold">{title}</h2>
+            <button
+              onClick={toggleDetails}
+              className="text-gray-400 hover:text-white"
+            >
+              ×
+            </button>
+          </div>
+
+          <div className="p-4">
+            <div className="mb-4">
+              <p className="text-gray-400 text-sm">Artist</p>
+              <p>{artist}</p>
+            </div>
+
+            <div className="mb-4">
+              <p className="text-gray-400 text-sm">Album</p>
+              <p>{album}</p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <p className="text-gray-400 text-sm">Device</p>
+                <p>{player}</p>
+              </div>
+              <div>
+                <p className="text-gray-400 text-sm">User</p>
+                <p>{userId}</p>
+              </div>
+              <div>
+                <p className="text-gray-400 text-sm">Started</p>
+                <p>{startedAt.toLocaleTimeString()}</p>
+              </div>
+              <div>
+                <p className="text-gray-400 text-sm">Status</p>
+                <p className="capitalize">{state}</p>
+              </div>
+              <div className="col-span-2">
+                <p className="text-gray-400 text-sm">Session ID</p>
+                <p className="font-mono text-xs">{sessionId}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
+}
+
+function getTimeAgo(date: Date): string {
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffSec = Math.round(diffMs / 1000);
+  const diffMin = Math.round(diffSec / 60);
+
+  if (diffMin < 1) {
+    return "Just now";
+  } else if (diffMin === 1) {
+    return "1 minute ago";
+  } else if (diffMin < 60) {
+    return `${diffMin} minutes ago`;
+  } else {
+    const diffHours = Math.round(diffMin / 60);
+    if (diffHours === 1) {
+      return "1 hour ago";
+    } else {
+      return `${diffHours} hours ago`;
+    }
+  }
 }

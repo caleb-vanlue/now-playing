@@ -17,16 +17,7 @@ export default function MoviesPage() {
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
           {movies.map((movie) => (
-            <MovieCard
-              key={movie.id}
-              id={movie.id}
-              title={movie.title}
-              year={movie.year}
-              director={movie.director}
-              userId={movie.userId}
-              state={movie.state}
-              thumbnailFileId={movie.thumbnailFileId}
-            />
+            <MovieCard key={movie.id} item={movie} type="movie" />
           ))}
         </div>
       )}
