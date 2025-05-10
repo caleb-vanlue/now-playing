@@ -1,9 +1,10 @@
 import { MediaData } from "../types/media";
 
-const MEDIA_API_URL = "http://localhost:3000";
-const FILES_API_URL = "http://localhost:3001";
-
-const FETCH_TIMEOUT = 8000;
+const MEDIA_API_URL =
+  process.env.NEXT_PUBLIC_MEDIA_API_URL || "http://localhost:3000";
+const FILES_API_URL =
+  process.env.NEXT_PUBLIC_FILES_API_URL || "http://localhost:3001";
+const FETCH_TIMEOUT = parseInt(process.env.NEXT_PUBLIC_FETCH_TIMEOUT || "8000");
 
 export async function fetchWithTimeout(
   url: string,
