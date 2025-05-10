@@ -40,14 +40,6 @@ export default function MovieCard({ item, type, index = 0 }: MovieCardProps) {
 
   const bgColorClass = "bg-gray-800";
 
-  const handleImageError = () => {
-    setImageError(true);
-  };
-
-  const handleImageLoaded = () => {
-    setImageLoaded(true);
-  };
-
   const startedAt = new Date(startTime);
   const timeAgo = getTimeAgo(startedAt);
 

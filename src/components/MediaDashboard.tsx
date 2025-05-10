@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMediaData } from "../hooks/useMediaData";
 import NavigationTabs from "./NavigationTabs";
@@ -15,7 +14,6 @@ export default function MediaDashboard({
   children,
   pollingInterval = 5000,
 }: MediaDashboardProps) {
-  const pathname = usePathname();
   const { mediaData, loading, error, lastUpdated, refreshData } =
     useMediaData(pollingInterval);
 
@@ -29,7 +27,7 @@ export default function MediaDashboard({
     }, pollingInterval);
 
     return () => clearInterval(intervalId);
-  }, [lastUpdated]);
+  }, [lastUpdated, pollingInterval]);
 
   const [showLoading, setShowLoading] = React.useState(loading && !mediaData);
 
