@@ -28,6 +28,6 @@ COPY --from=builder /app/.next/static ./.next/static
 ENV NEXT_PUBLIC_MEDIA_API_URL=${NEXT_PUBLIC_MEDIA_API_URL}
 ENV NEXT_PUBLIC_FILES_API_URL=${NEXT_PUBLIC_FILES_API_URL}
 
-EXPOSE 3000
+EXPOSE 3002
 
 CMD ["node", "server.js"]
