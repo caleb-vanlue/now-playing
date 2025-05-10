@@ -27,4 +27,4 @@ networks:
   host-network:
     name: host-network
     driver: bridge
-    external: false
+    external: true
