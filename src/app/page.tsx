@@ -1,6 +1,62 @@
 import Link from "next/link";
+import MediaCard from "../components/MediaCard";
+
+interface MediaItem {
+  id: string;
+  title: string;
+  artist: string;
+  album: string;
+  user: {
+    name: string;
+  };
+}
 
 export default function Home() {
+  const mediaItems: MediaItem[] = [
+    {
+      id: "1",
+      title: "Blue",
+      artist: "Joni Mitchell",
+      album: "Blue",
+      user: { name: "Emma" },
+    },
+    {
+      id: "2",
+      title: "Eleanor Rigby",
+      artist: "The Beatles",
+      album: "Revolver",
+      user: { name: "Kyle" },
+    },
+    {
+      id: "3",
+      title: "Starman",
+      artist: "David Bowie",
+      album: "Starman",
+      user: { name: "Sarah" },
+    },
+    {
+      id: "4",
+      title: "Knives Out",
+      artist: "Radiohead",
+      album: "Knives Out",
+      user: { name: "Tom" },
+    },
+    {
+      id: "5",
+      title: "Dreams",
+      artist: "Fleetwood Mac",
+      album: "Rumours",
+      user: { name: "Alex" },
+    },
+    {
+      id: "6",
+      title: "Africa",
+      artist: "Toto",
+      album: "Africa",
+      user: { name: "Maya" },
+    },
+  ];
+
   return (
     <div className="min-h-screen p-8">
       <header className="flex justify-between items-center mb-12">
@@ -23,20 +79,14 @@ export default function Home() {
 
       <main>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3, 4, 5, 6].map((item) => (
-            <div
-              key={item}
-              className="bg-[#171717] rounded-lg overflow-hidden p-4"
-            >
-              <div className="aspect-square bg-gray-800 mb-4"></div>
-              <h2 className="text-xl font-bold">Album Title</h2>
-              <p>Artist Name</p>
-              <p className="text-gray-400">Album Name</p>
-              <div className="mt-4 flex items-center">
-                <div className="w-8 h-8 rounded-full bg-gray-700"></div>
-                <span className="ml-2">Username</span>
-              </div>
-            </div>
+          {mediaItems.map((item) => (
+            <MediaCard
+              key={item.id}
+              title={item.title}
+              artist={item.artist}
+              album={item.album}
+              user={item.user}
+            />
           ))}
         </div>
       </main>
