@@ -30,7 +30,7 @@ export default function MusicCard({
   const bgColorClass = albumColors[album] || albumColors.default;
 
   return (
-    <div className="bg-[#171717] rounded-lg overflow-hidden transition-transform duration-200 hover:-translate-y-1 hover:shadow-lg">
+    <div className="bg-[#1c1c1c] rounded-lg overflow-hidden transition-transform duration-200 hover:-translate-y-1 hover:shadow-lg">
       <div className="relative">
         <div
           className={`aspect-square ${bgColorClass} flex items-center justify-center`}

@@ -61,7 +61,7 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-screen p-8">
+    <div className="min-h-screen bg-[#141414] p-8">
       <header className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-12 gap-4">
         <h1 className="text-4xl font-bold">NOW PLAYING</h1>
         <nav className="flex space-x-8">

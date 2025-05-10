@@ -36,7 +36,7 @@ export default function MovieCard({
   const bgColorClass = colorMap[title] || colorMap.default;
 
   return (
-    <div className="bg-[#171717] rounded-lg overflow-hidden transition-transform duration-200 hover:-translate-y-1 hover:shadow-lg">
+    <div className="bg-[#1c1c1c] rounded-lg overflow-hidden transition-transform duration-200 hover:-translate-y-1 hover:shadow-lg">
       <div className="relative">
         <div
           className={`aspect-[2/3] ${bgColorClass} flex items-center justify-center p-4 text-center`}
