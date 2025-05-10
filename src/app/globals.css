@@ -6,18 +6,69 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --card-background: #1c1c1c;
+  --card-background-hover: #252525;
   --accent: #ff6b00;
+  --accent-light: #ff8a3d;
   --nav-inactive: #808080;
   --font-sans: var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont,
     "Segoe UI", Roboto, sans-serif;
 }
 
 body {
-  background: var(--background);
+  background: linear-gradient(
+    135deg,
+    var(--background) 0%,
+    #121212 50%,
+    #181818 100%
+  );
+  background-attachment: fixed;
   color: var(--foreground);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.bg-animated-gradient {
+  position: relative;
+  overflow: hidden;
+}
+
+.bg-animated-gradient::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(
+    circle at center,
+    rgba(255, 107, 0, 0.03) 0%,
+    rgba(20, 20, 20, 0) 50%
+  );
+  opacity: 0.5;
+  animation: pulseGradient 15s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes pulseGradient {
+  0% {
+    transform: translate(-10%, -10%) rotate(0deg);
+    opacity: 0.3;
+  }
+  50% {
+    transform: translate(10%, 10%) rotate(180deg);
+    opacity: 0.5;
+  }
+  100% {
+    transform: translate(-10%, -10%) rotate(360deg);
+    opacity: 0.3;
+  }
+}
+
+a,
+button,
+.card-transition {
+  transition: all 0.2s ease-out;
 }
 
 a {
@@ -26,4 +77,117 @@ a {
 
 a:hover {
   color: var(--accent);
+}
+
+@keyframes equalizerBar {
+  0% {
+    height: 2px;
+  }
+  50% {
+    height: 8px;
+  }
+  100% {
+    height: 2px;
+  }
+}
+
+.equalizer-bar:nth-child(1) {
+  animation: equalizerBar 0.9s ease-in-out infinite;
+}
+
+.equalizer-bar:nth-child(2) {
+  animation: equalizerBar 0.9s ease-in-out 0.2s infinite;
+}
+
+.equalizer-bar:nth-child(3) {
+  animation: equalizerBar 0.9s ease-in-out 0.4s infinite;
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.slide-up {
+  animation: slideUp 0.3s ease-out forwards;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stagger-item {
+  opacity: 0;
+  animation: staggerFadeIn 0.5s ease-out forwards;
+}
+
+.stagger-delay-1 {
+  animation-delay: 0.05s;
+}
+.stagger-delay-2 {
+  animation-delay: 0.1s;
+}
+.stagger-delay-3 {
+  animation-delay: 0.15s;
+}
+.stagger-delay-4 {
+  animation-delay: 0.2s;
+}
+.stagger-delay-5 {
+  animation-delay: 0.25s;
+}
+.stagger-delay-6 {
+  animation-delay: 0.3s;
+}
+.stagger-delay-7 {
+  animation-delay: 0.35s;
+}
+.stagger-delay-8 {
+  animation-delay: 0.4s;
+}
+
+@keyframes staggerFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 10px;
+  transition: "background" 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
 }
