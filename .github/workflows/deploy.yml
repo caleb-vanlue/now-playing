@@ -1,4 +1,4 @@
-name: deploy
+name: Deploy Plex Dashboard
 
 on:
   push:
@@ -19,7 +19,7 @@ jobs:
           NEXT_PUBLIC_MEDIA_API_URL: ${{ secrets.NEXT_PUBLIC_MEDIA_API_URL }}
           NEXT_PUBLIC_FILES_API_URL: ${{ secrets.NEXT_PUBLIC_FILES_API_URL }}
         run: |
-          docker-compose build --build-arg NEXT_PUBLIC_MEDIA_API_URL=$env:NEXT_PUBLIC_MEDIA_API_URL --build-arg NEXT_PUBLIC_FILES_API_URL=$env:NEXT_PUBLIC_FILES_API_URL plex-dashboard
+          docker-compose build --build-arg NEXT_PUBLIC_MEDIA_API_URL="$env:NEXT_PUBLIC_MEDIA_API_URL" --build-arg NEXT_PUBLIC_FILES_API_URL="$env:NEXT_PUBLIC_FILES_API_URL" plex-dashboard
 
       - name: Deploy service
         shell: powershell
@@ -28,23 +28,24 @@ jobs:
           NEXT_PUBLIC_MEDIA_API_URL: ${{ secrets.NEXT_PUBLIC_MEDIA_API_URL }}
           NEXT_PUBLIC_FILES_API_URL: ${{ secrets.NEXT_PUBLIC_FILES_API_URL }}
         run: |
-          "NEXT_PUBLIC_MEDIA_API_URL=$env:NEXT_PUBLIC_MEDIA_API_URL`nNEXT_PUBLIC_FILES_API_URL=$env:NEXT_PUBLIC_FILES_API_URL" | Out-File -Encoding utf8 .env.temp
+          @"
+          NODE_ENV=production
+          NEXT_PUBLIC_MEDIA_API_URL=$env:NEXT_PUBLIC_MEDIA_API_URL
+          NEXT_PUBLIC_FILES_API_URL=$env:NEXT_PUBLIC_FILES_API_URL
+          "@ | Out-File -Encoding utf8 .env
 
           $containerExists = docker ps -a --filter "name=plex-dashboard" --format "{{.Names}}"
           if ($containerExists) {
-            Write-Host "Stopping existing container"
-            docker-compose stop plex-dashboard
-            docker-compose rm -f plex-dashboard
-          } else {
-            Write-Host "Container doesn't exist, continuing..."
+            Write-Host "Stopping and removing existing container..."
+            docker stop plex-dashboard
+            docker rm plex-dashboard
           }
 
-          docker-compose --env-file .env.temp up -d plex-dashboard
-          Remove-Item .env.temp
+          docker-compose up -d plex-dashboard
 
-          docker-compose ps
+          docker ps -f name=plex-dashboard
 
       - name: Cleanup
         shell: powershell
         run: |
-          docker image prune -f
+          docker image prune -a --filter "until=72h" --force

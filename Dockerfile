@@ -25,9 +25,8 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 
-ENV NEXT_PUBLIC_MEDIA_API_URL=${NEXT_PUBLIC_MEDIA_API_URL}
-ENV NEXT_PUBLIC_FILES_API_URL=${NEXT_PUBLIC_FILES_API_URL}
 ENV HOSTNAME=0.0.0.0
+ENV PORT=3002
 
 EXPOSE 3002
 
