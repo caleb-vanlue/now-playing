@@ -8,11 +8,9 @@ services:
       args:
         - NEXT_PUBLIC_MEDIA_API_URL=${NEXT_PUBLIC_MEDIA_API_URL}
         - NEXT_PUBLIC_FILES_API_URL=${NEXT_PUBLIC_FILES_API_URL}
-        - HOSTNAME=0.0.0.0
+        - PORT=3002
 
     container_name: plex-dashboard
-    ports:
-      - "0.0.0.0:3002:3000"
     network_mode: "host"
     environment:
       - NODE_ENV=${NODE_ENV:-production}
