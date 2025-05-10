@@ -1,20 +1,22 @@
 import React from "react";
 
-interface MediaCardProps {
+interface MusicCardProps {
   title: string;
   artist: string;
   album: string;
   user: {
     name: string;
   };
+  isPlaying?: boolean;
 }
 
-export default function MediaCard({
+export default function MusicCard({
   title,
   artist,
   album,
   user,
-}: MediaCardProps) {
+  isPlaying = false,
+}: MusicCardProps) {
   const albumColors: Record<string, string> = {
     Blue: "bg-blue-900",
     Revolver: "bg-gray-200 text-black",
@@ -28,11 +30,18 @@ export default function MediaCard({
   const bgColorClass = albumColors[album] || albumColors.default;
 
   return (
-    <div className="bg-[#171717] rounded-lg overflow-hidden">
-      <div
-        className={`aspect-square ${bgColorClass} flex items-center justify-center`}
-      >
-        <span className="text-lg font-bold">{album}</span>
+    <div className="bg-[#171717] rounded-lg overflow-hidden transition-transform duration-200 hover:-translate-y-1 hover:shadow-lg">
+      <div className="relative">
+        <div
+          className={`aspect-square ${bgColorClass} flex items-center justify-center`}
+        >
+          <span className="text-lg font-bold">{album}</span>
+        </div>
+        {isPlaying && (
+          <div className="absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+            Now Playing
+          </div>
+        )}
       </div>
       <div className="p-4">
         <h2 className="text-xl font-bold">{title}</h2>

@@ -1,5 +1,6 @@
+// page.tsx - mark one item as playing
 import Link from "next/link";
-import MediaCard from "../components/MediaCard";
+import MusicCard from "../components/MusicCard";
 
 interface MediaItem {
   id: string;
@@ -9,6 +10,7 @@ interface MediaItem {
   user: {
     name: string;
   };
+  isPlaying?: boolean;
 }
 
 export default function Home() {
@@ -19,6 +21,7 @@ export default function Home() {
       artist: "Joni Mitchell",
       album: "Blue",
       user: { name: "Emma" },
+      isPlaying: true,
     },
     {
       id: "2",
@@ -59,7 +62,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen p-8">
-      <header className="flex justify-between items-center mb-12">
+      <header className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-12 gap-4">
         <h1 className="text-4xl font-bold">NOW PLAYING</h1>
         <nav className="flex space-x-8">
           <Link
@@ -80,12 +83,13 @@ export default function Home() {
       <main>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {mediaItems.map((item) => (
-            <MediaCard
+            <MusicCard
               key={item.id}
               title={item.title}
               artist={item.artist}
               album={item.album}
               user={item.user}
+              isPlaying={item.isPlaying}
             />
           ))}
         </div>
