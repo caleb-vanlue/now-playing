@@ -124,7 +124,7 @@ export default function MediaDashboard({
               transition={{ duration: 0.5, delay: 0.3 }}
               className="text-4xl font-bold"
             >
-              Now Playing 💃
+              Now Playing 💃 🎬 📺
             </motion.h1>
             <motion.div
               initial={{ opacity: 0 }}
