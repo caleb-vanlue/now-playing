@@ -114,104 +114,82 @@ export default function MediaDashboard({
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
-        className="fixed top-0 left-0 right-0 z-20 bg-[#141414]/95 backdrop-blur-md px-8 pt-8 pb-1 border-b border-gray-800/30 shadow-lg"
+        className="fixed top-0 left-0 right-0 z-20 bg-[#141414]/95 backdrop-blur-md px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-2 border-b border-gray-800/30 shadow-lg"
       >
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-2 gap-4">
-          {" "}
-          <div>
-            <div className="flex flex-col">
-              <div className="flex items-center">
-                <motion.header
-                  ref={headerRef}
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.2 }}
-                  className="fixed top-0 left-0 right-0 z-20 bg-[#141414]/95 backdrop-blur-md px-8 pt-8 pb-1 border-b border-gray-800/30 shadow-lg"
-                >
-                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-2 gap-4">
-                    <div>
-                      <div className="flex items-center flex-wrap gap-y-2">
-                        <motion.h1
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ duration: 0.5, delay: 0.3 }}
-                          className="text-4xl font-bold mr-4"
-                        >
-                          Now Playing 🎶 🎬 📺
-                        </motion.h1>
-                      </div>
-
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.5, delay: 0.4 }}
-                        className="text-gray-400 text-sm mt-1"
-                      >
-                        Last updated: {formattedTime} • {totalCount} active
-                        session
-                        {totalCount !== 1 ? "s" : ""}
-                      </motion.div>
-                    </div>
-
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.5, delay: 0.4 }}
-                      className="flex items-center"
-                    >
-                      <span className="text-gray-400 mr-2 text-xl">
-                        Powered by
-                      </span>
-                      <Image
-                        src="/images/plex.png"
-                        alt="Plex"
-                        width={70}
-                        height={28}
-                        className="inline-block"
-                        priority
-                      />
-                    </motion.div>
-
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.5, delay: 0.3 }}
-                    >
-                      <NavigationTabs items={navItems} />
-                    </motion.div>
-                  </div>
-                </motion.header>
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.5, delay: 0.5 }}
-                  className="ml-4 bg-[#282a2d] text-white text-xs px-2 py-1 rounded-md flex items-center border border-gray-700"
-                >
-                  <span className="mr-1">Powered by</span>
-                  <Image
-                    src="/images/plex.png"
-                    alt="Plex"
-                    width={40}
-                    height={16}
-                    className="inline-block"
-                  />
-                </motion.div>
-              </div>
+        <div className="w-full flex flex-col md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col mb-3 md:mb-0">
+            <div className="flex items-center">
+              <motion.h1
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                className="text-3xl sm:text-4xl font-bold"
+              >
+                Now Playing
+              </motion.h1>
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ duration: 0.5, delay: 0.4 }}
-                className="text-gray-400 text-sm mt-1"
+                transition={{ duration: 0.5, delay: 0.3 }}
+                className="flex items-center ml-2"
               >
-                Last updated: {formattedTime} • {totalCount} active session
-                {totalCount !== 1 ? "s" : ""}
+                <span className="text-2xl">🎶</span>
+                <span className="text-2xl ml-1">🎬</span>
+                <span className="text-2xl ml-1">📺</span>
               </motion.div>
             </div>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+              className="text-gray-400 text-sm mt-1"
+            >
+              Last updated: {formattedTime} • {totalCount} active session
+              {totalCount !== 1 ? "s" : ""}
+            </motion.div>
           </div>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            className="hidden md:flex items-center"
+          >
+            <span className="text-gray-400 mr-2 text-sm">Powered by</span>
+            <Image
+              src="/images/plex.png"
+              alt="Plex"
+              width={70}
+              height={28}
+              className="inline-block"
+              priority
+            />
+          </motion.div>
+        </div>
+
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-2 md:mt-3">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            className="md:hidden flex items-center justify-center mb-3 sm:mb-0"
+          >
+            <span className="text-gray-400 mr-2 text-sm">Powered by</span>
+            <Image
+              src="/images/plex.png"
+              alt="Plex"
+              width={70}
+              height={28}
+              className="inline-block"
+              priority
+            />
+          </motion.div>
+
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
+            className="w-full sm:w-auto"
           >
             <NavigationTabs items={navItems} />
           </motion.div>
@@ -226,7 +204,7 @@ export default function MediaDashboard({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.5 }}
-          className="p-8 pt-4 pb-16"
+          className="p-4 sm:p-6 lg:p-8 pt-4 pb-16"
         >
           {children}
         </motion.main>
