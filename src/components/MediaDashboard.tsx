@@ -114,7 +114,7 @@ export default function MediaDashboard({
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
-        className="fixed top-0 left-0 right-0 z-20 bg-[#141414]/95 backdrop-blur-md px-8 pt-8 pb-1 border-b border-gray-800/30 shadow-lg" // Reduced bottom padding (pb-1)
+        className="fixed top-0 left-0 right-0 z-20 bg-[#141414]/95 backdrop-blur-md px-8 pt-8 pb-1 border-b border-gray-800/30 shadow-lg"
       >
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-2 gap-4">
           {" "}
