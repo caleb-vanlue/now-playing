@@ -6,17 +6,19 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        - NEXT_PUBLIC_MEDIA_API_URL=${NEXT_PUBLIC_MEDIA_API_URL}
-        - NEXT_PUBLIC_FILES_API_URL=${NEXT_PUBLIC_FILES_API_URL}
-    container_name: plex-dashboard
+        - NEXT_PUBLIC_PLEX_URL=${NEXT_PUBLIC_PLEX_URL}
+        - NEXT_PUBLIC_PLEX_TOKEN=${NEXT_PUBLIC_PLEX_TOKEN}
+        - NEXT_PUBLIC_FETCH_TIMEOUT=${NEXT_PUBLIC_FETCH_TIMEOUT:-8000}
+    container_name: plex-api-dashboard
     ports:
-      - "0.0.0.0:3002:3002"
+      - "0.0.0.0:3003:3003"
     networks:
       - app-network
     environment:
       - NODE_ENV=${NODE_ENV:-production}
-      - NEXT_PUBLIC_MEDIA_API_URL=${NEXT_PUBLIC_MEDIA_API_URL}
-      - NEXT_PUBLIC_FILES_API_URL=${NEXT_PUBLIC_FILES_API_URL}
+      - NEXT_PUBLIC_PLEX_URL=${NEXT_PUBLIC_PLEX_URL}
+      - NEXT_PUBLIC_PLEX_TOKEN=${NEXT_PUBLIC_PLEX_TOKEN}
+      - NEXT_PUBLIC_FETCH_TIMEOUT=${NEXT_PUBLIC_FETCH_TIMEOUT:-8000}
     restart: unless-stopped
     extra_hosts:
       - "host.docker.internal:host-gateway"

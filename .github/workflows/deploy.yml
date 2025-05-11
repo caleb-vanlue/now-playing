@@ -1,14 +1,14 @@
-name: Deploy Plex Dashboard
+name: Deploy Plex API Dashboard
 
 on:
   push:
-    branches: [main]
+    branches: [dev]
   workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: self-hosted
-    environment: production
+    environment: dev
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -16,22 +16,25 @@ jobs:
       - name: Build Docker image
         shell: powershell
         env:
-          NEXT_PUBLIC_MEDIA_API_URL: ${{ secrets.NEXT_PUBLIC_MEDIA_API_URL }}
-          NEXT_PUBLIC_FILES_API_URL: ${{ secrets.NEXT_PUBLIC_FILES_API_URL }}
+          NEXT_PUBLIC_PLEX_URL: ${{ secrets.NEXT_PUBLIC_PLEX_URL }}
+          NEXT_PUBLIC_PLEX_TOKEN: ${{ secrets.NEXT_PUBLIC_PLEX_TOKEN }}
+          NEXT_PUBLIC_FETCH_TIMEOUT: ${{ secrets.NEXT_PUBLIC_FETCH_TIMEOUT }}
         run: |
-          docker-compose build --build-arg NEXT_PUBLIC_MEDIA_API_URL="$env:NEXT_PUBLIC_MEDIA_API_URL" --build-arg NEXT_PUBLIC_FILES_API_URL="$env:NEXT_PUBLIC_FILES_API_URL" plex-dashboard
+          docker-compose build --build-arg NEXT_PUBLIC_PLEX_URL="$env:NEXT_PUBLIC_PLEX_URL" --build-arg NEXT_PUBLIC_PLEX_TOKEN="$env:NEXT_PUBLIC_PLEX_TOKEN" --build-arg NEXT_PUBLIC_FETCH_TIMEOUT="$env:NEXT_PUBLIC_FETCH_TIMEOUT" plex-dashboard
 
       - name: Deploy service
         shell: powershell
         env:
           NODE_ENV: production
-          NEXT_PUBLIC_MEDIA_API_URL: ${{ secrets.NEXT_PUBLIC_MEDIA_API_URL }}
-          NEXT_PUBLIC_FILES_API_URL: ${{ secrets.NEXT_PUBLIC_FILES_API_URL }}
+          NEXT_PUBLIC_PLEX_URL: ${{ secrets.NEXT_PUBLIC_PLEX_URL }}
+          NEXT_PUBLIC_PLEX_TOKEN: ${{ secrets.NEXT_PUBLIC_PLEX_TOKEN }}
+          NEXT_PUBLIC_FETCH_TIMEOUT: ${{ secrets.NEXT_PUBLIC_FETCH_TIMEOUT }}
         run: |
           @"
           NODE_ENV=production
-          NEXT_PUBLIC_MEDIA_API_URL=$env:NEXT_PUBLIC_MEDIA_API_URL
-          NEXT_PUBLIC_FILES_API_URL=$env:NEXT_PUBLIC_FILES_API_URL
+          NEXT_PUBLIC_PLEX_URL=$env:NEXT_PUBLIC_PLEX_URL
+          NEXT_PUBLIC_PLEX_TOKEN=$env:NEXT_PUBLIC_PLEX_TOKEN
+          NEXT_PUBLIC_FETCH_TIMEOUT=$env:NEXT_PUBLIC_FETCH_TIMEOUT
           "@ | Out-File -Encoding utf8 .env
 
           $containerExists = docker ps -a --filter "name=plex-dashboard" --format "{{.Names}}"
