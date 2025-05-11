@@ -177,7 +177,7 @@ export default function TVShowCard({ item, index = 0 }: TVShowCardProps) {
             className={`absolute top-2 right-2 text-xs px-2 py-1 rounded-full
               ${
                 state === "playing"
-                  ? "bg-orange-500 shadow-sm shadow-orange-500/30"
+                  ? "bg-green-500 shadow-sm shadow-green-500/30"
                   : "bg-gray-700"
               }`}
           >
