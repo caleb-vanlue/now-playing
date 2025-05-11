@@ -22,11 +22,9 @@ export function useMediaData(pollingInterval = DEFAULT_POLLING_INTERVAL) {
       setError(
         err instanceof Error ? err : new Error("An unknown error occurred")
       );
-      if (loading) {
-        setLoading(false);
-      }
+      setLoading(false);
     }
-  }, [loading]);
+  }, []);
 
   useEffect(() => {
     fetchData();
