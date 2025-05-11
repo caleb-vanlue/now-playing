@@ -1,14 +1,14 @@
-name: Deploy Plex API Dashboard
+name: Deploy Plex Dashboard
 
 on:
   push:
-    branches: [dev]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: self-hosted
-    environment: dev
+    environment: production
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -16,37 +16,37 @@ jobs:
       - name: Build Docker image
         shell: powershell
         env:
-          NEXT_PUBLIC_PLEX_URL: ${{ secrets.NEXT_PUBLIC_PLEX_URL }}
-          NEXT_PUBLIC_PLEX_TOKEN: ${{ secrets.NEXT_PUBLIC_PLEX_TOKEN }}
-          NEXT_PUBLIC_FETCH_TIMEOUT: ${{ secrets.NEXT_PUBLIC_FETCH_TIMEOUT }}
+          FETCH_TIMEOUT: ${{ secrets.FETCH_TIMEOUT }}
         run: |
-          docker-compose build --build-arg NEXT_PUBLIC_PLEX_URL="$env:NEXT_PUBLIC_PLEX_URL" --build-arg NEXT_PUBLIC_PLEX_TOKEN="$env:NEXT_PUBLIC_PLEX_TOKEN" --build-arg NEXT_PUBLIC_FETCH_TIMEOUT="$env:NEXT_PUBLIC_FETCH_TIMEOUT" plex-api-dashboard
+          $env:NEXT_PUBLIC_FETCH_TIMEOUT = "${{ secrets.FETCH_TIMEOUT }}"
+
+          docker-compose build
 
       - name: Deploy service
         shell: powershell
         env:
           NODE_ENV: production
-          NEXT_PUBLIC_PLEX_URL: ${{ secrets.NEXT_PUBLIC_PLEX_URL }}
-          NEXT_PUBLIC_PLEX_TOKEN: ${{ secrets.NEXT_PUBLIC_PLEX_TOKEN }}
-          NEXT_PUBLIC_FETCH_TIMEOUT: ${{ secrets.NEXT_PUBLIC_FETCH_TIMEOUT }}
+          PLEX_URL: ${{ secrets.PLEX_URL }}
+          PLEX_TOKEN: ${{ secrets.PLEX_TOKEN }}
+          FETCH_TIMEOUT: ${{ secrets.FETCH_TIMEOUT }}
         run: |
           @"
           NODE_ENV=production
-          NEXT_PUBLIC_PLEX_URL=$env:NEXT_PUBLIC_PLEX_URL
-          NEXT_PUBLIC_PLEX_TOKEN=$env:NEXT_PUBLIC_PLEX_TOKEN
-          NEXT_PUBLIC_FETCH_TIMEOUT=$env:NEXT_PUBLIC_FETCH_TIMEOUT
+          PLEX_URL=${{ secrets.PLEX_URL }}
+          PLEX_TOKEN=${{ secrets.PLEX_TOKEN }}
+          FETCH_TIMEOUT=${{ secrets.FETCH_TIMEOUT }}
           "@ | Out-File -Encoding utf8 .env
 
-          $containerExists = docker ps -a --filter "name=plex-api-dashboard" --format "{{.Names}}"
+          $containerExists = docker ps -a --filter "name=plex-dashboard" --format "{{.Names}}"
           if ($containerExists) {
             Write-Host "Stopping and removing existing container..."
-            docker stop plex-api-dashboard
-            docker rm plex-api-dashboard
+            docker stop plex-dashboard
+            docker rm plex-dashboard
           }
 
-          docker-compose up -d plex-api-dashboard
+          docker-compose up -d
 
-          docker ps -f name=plex-api-dashboard
+          docker ps -f name=plex-dashboard
 
       - name: Cleanup
         shell: powershell

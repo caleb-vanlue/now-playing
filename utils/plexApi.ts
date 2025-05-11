@@ -1,65 +1,6 @@
 import { MediaData, Track, Movie, Episode } from "../types/media";
 
-const PLEX_URL = process.env.NEXT_PUBLIC_PLEX_URL;
-const PLEX_TOKEN = process.env.NEXT_PUBLIC_PLEX_TOKEN;
 const FETCH_TIMEOUT = parseInt(process.env.NEXT_PUBLIC_FETCH_TIMEOUT || "8000");
-
-interface PlexUser {
-  title: string;
-}
-
-interface PlexPlayer {
-  state: string;
-  title?: string;
-  product?: string;
-  machineIdentifier?: string;
-}
-
-interface PlexSession {
-  id?: string;
-}
-
-interface PlexMedia {
-  duration?: number;
-  bitrate?: number;
-  audioCodec?: string;
-  videoCodec?: string;
-  videoResolution?: string;
-}
-
-interface PlexSessionResponse {
-  Session?: PlexSession;
-  User?: PlexUser;
-  Player?: PlexPlayer;
-  Media?: PlexMedia[];
-  type: string;
-  ratingKey: string;
-  title: string;
-  thumb?: string;
-  summary?: string;
-  year?: number;
-  viewOffset?: number;
-  duration?: number;
-
-  studio?: string;
-  director?: string;
-  contentRating?: string;
-
-  artist?: string;
-  album?: string;
-
-  grandparentTitle?: string;
-  parentTitle?: string;
-  parentIndex?: number; // Season number
-  index?: number; // Episode number
-}
-
-interface PlexSessionsResponse {
-  MediaContainer: {
-    size: number;
-    Metadata: PlexSessionResponse[];
-  };
-}
 
 export async function fetchWithTimeout(
   url: string,
@@ -85,7 +26,7 @@ function mapPlexState(plexState: string | undefined): "playing" | "paused" {
   return plexState === "playing" ? "playing" : "paused";
 }
 
-function mapToMovie(session: PlexSessionResponse): Movie {
+function mapToMovie(session: any): Movie {
   const sessionId =
     session.Session?.id || `movie-${session.ratingKey}-${Date.now()}`;
 
@@ -94,10 +35,7 @@ function mapToMovie(session: PlexSessionResponse): Movie {
     title: session.title,
     thumbnailFileId: session.thumb,
     state: mapPlexState(session.Player?.state),
-    userId:
-      session.User?.title == "Irrelativity17"
-        ? "Caleb"
-        : session.User?.title || "Unknown User",
+    userId: session.User?.title || "Unknown User",
     player: session.Player?.title || session.Player?.product || "Video Player",
     startTime: new Date(Date.now() - (session.viewOffset || 0)).toISOString(),
     sessionId: sessionId,
@@ -112,7 +50,7 @@ function mapToMovie(session: PlexSessionResponse): Movie {
   };
 }
 
-function mapToEpisode(session: PlexSessionResponse): Episode {
+function mapToEpisode(session: any): Episode {
   const sessionId =
     session.Session?.id || `episode-${session.ratingKey}-${Date.now()}`;
 
@@ -121,10 +59,7 @@ function mapToEpisode(session: PlexSessionResponse): Episode {
     title: session.title,
     thumbnailFileId: session.thumb,
     state: mapPlexState(session.Player?.state),
-    userId:
-      session.User?.title == "Irrelativity17"
-        ? "Caleb"
-        : session.User?.title || "Unknown User",
+    userId: session.User?.title || "Unknown User",
     player: session.Player?.title || session.Player?.product || "Video Player",
     startTime: new Date(Date.now() - (session.viewOffset || 0)).toISOString(),
     sessionId: sessionId,
@@ -133,13 +68,14 @@ function mapToEpisode(session: PlexSessionResponse): Episode {
     episode: session.index || 0,
     duration: session.duration || session.Media?.[0]?.duration || 0,
     summary: session.summary || "",
+    // Video properties
     videoResolution: session.Media?.[0]?.videoResolution || "",
     audioCodec: session.Media?.[0]?.audioCodec || "",
     contentRating: session.contentRating || "",
   };
 }
 
-function mapToTrack(session: PlexSessionResponse): Track {
+function mapToTrack(session: any): Track {
   const sessionId =
     session.Session?.id || `track-${session.ratingKey}-${Date.now()}`;
 
@@ -148,10 +84,7 @@ function mapToTrack(session: PlexSessionResponse): Track {
     title: session.title,
     thumbnailFileId: session.thumb,
     state: mapPlexState(session.Player?.state),
-    userId:
-      session.User?.title == "Irrelativity17"
-        ? "Caleb"
-        : session.User?.title || "Unknown User",
+    userId: session.User?.title || "Unknown User",
     player: session.Player?.title || session.Player?.product || "Music Player",
     startTime: new Date(Date.now() - (session.viewOffset || 0)).toISOString(),
     sessionId: sessionId,
@@ -164,20 +97,12 @@ function mapToTrack(session: PlexSessionResponse): Track {
 }
 
 export async function fetchPlexData(): Promise<MediaData> {
-  if (!PLEX_URL || !PLEX_TOKEN) {
-    throw new Error("Plex URL or token not configured");
-  }
-
   try {
-    const response = await fetchWithTimeout(
-      `${PLEX_URL}/status/sessions?X-Plex-Token=${PLEX_TOKEN}`,
-      {
-        headers: {
-          Accept: "application/json",
-          "X-Plex-Client-Identifier": "Next-Plex-Dashboard",
-        },
-      }
-    );
+    const response = await fetchWithTimeout(`/api/plex/sessions`, {
+      headers: {
+        Accept: "application/json",
+      },
+    });
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -186,14 +111,14 @@ export async function fetchPlexData(): Promise<MediaData> {
       );
     }
 
-    const data: PlexSessionsResponse = await response.json();
+    const data = await response.json();
     const sessions = data.MediaContainer?.Metadata || [];
 
     const tracks: Track[] = [];
     const movies: Movie[] = [];
     const episodes: Episode[] = [];
 
-    sessions.forEach((session) => {
+    sessions.forEach((session: any) => {
       try {
         if (session.type === "track") {
           tracks.push(mapToTrack(session));
@@ -230,16 +155,7 @@ export async function fetchPlexData(): Promise<MediaData> {
 export function getThumbnailUrl(
   thumbnailPath: string | undefined
 ): string | null {
-  if (!thumbnailPath || !PLEX_URL || !PLEX_TOKEN) return null;
+  if (!thumbnailPath) return null;
 
-  if (thumbnailPath.startsWith("http")) {
-    const separator = thumbnailPath.includes("?") ? "&" : "?";
-    return `${thumbnailPath}${separator}X-Plex-Token=${PLEX_TOKEN}`;
-  }
-
-  return `${PLEX_URL}${thumbnailPath}?X-Plex-Token=${PLEX_TOKEN}`;
-}
-
-export async function fetchMediaData(): Promise<MediaData> {
-  return fetchPlexData();
+  return `/api/plex/thumbnail?path=${encodeURIComponent(thumbnailPath)}`;
 }
