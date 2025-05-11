@@ -20,7 +20,7 @@ jobs:
           NEXT_PUBLIC_PLEX_TOKEN: ${{ secrets.NEXT_PUBLIC_PLEX_TOKEN }}
           NEXT_PUBLIC_FETCH_TIMEOUT: ${{ secrets.NEXT_PUBLIC_FETCH_TIMEOUT }}
         run: |
-          docker-compose build --build-arg NEXT_PUBLIC_PLEX_URL="$env:NEXT_PUBLIC_PLEX_URL" --build-arg NEXT_PUBLIC_PLEX_TOKEN="$env:NEXT_PUBLIC_PLEX_TOKEN" --build-arg NEXT_PUBLIC_FETCH_TIMEOUT="$env:NEXT_PUBLIC_FETCH_TIMEOUT" plex-dashboard
+          docker-compose build --build-arg NEXT_PUBLIC_PLEX_URL="$env:NEXT_PUBLIC_PLEX_URL" --build-arg NEXT_PUBLIC_PLEX_TOKEN="$env:NEXT_PUBLIC_PLEX_TOKEN" --build-arg NEXT_PUBLIC_FETCH_TIMEOUT="$env:NEXT_PUBLIC_FETCH_TIMEOUT" plex-api-dashboard
 
       - name: Deploy service
         shell: powershell
