@@ -116,9 +116,9 @@ export default function MediaDashboard({
         transition={{ duration: 0.5, delay: 0.2 }}
         className="fixed top-0 left-0 right-0 z-20 bg-[#141414]/95 backdrop-blur-md px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-2 border-b border-gray-800/30 shadow-lg"
       >
-        <div className="w-full flex flex-col md:flex-row md:items-center md:justify-between">
-          <div className="flex flex-col mb-3 md:mb-0">
-            <div className="flex items-center">
+        <div className="w-full flex flex-col md:flex-row md:items-center md:justify-between items-center md:items-start">
+          <div className="flex flex-col mb-3 md:mb-0 items-center md:items-start text-center md:text-left">
+            <div className="flex items-center justify-center md:justify-start">
               <motion.h1
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -167,7 +167,7 @@ export default function MediaDashboard({
           </motion.div>
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-2 md:mt-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-2 md:mt-3 items-center">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -189,7 +189,7 @@ export default function MediaDashboard({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
-            className="w-full sm:w-auto"
+            className="w-full sm:w-auto flex justify-center sm:justify-start"
           >
             <NavigationTabs items={navItems} />
           </motion.div>
