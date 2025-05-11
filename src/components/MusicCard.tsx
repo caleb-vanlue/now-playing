@@ -414,7 +414,7 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
                   <p className="capitalize">{state}</p>
                 </div>
 
-                <div className="stagger-item stagger-delay-10 col-span-2 pb-16">
+                <div className="stagger-item stagger-delay-10 col-span-2 pb-24">
                   <p className="text-gray-400 text-sm">Session ID</p>
                   <p className="font-mono text-xs">{sessionId}</p>
                 </div>
