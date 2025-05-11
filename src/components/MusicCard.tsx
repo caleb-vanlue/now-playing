@@ -314,7 +314,7 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
                 >
                   <div className="flex justify-between items-center mb-1 text-sm">
                     <span>{Math.round(progressPercentage)}% complete</span>
-                    <span>Finishes at {formatTime(estimatedFinishTime)}</span>
+                    <span>Ends at {formatTime(estimatedFinishTime)}</span>
                   </div>
                   <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
                     <div
