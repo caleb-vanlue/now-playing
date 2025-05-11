@@ -27,7 +27,7 @@ interface MediaDataProviderProps {
 
 export function MediaDataProvider({
   children,
-  pollingInterval = 5000,
+  pollingInterval = 10000,
 }: MediaDataProviderProps) {
   const mediaDataState = useMediaData(pollingInterval);
 

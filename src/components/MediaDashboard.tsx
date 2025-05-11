@@ -13,7 +13,7 @@ interface MediaDashboardProps {
 
 export default function MediaDashboard({
   children,
-  pollingInterval = 5000,
+  pollingInterval = 10000,
 }: MediaDashboardProps) {
   const { mediaData, loading, error, lastUpdated, refreshData } =
     useMediaDataContext();

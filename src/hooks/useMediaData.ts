@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { MediaData } from "../../types/media";
 import { fetchMediaData } from "../../utils/api";
 
-const DEFAULT_POLLING_INTERVAL = 5000;
+const DEFAULT_POLLING_INTERVAL = 10000;
 
 export function useMediaData(pollingInterval = DEFAULT_POLLING_INTERVAL) {
   const [mediaData, setMediaData] = useState<MediaData | null>(null);
