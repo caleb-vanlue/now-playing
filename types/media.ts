@@ -13,7 +13,7 @@ export interface Track extends MediaBase {
   artist: string;
   album: string;
   audioCodec?: string;
-  bitrate?: number;
+  quality?: string;
   year?: number | null;
 }
 

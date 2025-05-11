@@ -25,7 +25,7 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
     player,
     startTime,
     sessionId,
-    bitrate,
+    quality,
     audioCodec,
     year,
   } = track;
@@ -39,25 +39,6 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
   const toggleDetails = () => {
     setShowDetails(!showDetails);
   };
-
-  function formatAudioQuality(track: Track): string {
-    const parts = [];
-
-    if (track.audioCodec) {
-      parts.push(track.audioCodec.toUpperCase());
-    }
-
-    if (track.bitrate && track.bitrate > 0) {
-      const kbps = Math.round(track.bitrate / 1000);
-      parts.push(`${kbps} kbps`);
-    }
-
-    return parts.join(" • ");
-  }
-
-  const formattedBitrate = bitrate
-    ? `${Math.round(bitrate / 1000)} kbps`
-    : null;
 
   useEffect(() => {
     if (!showDetails) return;
@@ -175,9 +156,7 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
           </p>
 
           {audioCodec && (
-            <p className="text-gray-400 text-xs mt-1">
-              {formatAudioQuality(track)}
-            </p>
+            <p className="text-gray-400 text-xs mt-1">{track.quality}</p>
           )}
 
           <div className="mt-4 flex items-center justify-between">
@@ -273,10 +252,10 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
                     <p className="uppercase">{audioCodec}</p>
                   </div>
                 )}
-                {formattedBitrate && (
+                {track.quality && (
                   <div className="stagger-item stagger-delay-4">
                     <p className="text-gray-400 text-sm">Bitrate</p>
-                    <p>{formattedBitrate}</p>
+                    <p>{track.quality}</p>
                   </div>
                 )}
                 <div className="stagger-item stagger-delay-5">

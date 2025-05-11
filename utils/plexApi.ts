@@ -84,6 +84,9 @@ function mapToEpisode(session: any): Episode {
 function mapToTrack(session: any): Track {
   const sessionId =
     session.Session?.id || `track-${session.ratingKey}-${Date.now()}`;
+  console.log(
+    `${session.Media?.[0].Part?.[0]?.Stream?.[0]?.bitDepth}  ${session.Media?.Part?.Stream?.samplingRate}`
+  );
 
   return {
     id: session.ratingKey,
@@ -100,7 +103,13 @@ function mapToTrack(session: any): Track {
     artist: session.artist || session.grandparentTitle || "Unknown Artist",
     album: session.album || session.parentTitle || "Unknown Album",
     audioCodec: session.Media?.[0]?.audioCodec || "",
-    bitrate: session.Media?.[0]?.bitrate || 0,
+    quality:
+      (session.Media?.[0].Part?.[0]?.Stream?.[0]?.bitDepth &&
+      session.Media?.[0].Part?.[0]?.Stream?.[0]?.samplingRate
+        ? `${
+            session.Media?.[0].Part?.[0]?.Stream?.[0]?.samplingRate / 1000
+          } kHz / ${session.Media?.[0].Part?.[0]?.Stream?.[0]?.bitDepth} bit`
+        : `${session.Media?.[0].Part?.[0]?.Stream?.[0]?.bitrate} kbps`) || "",
     year: session.year || null,
   };
 }
