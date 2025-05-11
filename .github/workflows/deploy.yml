@@ -37,16 +37,16 @@ jobs:
           NEXT_PUBLIC_FETCH_TIMEOUT=$env:NEXT_PUBLIC_FETCH_TIMEOUT
           "@ | Out-File -Encoding utf8 .env
 
-          $containerExists = docker ps -a --filter "name=plex-dashboard" --format "{{.Names}}"
+          $containerExists = docker ps -a --filter "name=plex-api-dashboard" --format "{{.Names}}"
           if ($containerExists) {
             Write-Host "Stopping and removing existing container..."
-            docker stop plex-dashboard
-            docker rm plex-dashboard
+            docker stop plex-api-dashboard
+            docker rm plex-api-dashboard
           }
 
-          docker-compose up -d plex-dashboard
+          docker-compose up -d plex-api-dashboard
 
-          docker ps -f name=plex-dashboard
+          docker ps -f name=plex-api-dashboard
 
       - name: Cleanup
         shell: powershell

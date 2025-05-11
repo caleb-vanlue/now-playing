@@ -24,8 +24,8 @@ A sleek, real-time dashboard for monitoring media currently playing on your Plex
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/caleb-vanlue/plex-dashboard.git
-   cd plex-dashboard
+   git clone https://github.com/caleb-vanlue/plex-api-dashboard.git
+   cd plex-api-dashboard
    ```
 
 2. Install dependencies:
