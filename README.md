@@ -48,8 +48,8 @@ _Mobile Views_
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/caleb-vanlue/plex-api-dashboard.git
-   cd plex-api-dashboard
+   git clone https://github.com/caleb-vanlue/now-playing.git
+   cd now-playing
    ```
 
 2. Install dependencies:
