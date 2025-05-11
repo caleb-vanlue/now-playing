@@ -1,13 +1,13 @@
 "use client";
 
-import { useMediaData } from "../../hooks/useMediaData";
 import MusicCard from "../../components/MusicCard";
 import MediaDashboard from "../../components/MediaDashboard";
 import PageTransition from "../../components/PageTransition";
 import { motion } from "framer-motion";
+import { useMediaDataContext } from "../../components/MediaDataContext";
 
 export default function MusicPage() {
-  const { mediaData } = useMediaData();
+  const { mediaData } = useMediaDataContext();
   const tracks = mediaData?.tracks || [];
 
   const containerVariants = {

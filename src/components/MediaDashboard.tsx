@@ -2,9 +2,9 @@
 
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useMediaData } from "../hooks/useMediaData";
 import NavigationTabs from "./NavigationTabs";
 import Image from "next/image";
+import { useMediaDataContext } from "./MediaDataContext";
 
 interface MediaDashboardProps {
   children: React.ReactNode;
@@ -16,7 +16,7 @@ export default function MediaDashboard({
   pollingInterval = 5000,
 }: MediaDashboardProps) {
   const { mediaData, loading, error, lastUpdated, refreshData } =
-    useMediaData(pollingInterval);
+    useMediaDataContext();
 
   const [formattedTime, setFormattedTime] = useState<string>("Loading...");
 

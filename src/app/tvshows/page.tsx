@@ -1,14 +1,14 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useMediaData } from "../../hooks/useMediaData";
 import MediaDashboard from "../../components/MediaDashboard";
 import PageTransition from "../../components/PageTransition";
 import TVShowCard from "../../components/TVShowCard";
 import { Episode } from "../../../types/media";
+import { useMediaDataContext } from "../../components/MediaDataContext";
 
 export default function TVShowsPage() {
-  const { mediaData } = useMediaData();
+  const { mediaData } = useMediaDataContext();
   const episodes = mediaData?.episodes || [];
 
   const containerVariants = {
