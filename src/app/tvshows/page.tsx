@@ -1,10 +1,10 @@
 "use client";
 
+import { motion } from "framer-motion";
 import { useMediaData } from "../../hooks/useMediaData";
-import MovieCard from "../../components/MovieCard";
 import MediaDashboard from "../../components/MediaDashboard";
 import PageTransition from "../../components/PageTransition";
-import { motion } from "framer-motion";
+import TVShowCard from "../../components/TVShowCard";
 
 export default function TVShowsPage() {
   const { mediaData } = useMediaData();
@@ -33,7 +33,7 @@ export default function TVShowsPage() {
           >
             <p className="text-xl">No TV shows currently playing</p>
             <p className="mt-2">
-              TV shows will appear here when someone starts watching
+              TV shows will appear here when someone starts playing
             </p>
           </motion.div>
         ) : (
@@ -41,15 +41,10 @@ export default function TVShowsPage() {
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6"
+            className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6"
           >
-            {episodes.map((episode, index) => (
-              <MovieCard
-                key={episode.id}
-                item={episode}
-                type="tvshow"
-                index={index}
-              />
+            {episodes.map((episode: any, index: any) => (
+              <TVShowCard key={episode.id} item={episode} index={index} />
             ))}
           </motion.div>
         )}

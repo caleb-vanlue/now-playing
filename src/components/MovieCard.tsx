@@ -1,16 +1,15 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Movie, Episode } from "../../types/media";
+import { Movie } from "../../types/media";
 import { getThumbnailUrl } from "../../utils/api";
 import { getTimeAgo } from "../../utils/dateUtils";
 
 interface MovieCardProps {
-  item: Movie | Episode;
-  type: "movie" | "tvshow";
+  item: Movie;
   index?: number;
 }
 
-export default function MovieCard({ item, type, index = 0 }: MovieCardProps) {
+export default function MovieCard({ item, index = 0 }: MovieCardProps) {
   const [showDetails, setShowDetails] = useState<boolean>(false);
   const [imageError, setImageError] = useState<boolean>(false);
   const [imageLoaded, setImageLoaded] = useState<boolean>(false);
@@ -26,18 +25,14 @@ export default function MovieCard({ item, type, index = 0 }: MovieCardProps) {
     duration,
     summary,
     sessionId,
+    year,
+    contentRating,
+    videoResolution,
+    audioCodec,
+    studio,
   } = item;
 
-  const year =
-    type === "movie"
-      ? (item as Movie).year
-      : `S${(item as Episode).season}:E${(item as Episode).episode}`;
-
-  const directorOrShow =
-    type === "movie" ? (item as Movie).director : (item as Episode).showTitle;
-
   const thumbnailUrl = getThumbnailUrl(thumbnailFileId);
-
   const bgColorClass = "bg-gray-800";
 
   const startedAt = new Date(startTime);
@@ -46,6 +41,20 @@ export default function MovieCard({ item, type, index = 0 }: MovieCardProps) {
   const toggleDetails = () => {
     setShowDetails(!showDetails);
   };
+
+  function formatVideoQuality(movie: Movie): string {
+    const parts = [];
+
+    if (movie.videoResolution) {
+      parts.push(movie.videoResolution.toUpperCase());
+    }
+
+    if (movie.audioCodec) {
+      parts.push(movie.audioCodec.toUpperCase());
+    }
+
+    return parts.join(" • ");
+  }
 
   const durationMinutes = Math.round(duration / 60000);
   const formattedDuration =
@@ -121,6 +130,12 @@ export default function MovieCard({ item, type, index = 0 }: MovieCardProps) {
                 onLoad={() => setImageLoaded(true)}
                 style={{ transition: "opacity 0.3s" }}
               />
+
+              {contentRating && (
+                <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded-md backdrop-blur-sm font-semibold">
+                  {contentRating}
+                </div>
+              )}
             </div>
           ) : (
             <motion.div
@@ -162,9 +177,25 @@ export default function MovieCard({ item, type, index = 0 }: MovieCardProps) {
             {title}
           </h2>
           <p>{year}</p>
-          <p className="text-gray-400 truncate" title={directorOrShow}>
-            {type === "movie" ? "Director:" : "Show:"} {directorOrShow}
-          </p>
+
+          <div className="mt-1">
+            <p className="text-gray-400 text-sm flex items-center gap-2">
+              <span>{formattedDuration}</span>
+              {videoResolution && (
+                <>
+                  <span className="text-gray-600">•</span>
+                  <span className="uppercase">{videoResolution}</span>
+                </>
+              )}
+              {audioCodec && (
+                <>
+                  <span className="text-gray-600">•</span>
+                  <span className="uppercase">{audioCodec}</span>
+                </>
+              )}
+            </p>
+          </div>
+
           <div className="mt-4 flex items-center justify-between">
             <div className="flex items-center">
               <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-xs">
@@ -198,7 +229,20 @@ export default function MovieCard({ item, type, index = 0 }: MovieCardProps) {
               transition={{ delay: 0.1 }}
               className="flex justify-between items-start p-4 border-b border-gray-800/50"
             >
-              <h2 className="text-xl font-bold">{title}</h2>
+              <div>
+                <h2 className="text-xl font-bold">{title}</h2>
+                <div className="flex items-center gap-2 text-sm text-gray-400 mt-1">
+                  <span>{year}</span>
+                  {contentRating && (
+                    <>
+                      <span className="text-gray-600">•</span>
+                      <span>{contentRating}</span>
+                    </>
+                  )}
+                  <span className="text-gray-600">•</span>
+                  <span>{formattedDuration}</span>
+                </div>
+              </div>
               <motion.button
                 whileHover={{ scale: 1.1, rotate: 90 }}
                 whileTap={{ scale: 0.9 }}
@@ -231,25 +275,44 @@ export default function MovieCard({ item, type, index = 0 }: MovieCardProps) {
                 transition={{ delay: 0.3 }}
                 className="grid grid-cols-2 gap-3"
               >
-                <div className="stagger-item stagger-delay-1">
+                {studio && (
+                  <div className="stagger-item stagger-delay-1">
+                    <p className="text-gray-400 text-sm">Studio</p>
+                    <p>{studio}</p>
+                  </div>
+                )}
+                {videoResolution && (
+                  <div className="stagger-item stagger-delay-2">
+                    <p className="text-gray-400 text-sm">Quality</p>
+                    <p className="text-gray-400 text-sm">
+                      {formatVideoQuality(item)}
+                    </p>
+                    ;
+                  </div>
+                )}
+                {audioCodec && (
+                  <div className="stagger-item stagger-delay-3">
+                    <p className="text-gray-400 text-sm">Audio</p>
+                    <p className="uppercase">{audioCodec}</p>
+                  </div>
+                )}
+                <div className="stagger-item stagger-delay-4">
                   <p className="text-gray-400 text-sm">Device</p>
                   <p>{player}</p>
                 </div>
-                <div className="stagger-item stagger-delay-2">
-                  <p className="text-gray-400 text-sm">Duration</p>
-                  <p>{formattedDuration}</p>
+                <div className="stagger-item stagger-delay-5">
+                  <p className="text-gray-400 text-sm">User</p>
+                  <p>{userId}</p>
                 </div>
-                <div className="stagger-item stagger-delay-3">
+                <div className="stagger-item stagger-delay-6">
                   <p className="text-gray-400 text-sm">Started</p>
                   <p>{startedAt.toLocaleTimeString()}</p>
                 </div>
-                <div className="stagger-item stagger-delay-4">
-                  <p className="text-gray-400 text-sm">Type</p>
-                  <p className="capitalize">
-                    {type == "movie" ? "Movie" : "TV Show"}
-                  </p>
+                <div className="stagger-item stagger-delay-7">
+                  <p className="text-gray-400 text-sm">Status</p>
+                  <p className="capitalize">{state}</p>
                 </div>
-                <div className="stagger-item stagger-delay-5 col-span-2">
+                <div className="stagger-item stagger-delay-8 col-span-2">
                   <p className="text-gray-400 text-sm">Session ID</p>
                   <p className="font-mono text-xs">{sessionId}</p>
                 </div>

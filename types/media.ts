@@ -1,7 +1,3 @@
-export interface User {
-  name: string;
-}
-
 export interface MediaBase {
   id: string;
   title: string;
@@ -16,6 +12,9 @@ export interface MediaBase {
 export interface Track extends MediaBase {
   artist: string;
   album: string;
+  audioCodec?: string;
+  bitrate?: number;
+  year?: number | null;
 }
 
 export interface Movie extends MediaBase {
@@ -24,6 +23,9 @@ export interface Movie extends MediaBase {
   studio: string;
   duration: number;
   summary: string;
+  videoResolution?: string;
+  audioCodec?: string;
+  contentRating?: string;
 }
 
 export interface Episode extends MediaBase {
@@ -32,6 +34,9 @@ export interface Episode extends MediaBase {
   episode: number;
   duration: number;
   summary: string;
+  videoResolution?: string;
+  audioCodec?: string;
+  contentRating?: string;
 }
 
 export interface MediaData {
