@@ -319,7 +319,7 @@ export default function TVShowCard({ item, index = 0 }: TVShowCardProps) {
                   <p className="text-gray-400 text-sm">User</p>
                   <p>{userId}</p>
                 </div>
-                <div className="stagger-item stagger-delay-9 col-span-2">
+                <div className="stagger-item stagger-delay-9 col-span-2 pb-4">
                   <p className="text-gray-400 text-sm">Session ID</p>
                   <p className="font-mono text-xs">{sessionId}</p>
                 </div>
