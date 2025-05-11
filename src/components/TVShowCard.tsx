@@ -16,6 +16,8 @@ export default function TVShowCard({ item, index = 0 }: TVShowCardProps) {
   const [imageLoaded, setImageLoaded] = useState<boolean>(false);
   const [avatarError, setAvatarError] = useState<boolean>(false);
   const cardRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
+  const [contentMaxHeight, setContentMaxHeight] = useState("calc(100% - 60px)");
 
   const {
     title,
@@ -90,6 +92,20 @@ export default function TVShowCard({ item, index = 0 }: TVShowCardProps) {
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showDetails]);
+
+  useEffect(() => {
+    if (showDetails && headerRef.current) {
+      const updateContentHeight = () => {
+        const headerHeight = headerRef.current?.offsetHeight || 0;
+        setContentMaxHeight(`calc(100% - ${headerHeight}px)`);
+      };
+
+      updateContentHeight();
+      window.addEventListener("resize", updateContentHeight);
+
+      return () => window.removeEventListener("resize", updateContentHeight);
+    }
   }, [showDetails]);
 
   const cardVariants = {
@@ -271,6 +287,7 @@ export default function TVShowCard({ item, index = 0 }: TVShowCardProps) {
             className="absolute inset-0 z-30 overflow-hidden rounded-lg shadow-xl bg-[#141414]/95 backdrop-blur-sm"
           >
             <motion.div
+              ref={headerRef}
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
@@ -302,7 +319,7 @@ export default function TVShowCard({ item, index = 0 }: TVShowCardProps) {
 
             <div
               className="p-4 overflow-y-auto"
-              style={{ maxHeight: "calc(100% - 60px)" }}
+              style={{ maxHeight: contentMaxHeight }}
             >
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
@@ -388,7 +405,7 @@ export default function TVShowCard({ item, index = 0 }: TVShowCardProps) {
                   <p className="text-gray-400 text-sm">Status</p>
                   <p className="capitalize">{state}</p>
                 </div>
-                <div className="stagger-item stagger-delay-9 col-span-2 pb-4">
+                <div className="stagger-item stagger-delay-9 col-span-2 pb-16">
                   <p className="text-gray-400 text-sm">Session ID</p>
                   <p className="font-mono text-xs">{sessionId}</p>
                 </div>
