@@ -1,25 +1,49 @@
-# Plex Dashboard
+# Now Playing: A Plex Dashboard
 
-A sleek, real-time dashboard for monitoring media currently playing on your Plex server. Track what's playing across movies, TV shows, and music with automatic updates and a beautiful user interface.
+A sleek, real-time dashboard to monitor and display media currently streaming on your Plex server. This application provides a sleek interface showing what's playing right now across music, movies, and TV shows.
+
+![Dashboard Screenshot](screenshots/dashboard.png)
 
 ## Features
 
-- **Real-time Media Monitoring**: View all content currently playing across your Plex server
-- **Multiple Media Types**: Support for movies, TV shows, and music tracks
-- **Live Updates**: Automatic polling and data refresh (configurable interval)
-- **Responsive Design**: Optimized for both desktop and mobile viewing
-- **Beautiful Animations**: Smooth transitions and motion effects using Framer Motion
-- **Detailed Information**: Click on any media item to view comprehensive details
-- **Active Session Tracking**: See who's watching/listening and for how long
-- **Dark Theme**: Easy on the eyes with a sleek, dark interface
+- **Real-time Monitoring**: See what's currently playing on your Plex server with automatic updates
+- **Multi-format Support**: Tracks movies, TV shows, and music streams
+- **Detailed Media Cards**: Rich information including progress, quality, user data, and more
+- **Responsive Design**: Optimized viewing experience on mobile and desktop devices
+- **Spotify Integration**: Direct links to music tracks on Spotify
+- **Animated UI**: Smooth transitions and loading states using Framer Motion
+- **Docker Deployment**: Simple deployment with containerization
+
+## Screenshots
+
+| Movies                                | TV Shows                            | Music                               |
+| ------------------------------------- | ----------------------------------- | ----------------------------------- |
+| ![Movies](screenshots/movies-web.png) | ![TV Shows](screenshots/tv-web.png) | ![Music](screenshots/music-web.png) |
+
+_Mobile Views_
+
+| Movies                                   | TV Shows                               | Music                                  |
+| ---------------------------------------- | -------------------------------------- | -------------------------------------- |
+| ![Movies](screenshots/movies-mobile.png) | ![TV Shows](screenshots/tv-mobile.png) | ![Music](screenshots/music-mobile.png) |
+
+## Tech Stack
+
+- **Frontend**: Next.js 15, React 19, TypeScript
+- **Styling**: Tailwind CSS 4
+- **Animations**: Framer Motion
+- **Containerization**: Docker
+- **APIs**: Plex API, Spotify API
 
 ## Prerequisites
 
-- Node.js (v16+)
-- A running Plex Media Server or compatible API
-- API endpoints for media data and thumbnails, preferably with the custom [plex-activity-tracker](https://github.com/caleb-vanlue/plex-activity-tracker) API, which listens for Plex webhooks, and [file-storage](https://github.com/caleb-vanlue/file-storage) API, which transfers files over a network
+- Node.js 20+
+- Docker and Docker Compose (for containerized deployment)
+- Plex server with a valid token
+- Spotify Developer credentials (for music integration)
 
-## Installation
+## Setup and Installation
+
+### Local Development
 
 1. Clone the repository:
 
@@ -34,13 +58,14 @@ A sleek, real-time dashboard for monitoring media currently playing on your Plex
    npm install
    ```
 
-3. Configure environment variables:
-   Create a `.env.local` file in the root directory with the following variables:
+3. Create a `.env` file in the root directory with the following variables:
 
    ```
-   NEXT_PUBLIC_MEDIA_API_URL=http://your-media-api-url
-   NEXT_PUBLIC_FILES_API_URL=http://your-files-api-url
-   NEXT_PUBLIC_FETCH_TIMEOUT=8000
+   PLEX_URL=your_plex_server_url
+   PLEX_TOKEN=your_plex_token
+   FETCH_TIMEOUT=8000
+   SPOTIFY_CLIENT_ID=your_spotify_client_id
+   SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
    ```
 
 4. Run the development server:
@@ -49,74 +74,56 @@ A sleek, real-time dashboard for monitoring media currently playing on your Plex
    npm run dev
    ```
 
-5. Build for production:
+5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+### Docker Deployment
+
+1. Ensure Docker and Docker Compose are installed.
+
+2. Build and run the container:
+
    ```bash
-   npm run build
-   npm start
+   docker-compose up -d
    ```
+
+3. Access the dashboard at [http://localhost:3003](http://localhost:3003).
 
 ## Configuration
 
-The dashboard can be configured through environment variables:
+### Environment Variables
 
-| Variable                    | Description                      | Default                 |
-| --------------------------- | -------------------------------- | ----------------------- |
-| `NEXT_PUBLIC_MEDIA_API_URL` | URL for the media API            | `http://localhost:3000` |
-| `NEXT_PUBLIC_FILES_API_URL` | URL for the files/thumbnails API | `http://localhost:3001` |
-| `NEXT_PUBLIC_FETCH_TIMEOUT` | Timeout for API requests (in ms) | `8000`                  |
+| Variable                | Description                         | Default    |
+| ----------------------- | ----------------------------------- | ---------- |
+| `PLEX_URL`              | URL of your Plex server             | (Required) |
+| `PLEX_TOKEN`            | Authentication token for Plex API   | (Required) |
+| `FETCH_TIMEOUT`         | Timeout for API requests (ms)       | 8000       |
+| `SPOTIFY_CLIENT_ID`     | Spotify Developer API Client ID     | (Optional) |
+| `SPOTIFY_CLIENT_SECRET` | Spotify Developer API Client Secret | (Optional) |
 
-## Media API
+### Obtaining a Plex Token
 
-The dashboard expects the following API endpoint:
+1. Log in to your Plex account on the web
+2. Navigate to any media item and inspect the network requests
+3. Look for an `X-Plex-Token` parameter in the requests
+4. Use this value as your `PLEX_TOKEN`
 
-- `GET /media/current` - Returns currently playing media across your server
+### Setting Up Spotify Integration
 
-The API should return data in the following format:
+1. Create a Spotify Developer account at [https://developer.spotify.com/](https://developer.spotify.com/)
+2. Create a new application in the Spotify Developer Dashboard
+3. Note the Client ID and Client Secret
+4. Add these values to your environment variables
 
-```typescript
-interface MediaData {
-  tracks: Track[]; // Currently playing music tracks
-  movies: Movie[]; // Currently playing movies
-  episodes: Episode[]; // Currently playing TV episodes
-}
-```
+## API Endpoints
 
-See `types/media.ts` for detailed type definitions.
+The dashboard automatically communicates with your Plex server. If you need direct access to the API, the following endpoints are available:
 
-## Customization
+- `/api/plex/sessions` - Get currently playing sessions
+- `/api/plex/thumbnail` - Get media thumbnails
+- `/api/spotify/search` - Search for tracks on Spotify
 
-### Styling
+## Acknowledgments
 
-The application uses Tailwind CSS for styling. You can customize the appearance by modifying:
-
-- `globals.css` - Contains CSS variables for colors and animations
-- Individual component files - Contains Tailwind classes
-
-### Polling Interval
-
-You can adjust how frequently the dashboard polls for updates by modifying the `pollingInterval` prop in `MediaDashboard.tsx` or when using the `useMediaData` hook.
-
-## Architecture
-
-The application follows a standard Next.js structure:
-
-- `components/` - React components
-- `hooks/` - Custom React hooks
-- `pages/` - Next.js pages/routes
-- `types/` - TypeScript type definitions
-- `utils/` - Utility functions
-
-Key components:
-
-- `MediaDashboard` - Main container component
-- `MovieCard`, `MusicCard` - Media item display cards
-- `NavigationTabs` - Tabs for switching between media types
-- `useMediaData` - Hook for fetching and refreshing media data
-
-## Technologies Used
-
-- [Next.js](https://nextjs.org/) - React framework
-- [React](https://reactjs.org/) - UI library
-- [TypeScript](https://www.typescriptlang.org/) - Type-safe JavaScript
-- [Framer Motion](https://www.framer.com/motion/) - Animation library
-- [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
+- Plex for their amazing media server
+- Spotify for their music API
+- All the open-source libraries used in this project
