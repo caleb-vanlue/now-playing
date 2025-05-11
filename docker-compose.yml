@@ -1,14 +1,13 @@
-# docker-compose.yml
 version: "3.8"
 
 services:
-  plex-dashboard:
+  plex-api-dashboard:
     build:
       context: .
       dockerfile: Dockerfile
       args:
         - FETCH_TIMEOUT=${FETCH_TIMEOUT:-8000}
-    container_name: plex-dashboard
+    container_name: plex-api-dashboard
     ports:
       - "0.0.0.0:3002:3002"
     networks:
