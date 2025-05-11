@@ -5,6 +5,7 @@ import { useMediaData } from "../../hooks/useMediaData";
 import MediaDashboard from "../../components/MediaDashboard";
 import PageTransition from "../../components/PageTransition";
 import TVShowCard from "../../components/TVShowCard";
+import { Episode } from "../../../types/media";
 
 export default function TVShowsPage() {
   const { mediaData } = useMediaData();
@@ -43,7 +44,7 @@ export default function TVShowsPage() {
             animate="visible"
             className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6"
           >
-            {episodes.map((episode: any, index: any) => (
+            {episodes.map((episode: Episode, index: number) => (
               <TVShowCard key={episode.id} item={episode} index={index} />
             ))}
           </motion.div>
