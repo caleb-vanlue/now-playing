@@ -41,5 +41,5 @@ export function useSpotifyTrack(artist: string, trackTitle: string) {
     lookupTrack();
   }, [artist, trackTitle, getSpotifyUrl]);
 
-  return { spotifyUrl, error };
+  return { spotifyUrl, isLoading, error };
 }
