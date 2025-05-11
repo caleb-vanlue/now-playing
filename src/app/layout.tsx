@@ -11,7 +11,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Plex Dashboard",
+  title: "Now Playing",
   description: "A dashboard for your media library",
 };
 
