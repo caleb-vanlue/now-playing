@@ -41,7 +41,6 @@ export default function TVShowCard({ item, index = 0 }: TVShowCardProps) {
 
   const startedAt = new Date(startTime);
   const currentTime = new Date();
-  const elapsedMs = currentTime.getTime() - startedAt.getTime();
   const remainingMs = duration - (viewOffset || 0);
   const estimatedFinishTime = new Date(currentTime.getTime() + remainingMs);
 
