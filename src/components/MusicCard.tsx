@@ -14,6 +14,7 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
   const [showDetails, setShowDetails] = useState<boolean>(false);
   const [imageError, setImageError] = useState<boolean>(false);
   const [imageLoaded, setImageLoaded] = useState<boolean>(false);
+  const [avatarError, setAvatarError] = useState<boolean>(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
   const {
@@ -21,6 +22,7 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
     artist,
     album,
     userId,
+    userAvatar,
     state,
     thumbnailFileId,
     player,
@@ -112,18 +114,20 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
                 style={{ transition: "opacity 0.3s" }}
               />
 
+              {/* Year badge - for consistency with the rating badges in other cards */}
               {year && (
                 <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-md backdrop-blur-sm">
                   {year}
                 </div>
               )}
 
+              {/* Spotify badge - positioned in top left */}
               {spotifyUrl && (
                 <a
                   href={spotifyUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
+                  onClick={(e) => e.stopPropagation()} // Prevent triggering card details
                   className="absolute top-2 left-2 text-xs px-2 py-1 rounded-full bg-[#1DB954] hover:bg-[#1DB954]/90 text-white shadow-sm shadow-[#1DB954]/30 transition-colors"
                 >
                   <div className="flex items-center">
@@ -147,6 +151,7 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
             </motion.div>
           )}
 
+          {/* Play status indicator */}
           <div
             className={`absolute top-2 right-2 text-xs px-2 py-1 rounded-full
               ${
@@ -192,9 +197,20 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
 
           <div className="mt-4 flex items-center justify-between">
             <div className="flex items-center">
-              <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-xs">
-                {userId.charAt(0)}
-              </div>
+              {userAvatar && !avatarError ? (
+                // User avatar from Plex
+                <img
+                  src={userAvatar}
+                  alt={userId}
+                  className="w-8 h-8 rounded-full object-cover"
+                  onError={() => setAvatarError(true)}
+                />
+              ) : (
+                // Fallback to initials
+                <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-xs">
+                  {userId.charAt(0)}
+                </div>
+              )}
               <span className="ml-2 truncate max-w-[80px]" title={userId}>
                 {userId}
               </span>
@@ -255,6 +271,7 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
               className="p-4 overflow-y-auto"
               style={{ maxHeight: "calc(100% - 60px)" }}
             >
+              {/* Spotify link in the details view */}
               {spotifyUrl && (
                 <div className="mb-4">
                   <a
@@ -310,7 +327,17 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
 
                 <div className="stagger-item stagger-delay-6">
                   <p className="text-gray-400 text-sm">User</p>
-                  <p>{userId}</p>
+                  <div className="flex items-center">
+                    {userAvatar && !avatarError ? (
+                      <img
+                        src={userAvatar}
+                        alt={userId}
+                        className="w-5 h-5 rounded-full mr-2 object-cover"
+                        onError={() => setAvatarError(true)}
+                      />
+                    ) : null}
+                    <span>{userId}</span>
+                  </div>
                 </div>
 
                 <div className="stagger-item stagger-delay-7">

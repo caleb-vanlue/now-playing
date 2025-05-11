@@ -1,9 +1,10 @@
-export interface MediaBase {
+interface MediaBase {
   id: string;
   title: string;
-  thumbnailFileId?: string;
-  state: "playing" | "paused";
   userId: string;
+  userAvatar?: string;
+  state: "playing" | "paused";
+  thumbnailFileId?: string;
   player: string;
   startTime: string;
   sessionId: string;

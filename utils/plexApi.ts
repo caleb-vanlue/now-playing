@@ -39,6 +39,8 @@ function mapToMovie(session: any): Movie {
       session.User?.title == "Irrelativity17"
         ? "Caleb"
         : session.User?.title || "Unknown User",
+    // Add the avatar URL
+    userAvatar: session.User?.thumb || null,
     player: session.Player?.title || session.Player?.product || "Video Player",
     startTime: new Date(Date.now() - (session.viewOffset || 0)).toISOString(),
     sessionId: sessionId,
@@ -66,6 +68,7 @@ function mapToEpisode(session: any): Episode {
       session.User?.title == "Irrelativity17"
         ? "Caleb"
         : session.User?.title || "Unknown User",
+    userAvatar: session.User?.thumb || null,
     player: session.Player?.title || session.Player?.product || "Video Player",
     startTime: new Date(Date.now() - (session.viewOffset || 0)).toISOString(),
     sessionId: sessionId,
@@ -74,7 +77,6 @@ function mapToEpisode(session: any): Episode {
     episode: session.index || 0,
     duration: session.duration || session.Media?.[0]?.duration || 0,
     summary: session.summary || "",
-    // Video properties
     videoResolution: session.Media?.[0]?.videoResolution || "",
     audioCodec: session.Media?.[0]?.audioCodec || "",
     contentRating: session.contentRating || "",
@@ -84,9 +86,6 @@ function mapToEpisode(session: any): Episode {
 function mapToTrack(session: any): Track {
   const sessionId =
     session.Session?.id || `track-${session.ratingKey}-${Date.now()}`;
-  console.log(
-    `${session.Media?.[0].Part?.[0]?.Stream?.[0]?.bitDepth}  ${session.Media?.Part?.Stream?.samplingRate}`
-  );
 
   return {
     id: session.ratingKey,
@@ -97,6 +96,7 @@ function mapToTrack(session: any): Track {
       session.User?.title == "Irrelativity17"
         ? "Caleb"
         : session.User?.title || "Unknown User",
+    userAvatar: session.User?.thumb || null,
     player: session.Player?.title || session.Player?.product || "Music Player",
     startTime: new Date(Date.now() - (session.viewOffset || 0)).toISOString(),
     sessionId: sessionId,
