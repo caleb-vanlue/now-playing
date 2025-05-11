@@ -9,9 +9,7 @@ services:
         - FETCH_TIMEOUT=${FETCH_TIMEOUT:-8000}
     container_name: plex-api-dashboard
     ports:
-      - "0.0.0.0:3002:3002"
-    networks:
-      - app-network
+      - "0.0.0.0:3003:3003"
     environment:
       - NODE_ENV=${NODE_ENV:-production}
       - PLEX_URL=${PLEX_URL}
