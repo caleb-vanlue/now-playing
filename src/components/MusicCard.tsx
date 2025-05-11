@@ -26,6 +26,7 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
     startTime,
     sessionId,
     audioCodec,
+    quality,
     year,
   } = track;
 
@@ -99,7 +100,7 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
               <motion.img
                 variants={imageVariants}
                 src={thumbnailUrl}
-                alt={title}
+                alt={album || title}
                 className={`w-full h-full object-cover ${
                   imageLoaded ? "opacity-100" : "opacity-0"
                 }`}
@@ -107,23 +108,28 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
                 onLoad={() => setImageLoaded(true)}
                 style={{ transition: "opacity 0.3s" }}
               />
+              {year && (
+                <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-md backdrop-blur-sm">
+                  {year}
+                </div>
+              )}
             </div>
           ) : (
             <motion.div
               variants={imageVariants}
               className={`aspect-square ${bgColorClass} flex items-center justify-center p-4 text-center`}
             >
-              <span className="text-lg font-bold">{album}</span>
+              <span className="text-lg font-bold">{album || title}</span>
             </motion.div>
           )}
 
           <div
             className={`absolute top-2 right-2 text-xs px-2 py-1 rounded-full
-      ${
-        state === "playing"
-          ? "bg-green-500 shadow-sm shadow-green-500/30"
-          : "bg-gray-700"
-      }`}
+              ${
+                state === "playing"
+                  ? "bg-green-500 shadow-sm shadow-green-500/30"
+                  : "bg-gray-700"
+              }`}
           >
             {state === "playing" ? (
               <div className="flex items-center">
@@ -151,11 +157,13 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
             {artist}
           </p>
           <p className="text-gray-400 truncate" title={album}>
-            {album} {year ? `(${year})` : ""}
+            {album}
           </p>
 
           {audioCodec && (
-            <p className="text-gray-400 text-xs mt-1">{track.quality}</p>
+            <p className="text-gray-400 text-xs mt-2">
+              {quality || audioCodec}
+            </p>
           )}
 
           <div className="mt-4 flex items-center justify-between">
@@ -201,6 +209,12 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
                       <span>{album}</span>
                     </>
                   )}
+                  {year && (
+                    <>
+                      <span className="text-gray-600">•</span>
+                      <span>{year}</span>
+                    </>
+                  )}
                 </div>
               </div>
               <motion.button
@@ -218,61 +232,57 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
               style={{ maxHeight: "calc(100% - 60px)" }}
             >
               <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="mb-4 stagger-item stagger-delay-1"
-              >
-                <p className="text-gray-400 text-sm">Artist</p>
-                <p>{artist}</p>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.25 }}
-                className="mb-4 stagger-item stagger-delay-2"
-              >
-                <p className="text-gray-400 text-sm">Album</p>
-                <p>
-                  {album} {year ? `(${year})` : ""}
-                </p>
-              </motion.div>
-
-              <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.3 }}
-                className="grid grid-cols-1 gap-3"
+                className="grid grid-cols-2 gap-3"
               >
+                <div className="stagger-item stagger-delay-1">
+                  <p className="text-gray-400 text-sm">Artist</p>
+                  <p>{artist}</p>
+                </div>
+
+                <div className="stagger-item stagger-delay-2">
+                  <p className="text-gray-400 text-sm">Album</p>
+                  <p>
+                    {album} {year ? `(${year})` : ""}
+                  </p>
+                </div>
+
                 {audioCodec && (
                   <div className="stagger-item stagger-delay-3">
                     <p className="text-gray-400 text-sm">Format</p>
                     <p className="uppercase">{audioCodec}</p>
                   </div>
                 )}
-                {track.quality && (
+
+                {quality && (
                   <div className="stagger-item stagger-delay-4">
-                    <p className="text-gray-400 text-sm">Bitrate</p>
-                    <p>{track.quality}</p>
+                    <p className="text-gray-400 text-sm">Quality</p>
+                    <p>{quality}</p>
                   </div>
                 )}
+
                 <div className="stagger-item stagger-delay-5">
                   <p className="text-gray-400 text-sm">Device</p>
                   <p>{player}</p>
                 </div>
+
                 <div className="stagger-item stagger-delay-6">
                   <p className="text-gray-400 text-sm">User</p>
                   <p>{userId}</p>
                 </div>
+
                 <div className="stagger-item stagger-delay-7">
                   <p className="text-gray-400 text-sm">Started</p>
                   <p>{startedAt.toLocaleTimeString()}</p>
                 </div>
+
                 <div className="stagger-item stagger-delay-8">
                   <p className="text-gray-400 text-sm">Status</p>
                   <p className="capitalize">{state}</p>
                 </div>
+
                 <div className="stagger-item stagger-delay-9 col-span-2">
                   <p className="text-gray-400 text-sm">Session ID</p>
                   <p className="font-mono text-xs">{sessionId}</p>

@@ -42,15 +42,15 @@ export default function MovieCard({ item, index = 0 }: MovieCardProps) {
     setShowDetails(!showDetails);
   };
 
-  function formatVideoQuality(movie: Movie): string {
+  function formatQuality(): string {
     const parts = [];
 
-    if (movie.videoResolution) {
-      parts.push(movie.videoResolution.toUpperCase());
+    if (videoResolution) {
+      parts.push(videoResolution.toUpperCase());
     }
 
-    if (movie.audioCodec) {
-      parts.push(movie.audioCodec.toUpperCase());
+    if (audioCodec) {
+      parts.push(audioCodec.toUpperCase());
     }
 
     return parts.join(" • ");
@@ -132,7 +132,7 @@ export default function MovieCard({ item, index = 0 }: MovieCardProps) {
               />
 
               {contentRating && (
-                <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded-md backdrop-blur-sm font-semibold">
+                <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-md backdrop-blur-sm">
                   {contentRating}
                 </div>
               )}
@@ -148,11 +148,11 @@ export default function MovieCard({ item, index = 0 }: MovieCardProps) {
 
           <div
             className={`absolute top-2 right-2 text-xs px-2 py-1 rounded-full
-      ${
-        state === "playing"
-          ? "bg-green-500 shadow-sm shadow-green-500/30"
-          : "bg-gray-700"
-      }`}
+              ${
+                state === "playing"
+                  ? "bg-green-500 shadow-sm shadow-green-500/30"
+                  : "bg-gray-700"
+              }`}
           >
             {state === "playing" ? (
               <div className="flex items-center">
@@ -181,16 +181,10 @@ export default function MovieCard({ item, index = 0 }: MovieCardProps) {
           <div className="mt-1">
             <p className="text-gray-400 text-sm flex items-center gap-2">
               <span>{formattedDuration}</span>
-              {videoResolution && (
+              {formatQuality() && (
                 <>
                   <span className="text-gray-600">•</span>
-                  <span className="uppercase">{videoResolution}</span>
-                </>
-              )}
-              {audioCodec && (
-                <>
-                  <span className="text-gray-600">•</span>
-                  <span className="uppercase">{audioCodec}</span>
+                  <span>{formatQuality()}</span>
                 </>
               )}
             </p>
@@ -284,35 +278,26 @@ export default function MovieCard({ item, index = 0 }: MovieCardProps) {
                 {videoResolution && (
                   <div className="stagger-item stagger-delay-2">
                     <p className="text-gray-400 text-sm">Quality</p>
-                    <p className="text-gray-400 text-sm">
-                      {formatVideoQuality(item)}
-                    </p>
-                    ;
+                    <p>{formatQuality()}</p>
                   </div>
                 )}
-                {audioCodec && (
-                  <div className="stagger-item stagger-delay-3">
-                    <p className="text-gray-400 text-sm">Audio</p>
-                    <p className="uppercase">{audioCodec}</p>
-                  </div>
-                )}
-                <div className="stagger-item stagger-delay-4">
+                <div className="stagger-item stagger-delay-3">
                   <p className="text-gray-400 text-sm">Device</p>
                   <p>{player}</p>
                 </div>
-                <div className="stagger-item stagger-delay-5">
+                <div className="stagger-item stagger-delay-4">
                   <p className="text-gray-400 text-sm">User</p>
                   <p>{userId}</p>
                 </div>
-                <div className="stagger-item stagger-delay-6">
+                <div className="stagger-item stagger-delay-5">
                   <p className="text-gray-400 text-sm">Started</p>
                   <p>{startedAt.toLocaleTimeString()}</p>
                 </div>
-                <div className="stagger-item stagger-delay-7">
+                <div className="stagger-item stagger-delay-6">
                   <p className="text-gray-400 text-sm">Status</p>
                   <p className="capitalize">{state}</p>
                 </div>
-                <div className="stagger-item stagger-delay-8 col-span-2">
+                <div className="stagger-item stagger-delay-7 col-span-2">
                   <p className="text-gray-400 text-sm">Session ID</p>
                   <p className="font-mono text-xs">{sessionId}</p>
                 </div>

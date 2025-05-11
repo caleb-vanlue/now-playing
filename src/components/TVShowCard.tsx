@@ -50,7 +50,7 @@ export default function TVShowCard({ item, index = 0 }: TVShowCardProps) {
       ? `${Math.floor(durationMinutes / 60)}h ${durationMinutes % 60}m`
       : `${durationMinutes}m`;
 
-  function formatVideoQuality(): string {
+  function formatQuality(): string {
     const parts = [];
 
     if (videoResolution) {
@@ -133,12 +133,10 @@ export default function TVShowCard({ item, index = 0 }: TVShowCardProps) {
                 style={{ transition: "opacity 0.3s" }}
               />
 
-              {/* Episode Badge */}
-              <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded-md backdrop-blur-sm font-semibold">
+              <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded-md backdrop-blur-sm">
                 {seasonEpisode}
               </div>
 
-              {/* Content Rating Badge (if available) */}
               {contentRating && (
                 <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-md backdrop-blur-sm">
                   {contentRating}
@@ -156,11 +154,11 @@ export default function TVShowCard({ item, index = 0 }: TVShowCardProps) {
 
           <div
             className={`absolute top-2 right-2 text-xs px-2 py-1 rounded-full
-        ${
-          state === "playing"
-            ? "bg-green-500 shadow-sm shadow-green-500/30"
-            : "bg-gray-700"
-        }`}
+              ${
+                state === "playing"
+                  ? "bg-green-500 shadow-sm shadow-green-500/30"
+                  : "bg-gray-700"
+              }`}
           >
             {state === "playing" ? (
               <div className="flex items-center">
@@ -189,14 +187,13 @@ export default function TVShowCard({ item, index = 0 }: TVShowCardProps) {
               {showTitle}
             </p>
 
-            {/* Tech Specs */}
             <div className="mt-2">
               <p className="text-gray-400 text-sm flex items-center gap-2">
                 <span>{formattedDuration}</span>
-                {formatVideoQuality() && (
+                {formatQuality() && (
                   <>
                     <span className="text-gray-600">•</span>
-                    <span>{formatVideoQuality()}</span>
+                    <span>{formatQuality()}</span>
                   </>
                 )}
               </p>
@@ -217,7 +214,6 @@ export default function TVShowCard({ item, index = 0 }: TVShowCardProps) {
         </div>
       </div>
 
-      {/* Details popup */}
       <AnimatePresence>
         {showDetails && (
           <motion.div
@@ -294,30 +290,28 @@ export default function TVShowCard({ item, index = 0 }: TVShowCardProps) {
                 {videoResolution && (
                   <div className="stagger-item stagger-delay-3">
                     <p className="text-gray-400 text-sm">Quality</p>
-                    <p className="uppercase">{videoResolution}</p>
+                    <p>{formatQuality()}</p>
                   </div>
                 )}
-                {audioCodec && (
-                  <div className="stagger-item stagger-delay-4">
-                    <p className="text-gray-400 text-sm">Audio</p>
-                    <p className="uppercase">{audioCodec}</p>
-                  </div>
-                )}
-                <div className="stagger-item stagger-delay-5">
+                <div className="stagger-item stagger-delay-4">
                   <p className="text-gray-400 text-sm">Duration</p>
                   <p>{formattedDuration}</p>
                 </div>
-                <div className="stagger-item stagger-delay-6">
+                <div className="stagger-item stagger-delay-5">
                   <p className="text-gray-400 text-sm">Device</p>
                   <p>{player}</p>
+                </div>
+                <div className="stagger-item stagger-delay-6">
+                  <p className="text-gray-400 text-sm">User</p>
+                  <p>{userId}</p>
                 </div>
                 <div className="stagger-item stagger-delay-7">
                   <p className="text-gray-400 text-sm">Started</p>
                   <p>{startedAt.toLocaleTimeString()}</p>
                 </div>
                 <div className="stagger-item stagger-delay-8">
-                  <p className="text-gray-400 text-sm">User</p>
-                  <p>{userId}</p>
+                  <p className="text-gray-400 text-sm">Status</p>
+                  <p className="capitalize">{state}</p>
                 </div>
                 <div className="stagger-item stagger-delay-9 col-span-2 pb-4">
                   <p className="text-gray-400 text-sm">Session ID</p>
