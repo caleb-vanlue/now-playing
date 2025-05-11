@@ -53,6 +53,27 @@ export default function MediaDashboard({
     { href: "/tvshows", label: "TV Shows", count: tvShowsCount },
   ];
 
+  const [headerHeight, setHeaderHeight] = useState<number>(0);
+  const headerRef = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (headerRef.current) {
+      setHeaderHeight(headerRef.current.offsetHeight);
+    }
+
+    const handleResize = () => {
+      if (headerRef.current) {
+        setHeaderHeight(headerRef.current.offsetHeight);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [mediaData]);
+
   return (
     <>
       <AnimatePresence>
@@ -87,13 +108,15 @@ export default function MediaDashboard({
         )}
       </AnimatePresence>
 
-      <div className="min-h-screen bg-animated-gradient p-8 text-white">
-        <motion.header
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-12 gap-4"
-        >
+      <motion.header
+        ref={headerRef}
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+        className="fixed top-0 left-0 right-0 z-20 bg-[#141414]/95 backdrop-blur-md px-8 pt-8 pb-1 border-b border-gray-800/30 shadow-lg" // Reduced bottom padding (pb-1)
+      >
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-2 gap-4">
+          {" "}
           <div>
             <motion.h1
               initial={{ opacity: 0, x: -20 }}
@@ -113,7 +136,6 @@ export default function MediaDashboard({
               {totalCount !== 1 ? "s" : ""}
             </motion.div>
           </div>
-
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -121,39 +143,45 @@ export default function MediaDashboard({
           >
             <NavigationTabs items={navItems} />
           </motion.div>
-        </motion.header>
+        </div>
+      </motion.header>
 
+      <div
+        className="min-h-screen bg-animated-gradient text-white overflow-x-hidden"
+        style={{ paddingTop: `${headerHeight}px` }}
+      >
         <motion.main
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.5 }}
+          className="p-8 pt-4 pb-16"
         >
           {children}
         </motion.main>
-
-        <AnimatePresence>
-          {error && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              transition={{ duration: 0.3 }}
-              className="fixed bottom-4 right-4 bg-red-900/80 text-white p-4 rounded-lg shadow-lg max-w-md backdrop-blur-sm"
-            >
-              <h3 className="font-bold mb-1">Error refreshing data</h3>
-              <p className="text-sm mb-2">{error.message}</p>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={refreshData}
-                className="text-xs bg-red-700 hover:bg-red-600 px-3 py-1 rounded transition-colors"
-              >
-                Retry Now
-              </motion.button>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
+
+      <AnimatePresence>
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.3 }}
+            className="fixed bottom-4 right-4 bg-red-900/80 text-white p-4 rounded-lg shadow-lg max-w-md backdrop-blur-sm"
+          >
+            <h3 className="font-bold mb-1">Error refreshing data</h3>
+            <p className="text-sm mb-2">{error.message}</p>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={refreshData}
+              className="text-xs bg-red-700 hover:bg-red-600 px-3 py-1 rounded transition-colors"
+            >
+              Retry Now
+            </motion.button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }

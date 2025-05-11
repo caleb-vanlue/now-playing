@@ -17,7 +17,8 @@ export default function NavigationTabs({ items }: NavigationTabsProps) {
   const pathname = usePathname();
 
   return (
-    <nav className="relative flex space-x-8 border-b border-gray-800/50 mb-8">
+    <nav className="relative flex space-x-8 border-b border-gray-800/50 mb-0">
+      {" "}
       {items.map((item) => (
         <Link
           key={item.href}
