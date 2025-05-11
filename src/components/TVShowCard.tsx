@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 import { Episode } from "../../types/media";
 import { getTimeAgo } from "../../utils/dateUtils";
 import { getThumbnailUrl } from "../../utils/plexApi";
@@ -135,17 +136,23 @@ export default function TVShowCard({ item, index = 0 }: TVShowCardProps) {
                   <div className="w-6 h-6 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
                 </div>
               )}
-              <motion.img
+              <motion.div
                 variants={imageVariants}
-                src={thumbnailUrl}
-                alt={title}
-                className={`w-full h-full object-cover ${
-                  imageLoaded ? "opacity-100" : "opacity-0"
-                }`}
-                onError={() => setImageError(true)}
-                onLoad={() => setImageLoaded(true)}
-                style={{ transition: "opacity 0.3s" }}
-              />
+                className="relative w-full h-full"
+              >
+                <Image
+                  src={thumbnailUrl}
+                  alt={title}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  className={`object-cover ${
+                    imageLoaded ? "opacity-100" : "opacity-0"
+                  }`}
+                  onError={() => setImageError(true)}
+                  onLoad={() => setImageLoaded(true)}
+                  style={{ transition: "opacity 0.3s" }}
+                />
+              </motion.div>
 
               <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded-md backdrop-blur-sm">
                 {seasonEpisode}
@@ -170,7 +177,7 @@ export default function TVShowCard({ item, index = 0 }: TVShowCardProps) {
             className={`absolute top-2 right-2 text-xs px-2 py-1 rounded-full
               ${
                 state === "playing"
-                  ? "bg-green-500 shadow-sm shadow-green-500/30"
+                  ? "bg-orange-500 shadow-sm shadow-orange-500/30"
                   : "bg-gray-700"
               }`}
           >
@@ -226,12 +233,16 @@ export default function TVShowCard({ item, index = 0 }: TVShowCardProps) {
           <div className="mt-3 flex items-center justify-between">
             <div className="flex items-center">
               {userAvatar && !avatarError ? (
-                <img
-                  src={userAvatar}
-                  alt={userId}
-                  className="w-8 h-8 rounded-full object-cover"
-                  onError={() => setAvatarError(true)}
-                />
+                <div className="relative w-8 h-8 rounded-full overflow-hidden">
+                  <Image
+                    src={userAvatar}
+                    alt={userId}
+                    fill
+                    sizes="32px"
+                    className="object-cover"
+                    onError={() => setAvatarError(true)}
+                  />
+                </div>
               ) : (
                 <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-xs">
                   {userId.charAt(0)}
@@ -355,12 +366,16 @@ export default function TVShowCard({ item, index = 0 }: TVShowCardProps) {
                   <p className="text-gray-400 text-sm">User</p>
                   <div className="flex items-center">
                     {userAvatar && !avatarError ? (
-                      <img
-                        src={userAvatar}
-                        alt={userId}
-                        className="w-5 h-5 rounded-full mr-2 object-cover"
-                        onError={() => setAvatarError(true)}
-                      />
+                      <div className="relative w-5 h-5 rounded-full overflow-hidden mr-2">
+                        <Image
+                          src={userAvatar}
+                          alt={userId}
+                          fill
+                          sizes="20px"
+                          className="object-cover"
+                          onError={() => setAvatarError(true)}
+                        />
+                      </div>
                     ) : null}
                     <span>{userId}</span>
                   </div>

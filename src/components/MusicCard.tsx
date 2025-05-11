@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 import { Track } from "../../types/media";
 import { getThumbnailUrl } from "../../utils/api";
 import { getTimeAgo } from "../../utils/dateUtils";
@@ -121,17 +122,23 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
                   <div className="w-6 h-6 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
                 </div>
               )}
-              <motion.img
+              <motion.div
                 variants={imageVariants}
-                src={thumbnailUrl}
-                alt={album || title}
-                className={`w-full h-full object-cover ${
-                  imageLoaded ? "opacity-100" : "opacity-0"
-                }`}
-                onError={() => setImageError(true)}
-                onLoad={() => setImageLoaded(true)}
-                style={{ transition: "opacity 0.3s" }}
-              />
+                className="relative w-full h-full"
+              >
+                <Image
+                  src={thumbnailUrl}
+                  alt={album || title}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                  className={`object-cover ${
+                    imageLoaded ? "opacity-100" : "opacity-0"
+                  }`}
+                  onError={() => setImageError(true)}
+                  onLoad={() => setImageLoaded(true)}
+                  style={{ transition: "opacity 0.3s" }}
+                />
+              </motion.div>
 
               {year && (
                 <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-md backdrop-blur-sm">
@@ -144,7 +151,7 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
                   href={spotifyUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()} // Prevent triggering card details
+                  onClick={(e) => e.stopPropagation()}
                   className="absolute top-2 left-2 text-xs px-2 py-1 rounded-full bg-[#1DB954] hover:bg-[#1DB954]/90 text-white shadow-sm shadow-[#1DB954]/30 transition-colors"
                 >
                   <div className="flex items-center">
@@ -172,7 +179,7 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
             className={`absolute top-2 right-2 text-xs px-2 py-1 rounded-full
               ${
                 state === "playing"
-                  ? "bg-green-500 shadow-sm shadow-green-500/30"
+                  ? "bg-orange-500 shadow-sm shadow-orange-500/30"
                   : "bg-gray-700"
               }`}
           >
@@ -223,12 +230,16 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
           <div className="mt-4 flex items-center justify-between">
             <div className="flex items-center">
               {userAvatar && !avatarError ? (
-                <img
-                  src={userAvatar}
-                  alt={userId}
-                  className="w-8 h-8 rounded-full object-cover"
-                  onError={() => setAvatarError(true)}
-                />
+                <div className="relative w-8 h-8 rounded-full overflow-hidden">
+                  <Image
+                    src={userAvatar}
+                    alt={userId}
+                    fill
+                    sizes="32px"
+                    className="object-cover"
+                    onError={() => setAvatarError(true)}
+                  />
+                </div>
               ) : (
                 <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-xs">
                   {userId.charAt(0)}
@@ -378,12 +389,16 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
                   <p className="text-gray-400 text-sm">User</p>
                   <div className="flex items-center">
                     {userAvatar && !avatarError ? (
-                      <img
-                        src={userAvatar}
-                        alt={userId}
-                        className="w-5 h-5 rounded-full mr-2 object-cover"
-                        onError={() => setAvatarError(true)}
-                      />
+                      <div className="relative w-5 h-5 rounded-full overflow-hidden mr-2">
+                        <Image
+                          src={userAvatar}
+                          alt={userId}
+                          fill
+                          sizes="20px"
+                          className="object-cover"
+                          onError={() => setAvatarError(true)}
+                        />
+                      </div>
                     ) : null}
                     <span>{userId}</span>
                   </div>
