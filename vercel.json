@@ -1,0 +1,15 @@
+{
+  "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next",
+  "rewrites": [
+    {
+      "source": "/api/plex/:path*",
+      "destination": "/api/plex/:path*"
+    },
+    {
+      "source": "/api/spotify/:path*",
+      "destination": "/api/spotify/:path*"
+    }
+  ]
+}
