@@ -94,7 +94,10 @@ function mapToMovie(session: PlexSessionResponse): Movie {
     title: session.title,
     thumbnailFileId: session.thumb,
     state: mapPlexState(session.Player?.state),
-    userId: session.User?.title || "Unknown User",
+    userId:
+      session.User?.title == "Irrelativity17"
+        ? "Caleb"
+        : session.User?.title || "Unknown User",
     player: session.Player?.title || session.Player?.product || "Video Player",
     startTime: new Date(Date.now() - (session.viewOffset || 0)).toISOString(),
     sessionId: sessionId,
@@ -118,7 +121,10 @@ function mapToEpisode(session: PlexSessionResponse): Episode {
     title: session.title,
     thumbnailFileId: session.thumb,
     state: mapPlexState(session.Player?.state),
-    userId: session.User?.title || "Unknown User",
+    userId:
+      session.User?.title == "Irrelativity17"
+        ? "Caleb"
+        : session.User?.title || "Unknown User",
     player: session.Player?.title || session.Player?.product || "Video Player",
     startTime: new Date(Date.now() - (session.viewOffset || 0)).toISOString(),
     sessionId: sessionId,
@@ -142,7 +148,10 @@ function mapToTrack(session: PlexSessionResponse): Track {
     title: session.title,
     thumbnailFileId: session.thumb,
     state: mapPlexState(session.Player?.state),
-    userId: session.User?.title || "Unknown User",
+    userId:
+      session.User?.title == "Irrelativity17"
+        ? "Caleb"
+        : session.User?.title || "Unknown User",
     player: session.Player?.title || session.Player?.product || "Music Player",
     startTime: new Date(Date.now() - (session.viewOffset || 0)).toISOString(),
     sessionId: sessionId,
