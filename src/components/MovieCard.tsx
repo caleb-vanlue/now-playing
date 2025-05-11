@@ -372,7 +372,7 @@ export default function MovieCard({ item, index = 0 }: MovieCardProps) {
                   <p className="text-gray-400 text-sm">Status</p>
                   <p className="capitalize">{state}</p>
                 </div>
-                <div className="stagger-item stagger-delay-7 col-span-2">
+                <div className="stagger-item stagger-delay-7 col-span-2 pb-10">
                   <p className="text-gray-400 text-sm">Session ID</p>
                   <p className="font-mono text-xs">{sessionId}</p>
                 </div>
