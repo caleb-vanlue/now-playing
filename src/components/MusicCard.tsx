@@ -31,19 +31,38 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
     audioCodec,
     quality,
     year,
+    viewOffset,
+    duration,
   } = track;
+
+  const progressPercentage =
+    viewOffset && duration ? (viewOffset / duration) * 100 : 0;
+
+  const startedAt = new Date(startTime);
+  const currentTime = new Date();
+  const remainingMs = duration ? duration - (viewOffset || 0) : 0;
+  const estimatedFinishTime = new Date(currentTime.getTime() + remainingMs);
 
   const { spotifyUrl } = useSpotifyTrack(artist, title);
 
   const thumbnailUrl = getThumbnailUrl(thumbnailFileId);
   const bgColorClass = "bg-gray-800";
 
-  const startedAt = new Date(startTime);
   const timeAgo = getTimeAgo(startedAt);
 
   const toggleDetails = () => {
     setShowDetails(!showDetails);
   };
+
+  const formatTime = (date: Date): string => {
+    return date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  };
+
+  const formattedDuration = duration
+    ? `${Math.floor((duration / 60000) % 60)}:${String(
+        Math.floor((duration / 1000) % 60)
+      ).padStart(2, "0")}`
+    : "0:00";
 
   useEffect(() => {
     if (!showDetails) return;
@@ -125,7 +144,7 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
                   href={spotifyUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
+                  onClick={(e) => e.stopPropagation()} // Prevent triggering card details
                   className="absolute top-2 left-2 text-xs px-2 py-1 rounded-full bg-[#1DB954] hover:bg-[#1DB954]/90 text-white shadow-sm shadow-[#1DB954]/30 transition-colors"
                 >
                   <div className="flex items-center">
@@ -174,6 +193,15 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
             )}
           </div>
         </div>
+
+        {progressPercentage > 0 && duration && (
+          <div className="h-1 w-full bg-gray-800 relative">
+            <div
+              className="absolute top-0 left-0 h-full bg-orange-500"
+              style={{ width: `${progressPercentage}%` }}
+            ></div>
+          </div>
+        )}
 
         <div className="p-4">
           <h2 className="text-xl font-bold truncate" title={title}>
@@ -266,6 +294,26 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
               className="p-4 overflow-y-auto"
               style={{ maxHeight: "calc(100% - 60px)" }}
             >
+              {duration && duration > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.15 }}
+                  className="mb-4 bg-gray-800/50 rounded-lg p-3"
+                >
+                  <div className="flex justify-between items-center mb-1 text-sm">
+                    <span>{Math.round(progressPercentage)}% complete</span>
+                    <span>Finishes at {formatTime(estimatedFinishTime)}</span>
+                  </div>
+                  <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-orange-500 rounded-full"
+                      style={{ width: `${progressPercentage}%` }}
+                    ></div>
+                  </div>
+                </motion.div>
+              )}
+
               {spotifyUrl && (
                 <div className="mb-4">
                   <a
@@ -314,12 +362,19 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
                   </div>
                 )}
 
-                <div className="stagger-item stagger-delay-5">
+                {duration && duration > 0 && (
+                  <div className="stagger-item stagger-delay-5">
+                    <p className="text-gray-400 text-sm">Duration</p>
+                    <p>{formattedDuration}</p>
+                  </div>
+                )}
+
+                <div className="stagger-item stagger-delay-6">
                   <p className="text-gray-400 text-sm">Device</p>
                   <p>{player}</p>
                 </div>
 
-                <div className="stagger-item stagger-delay-6">
+                <div className="stagger-item stagger-delay-7">
                   <p className="text-gray-400 text-sm">User</p>
                   <div className="flex items-center">
                     {userAvatar && !avatarError ? (
@@ -334,17 +389,17 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
                   </div>
                 </div>
 
-                <div className="stagger-item stagger-delay-7">
+                <div className="stagger-item stagger-delay-8">
                   <p className="text-gray-400 text-sm">Started</p>
                   <p>{startedAt.toLocaleTimeString()}</p>
                 </div>
 
-                <div className="stagger-item stagger-delay-8">
+                <div className="stagger-item stagger-delay-9">
                   <p className="text-gray-400 text-sm">Status</p>
                   <p className="capitalize">{state}</p>
                 </div>
 
-                <div className="stagger-item stagger-delay-9 col-span-2">
+                <div className="stagger-item stagger-delay-10 col-span-2">
                   <p className="text-gray-400 text-sm">Session ID</p>
                   <p className="font-mono text-xs">{sessionId}</p>
                 </div>

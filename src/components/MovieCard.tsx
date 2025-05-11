@@ -32,13 +32,20 @@ export default function MovieCard({ item, index = 0 }: MovieCardProps) {
     videoResolution,
     audioCodec,
     studio,
+    viewOffset,
   } = item;
 
-  const thumbnailUrl = getThumbnailUrl(thumbnailFileId);
-  const bgColorClass = "bg-gray-800";
+  const progressPercentage =
+    viewOffset && duration ? (viewOffset / duration) * 100 : 0;
 
   const startedAt = new Date(startTime);
+  const currentTime = new Date();
+  const remainingMs = duration - (viewOffset || 0);
+  const estimatedFinishTime = new Date(currentTime.getTime() + remainingMs);
+
   const timeAgo = getTimeAgo(startedAt);
+  const thumbnailUrl = getThumbnailUrl(thumbnailFileId);
+  const bgColorClass = "bg-gray-800";
 
   const toggleDetails = () => {
     setShowDetails(!showDetails);
@@ -63,6 +70,10 @@ export default function MovieCard({ item, index = 0 }: MovieCardProps) {
     durationMinutes >= 60
       ? `${Math.floor(durationMinutes / 60)}h ${durationMinutes % 60}m`
       : `${durationMinutes}m`;
+
+  const formatTime = (date: Date): string => {
+    return date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  };
 
   useEffect(() => {
     if (!showDetails) return;
@@ -174,6 +185,15 @@ export default function MovieCard({ item, index = 0 }: MovieCardProps) {
           </div>
         </div>
 
+        {progressPercentage > 0 && (
+          <div className="h-1 w-full bg-gray-800 relative">
+            <div
+              className="absolute top-0 left-0 h-full bg-orange-500"
+              style={{ width: `${progressPercentage}%` }}
+            ></div>
+          </div>
+        )}
+
         <div className="p-4">
           <h2 className="text-xl font-bold truncate" title={title}>
             {title}
@@ -262,6 +282,24 @@ export default function MovieCard({ item, index = 0 }: MovieCardProps) {
               className="p-4 overflow-y-auto"
               style={{ maxHeight: "calc(100% - 60px)" }}
             >
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 }}
+                className="mb-4 bg-gray-800/50 rounded-lg p-3"
+              >
+                <div className="flex justify-between items-center mb-1 text-sm">
+                  <span>{Math.round(progressPercentage)}% complete</span>
+                  <span>Finishes at {formatTime(estimatedFinishTime)}</span>
+                </div>
+                <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-orange-500 rounded-full"
+                    style={{ width: `${progressPercentage}%` }}
+                  ></div>
+                </div>
+              </motion.div>
+
               {summary && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}

@@ -1,4 +1,4 @@
-interface MediaBase {
+interface BaseMedia {
   id: string;
   title: string;
   userId: string;
@@ -8,19 +8,21 @@ interface MediaBase {
   player: string;
   startTime: string;
   sessionId: string;
+  viewOffset?: number;
 }
 
-export interface Track extends MediaBase {
+export interface Track extends BaseMedia {
   artist: string;
   album: string;
-  audioCodec?: string;
+  audioCodec: string;
   quality?: string;
-  year?: number | null;
+  year?: number;
+  duration?: number;
 }
 
-export interface Movie extends MediaBase {
+export interface Movie extends BaseMedia {
   year: number;
-  director: string;
+  director?: string;
   studio: string;
   duration: number;
   summary: string;
@@ -29,7 +31,7 @@ export interface Movie extends MediaBase {
   contentRating?: string;
 }
 
-export interface Episode extends MediaBase {
+export interface Episode extends BaseMedia {
   showTitle: string;
   season: number;
   episode: number;

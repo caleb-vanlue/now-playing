@@ -39,7 +39,6 @@ function mapToMovie(session: any): Movie {
       session.User?.title == "Irrelativity17"
         ? "Caleb"
         : session.User?.title || "Unknown User",
-    // Add the avatar URL
     userAvatar: session.User?.thumb || null,
     player: session.Player?.title || session.Player?.product || "Video Player",
     startTime: new Date(Date.now() - (session.viewOffset || 0)).toISOString(),
@@ -52,6 +51,7 @@ function mapToMovie(session: any): Movie {
     videoResolution: session.Media?.[0]?.videoResolution || "",
     audioCodec: session.Media?.[0]?.audioCodec || "",
     contentRating: session.contentRating || "",
+    viewOffset: session.viewOffset || 0,
   };
 }
 
@@ -80,6 +80,7 @@ function mapToEpisode(session: any): Episode {
     videoResolution: session.Media?.[0]?.videoResolution || "",
     audioCodec: session.Media?.[0]?.audioCodec || "",
     contentRating: session.contentRating || "",
+    viewOffset: session.viewOffset || 0,
   };
 }
 
@@ -111,6 +112,8 @@ function mapToTrack(session: any): Track {
           } kHz / ${session.Media?.[0].Part?.[0]?.Stream?.[0]?.bitDepth} bit`
         : `${session.Media?.[0].Part?.[0]?.Stream?.[0]?.bitrate} kbps`) || "",
     year: session.year || null,
+    viewOffset: session.viewOffset || 0,
+    duration: session.duration || session.Media?.[0]?.duration || 0,
   };
 }
 
