@@ -13,11 +13,13 @@ export default function TVShowCard({ item, index = 0 }: TVShowCardProps) {
   const [showDetails, setShowDetails] = useState<boolean>(false);
   const [imageError, setImageError] = useState<boolean>(false);
   const [imageLoaded, setImageLoaded] = useState<boolean>(false);
+  const [avatarError, setAvatarError] = useState<boolean>(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
   const {
     title,
     userId,
+    userAvatar,
     state,
     thumbnailFileId,
     player,
@@ -202,9 +204,18 @@ export default function TVShowCard({ item, index = 0 }: TVShowCardProps) {
 
           <div className="mt-3 flex items-center justify-between">
             <div className="flex items-center">
-              <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-xs">
-                {userId.charAt(0)}
-              </div>
+              {userAvatar && !avatarError ? (
+                <img
+                  src={userAvatar}
+                  alt={userId}
+                  className="w-8 h-8 rounded-full object-cover"
+                  onError={() => setAvatarError(true)}
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-xs">
+                  {userId.charAt(0)}
+                </div>
+              )}
               <span className="ml-2 truncate max-w-[80px]" title={userId}>
                 {userId}
               </span>
@@ -303,7 +314,17 @@ export default function TVShowCard({ item, index = 0 }: TVShowCardProps) {
                 </div>
                 <div className="stagger-item stagger-delay-6">
                   <p className="text-gray-400 text-sm">User</p>
-                  <p>{userId}</p>
+                  <div className="flex items-center">
+                    {userAvatar && !avatarError ? (
+                      <img
+                        src={userAvatar}
+                        alt={userId}
+                        className="w-5 h-5 rounded-full mr-2 object-cover"
+                        onError={() => setAvatarError(true)}
+                      />
+                    ) : null}
+                    <span>{userId}</span>
+                  </div>
                 </div>
                 <div className="stagger-item stagger-delay-7">
                   <p className="text-gray-400 text-sm">Started</p>

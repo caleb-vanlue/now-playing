@@ -13,11 +13,13 @@ export default function MovieCard({ item, index = 0 }: MovieCardProps) {
   const [showDetails, setShowDetails] = useState<boolean>(false);
   const [imageError, setImageError] = useState<boolean>(false);
   const [imageLoaded, setImageLoaded] = useState<boolean>(false);
+  const [avatarError, setAvatarError] = useState<boolean>(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
   const {
     title,
     userId,
+    userAvatar,
     state,
     thumbnailFileId,
     player,
@@ -192,9 +194,18 @@ export default function MovieCard({ item, index = 0 }: MovieCardProps) {
 
           <div className="mt-4 flex items-center justify-between">
             <div className="flex items-center">
-              <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-xs">
-                {userId.charAt(0)}
-              </div>
+              {userAvatar && !avatarError ? (
+                <img
+                  src={userAvatar}
+                  alt={userId}
+                  className="w-8 h-8 rounded-full object-cover"
+                  onError={() => setAvatarError(true)}
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-xs">
+                  {userId.charAt(0)}
+                </div>
+              )}
               <span className="ml-2 truncate max-w-[80px]" title={userId}>
                 {userId}
               </span>
@@ -287,7 +298,17 @@ export default function MovieCard({ item, index = 0 }: MovieCardProps) {
                 </div>
                 <div className="stagger-item stagger-delay-4">
                   <p className="text-gray-400 text-sm">User</p>
-                  <p>{userId}</p>
+                  <div className="flex items-center">
+                    {userAvatar && !avatarError ? (
+                      <img
+                        src={userAvatar}
+                        alt={userId}
+                        className="w-5 h-5 rounded-full mr-2 object-cover"
+                        onError={() => setAvatarError(true)}
+                      />
+                    ) : null}
+                    <span>{userId}</span>
+                  </div>
                 </div>
                 <div className="stagger-item stagger-delay-5">
                   <p className="text-gray-400 text-sm">Started</p>
