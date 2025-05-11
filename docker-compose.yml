@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        - FETCH_TIMEOUT=${FETCH_TIMEOUT:-8000}
+        - NEXT_PUBLIC_FETCH_TIMEOUT=${FETCH_TIMEOUT:-8000}
     container_name: plex-api-dashboard
     ports:
       - "0.0.0.0:3003:3003"
@@ -14,7 +14,7 @@ services:
       - NODE_ENV=${NODE_ENV:-production}
       - PLEX_URL=${PLEX_URL}
       - PLEX_TOKEN=${PLEX_TOKEN}
-      - FETCH_TIMEOUT=${FETCH_TIMEOUT:-8000}
+      - NEXT_PUBLIC_FETCH_TIMEOUT=${FETCH_TIMEOUT:-8000}
     restart: unless-stopped
     extra_hosts:
       - "host.docker.internal:host-gateway"

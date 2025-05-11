@@ -8,34 +8,37 @@ on:
 jobs:
   deploy:
     runs-on: self-hosted
-    environment: production
+    environment: dev
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Build Docker image
         shell: powershell
-        env:
-          FETCH_TIMEOUT: ${{ secrets.FETCH_TIMEOUT }}
         run: |
+          @"
+          NEXT_PUBLIC_FETCH_TIMEOUT=$($env:FETCH_TIMEOUT)
+          "@ | Out-File -Encoding utf8 .env.build
+
           $env:NEXT_PUBLIC_FETCH_TIMEOUT = "${{ secrets.FETCH_TIMEOUT }}"
 
           docker-compose build
+        env:
+          FETCH_TIMEOUT: ${{ secrets.FETCH_TIMEOUT }}
 
       - name: Deploy service
         shell: powershell
-        env:
-          NODE_ENV: production
-          PLEX_URL: ${{ secrets.PLEX_URL }}
-          PLEX_TOKEN: ${{ secrets.PLEX_TOKEN }}
-          FETCH_TIMEOUT: ${{ secrets.FETCH_TIMEOUT }}
         run: |
           @"
           NODE_ENV=production
-          PLEX_URL=${{ secrets.PLEX_URL }}
-          PLEX_TOKEN=${{ secrets.PLEX_TOKEN }}
-          FETCH_TIMEOUT=${{ secrets.FETCH_TIMEOUT }}
+          PLEX_URL=$($env:PLEX_URL)
+          PLEX_TOKEN=$($env:PLEX_TOKEN)
+          FETCH_TIMEOUT=$($env:FETCH_TIMEOUT)
           "@ | Out-File -Encoding utf8 .env
+
+          $env:PLEX_URL = "${{ secrets.PLEX_URL }}"
+          $env:PLEX_TOKEN = "${{ secrets.PLEX_TOKEN }}"
+          $env:FETCH_TIMEOUT = "${{ secrets.FETCH_TIMEOUT }}"
 
           $containerExists = docker ps -a --filter "name=plex-api-dashboard" --format "{{.Names}}"
           if ($containerExists) {
@@ -47,6 +50,11 @@ jobs:
           docker-compose up -d
 
           docker ps -f name=plex-api-dashboard
+        env:
+          NODE_ENV: production
+          PLEX_URL: ${{ secrets.PLEX_URL }}
+          PLEX_TOKEN: ${{ secrets.PLEX_TOKEN }}
+          FETCH_TIMEOUT: ${{ secrets.FETCH_TIMEOUT }}
 
       - name: Cleanup
         shell: powershell
