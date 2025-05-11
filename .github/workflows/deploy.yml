@@ -34,11 +34,15 @@ jobs:
           PLEX_URL=$($env:PLEX_URL)
           PLEX_TOKEN=$($env:PLEX_TOKEN)
           FETCH_TIMEOUT=$($env:FETCH_TIMEOUT)
+          SPOTIFY_CLIENT_ID=$($env:SPOTIFY_CLIENT_ID)
+          SPOTIFY_CLIENT_SECRET=$($env:SPOTIFY_CLIENT_SECRET)
           "@ | Out-File -Encoding utf8 .env
 
           $env:PLEX_URL = "${{ secrets.PLEX_URL }}"
           $env:PLEX_TOKEN = "${{ secrets.PLEX_TOKEN }}"
           $env:FETCH_TIMEOUT = "${{ secrets.FETCH_TIMEOUT }}"
+          $env:SPOTIFY_CLIENT_ID = "${{ secrets.SPOTIFY_CLIENT_ID }}"
+          $env:SPOTIFY_CLIENT_SECRET = "${{ secrets.SPOTIFY_CLIENT_SECRET }}"
 
           $containerExists = docker ps -a --filter "name=plex-api-dashboard" --format "{{.Names}}"
           if ($containerExists) {
@@ -55,6 +59,8 @@ jobs:
           PLEX_URL: ${{ secrets.PLEX_URL }}
           PLEX_TOKEN: ${{ secrets.PLEX_TOKEN }}
           FETCH_TIMEOUT: ${{ secrets.FETCH_TIMEOUT }}
+          SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
+          SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
 
       - name: Cleanup
         shell: powershell
