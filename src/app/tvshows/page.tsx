@@ -42,7 +42,7 @@ export default function TVShowsPage() {
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6"
+            className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-6 gap-6"
           >
             {episodes.map((episode: Episode, index: number) => (
               <TVShowCard key={episode.id} item={episode} index={index} />

@@ -265,7 +265,7 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.3 }}
-                className="grid grid-cols-2 gap-3"
+                className="grid grid-cols-1 gap-3"
               >
                 {audioCodec && (
                   <div className="stagger-item stagger-delay-3">
