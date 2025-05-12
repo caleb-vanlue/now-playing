@@ -13,6 +13,9 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Now Playing",
   description: "A dashboard for your media library",
+  icons: {
+    icon: "/favicon-32x32.png",
+  },
 };
 
 export default function RootLayout({
@@ -22,6 +25,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
+      <link rel="icon" href="/favicon.ico" sizes="any" />
       <body
         className={`${inter.variable} antialiased bg-[#141414] text-white font-sans`}
       >
