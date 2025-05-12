@@ -4,6 +4,7 @@ function sanitizeUserData(user: any) {
   if (!user) return user;
   return {
     title: user.title,
+    thumb: user.thumb,
   };
 }
 
