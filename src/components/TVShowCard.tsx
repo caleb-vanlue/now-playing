@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { Episode } from "../../types/media";
 import { getTimeAgo } from "../../utils/dateUtils";
-import { getThumbnailUrl } from "../../utils/plexApi";
 import {
   calculateProgress,
   calculateFinishTime,
@@ -20,6 +19,7 @@ import {
   ProgressInfo,
 } from "./CardComponents";
 import { UserInfo, UserAvatar } from "./UserAvatar";
+import { getThumbnailUrl } from "../../utils/api";
 
 interface TVShowCardProps {
   item: Episode;
