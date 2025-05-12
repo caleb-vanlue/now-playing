@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { useMediaDataContext } from "./MediaDataContext";
@@ -13,15 +13,28 @@ export default function MediaDashboard({ children }: MediaDashboardProps) {
   const { mediaData, loading, error, lastSyncTime, isConnected, refreshData } =
     useMediaDataContext();
 
-  const [currentTime, setCurrentTime] = useState<Date>(new Date());
+  const syncTextRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
+    const updateSyncText = () => {
+      if (!syncTextRef.current) return;
+
+      const timeSinceSync = Math.floor(
+        (Date.now() - lastSyncTime.getTime()) / 1000
+      );
+      const syncText =
+        timeSinceSync < 60
+          ? `${timeSinceSync}s ago`
+          : `${Math.floor(timeSinceSync / 60)}m ago`;
+
+      syncTextRef.current.textContent = `Synced ${syncText}`;
+    };
+
+    updateSyncText();
+    const timer = setInterval(updateSyncText, 1000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [lastSyncTime]);
 
   const [showLoading, setShowLoading] = React.useState(loading && !mediaData);
 
@@ -57,15 +70,7 @@ export default function MediaDashboard({ children }: MediaDashboardProps) {
 
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, [mediaData]);
-
-  const timeSinceSync = Math.floor(
-    (currentTime.getTime() - lastSyncTime.getTime()) / 1000
-  );
-  const syncText =
-    timeSinceSync < 60
-      ? `${timeSinceSync}s ago`
-      : `${Math.floor(timeSinceSync / 60)}m ago`;
+  }, []);
 
   return (
     <>
@@ -146,7 +151,7 @@ export default function MediaDashboard({ children }: MediaDashboardProps) {
                 ) : (
                   <span className="w-2 h-2 bg-red-500 rounded-full"></span>
                 )}
-                <span>Synced {syncText}</span>
+                <span ref={syncTextRef}>Synced 0s ago</span>
               </span>
               <motion.button
                 whileHover={{ scale: 1.05 }}
