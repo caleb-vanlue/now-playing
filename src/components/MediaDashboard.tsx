@@ -7,27 +7,21 @@ import { useMediaDataContext } from "./MediaDataContext";
 
 interface MediaDashboardProps {
   children: React.ReactNode;
-  pollingInterval?: number;
 }
 
-export default function MediaDashboard({
-  children,
-  pollingInterval = 10000,
-}: MediaDashboardProps) {
-  const { mediaData, loading, error, lastUpdated, refreshData } =
+export default function MediaDashboard({ children }: MediaDashboardProps) {
+  const { mediaData, loading, error, lastSyncTime, isConnected, refreshData } =
     useMediaDataContext();
 
-  const [formattedTime, setFormattedTime] = useState<string>("Loading...");
+  const [currentTime, setCurrentTime] = useState<Date>(new Date());
 
   useEffect(() => {
-    setFormattedTime(lastUpdated.toLocaleTimeString());
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
 
-    const intervalId = setInterval(() => {
-      setFormattedTime(new Date().toLocaleTimeString());
-    }, pollingInterval);
-
-    return () => clearInterval(intervalId);
-  }, [lastUpdated, pollingInterval]);
+    return () => clearInterval(timer);
+  }, []);
 
   const [showLoading, setShowLoading] = React.useState(loading && !mediaData);
 
@@ -62,11 +56,16 @@ export default function MediaDashboard({
     };
 
     window.addEventListener("resize", handleResize);
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
+    return () => window.removeEventListener("resize", handleResize);
   }, [mediaData]);
+
+  const timeSinceSync = Math.floor(
+    (currentTime.getTime() - lastSyncTime.getTime()) / 1000
+  );
+  const syncText =
+    timeSinceSync < 60
+      ? `${timeSinceSync}s ago`
+      : `${Math.floor(timeSinceSync / 60)}m ago`;
 
   return (
     <>
@@ -135,10 +134,28 @@ export default function MediaDashboard({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.4 }}
-              className="text-gray-400 text-sm mt-1"
+              className="text-gray-400 text-sm mt-1 flex items-center gap-3"
             >
-              Last updated: {formattedTime} • {totalCount} active session
-              {totalCount !== 1 ? "s" : ""}
+              <span>
+                {totalCount} active session{totalCount !== 1 ? "s" : ""}
+              </span>
+              <span className="text-gray-600">•</span>
+              <span className="flex items-center gap-1">
+                {isConnected ? (
+                  <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                ) : (
+                  <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+                )}
+                <span>Synced {syncText}</span>
+              </span>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={refreshData}
+                className="text-xs bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded transition-colors"
+              >
+                Refresh
+              </motion.button>
             </motion.div>
           </div>
 
@@ -176,7 +193,7 @@ export default function MediaDashboard({
       </div>
 
       <AnimatePresence>
-        {error && (
+        {error && !isConnected && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -184,8 +201,11 @@ export default function MediaDashboard({
             transition={{ duration: 0.3 }}
             className="fixed bottom-4 right-4 bg-red-900/80 text-white p-4 rounded-lg shadow-lg max-w-md backdrop-blur-sm"
           >
-            <h3 className="font-bold mb-1">Error refreshing data</h3>
+            <h3 className="font-bold mb-1">Connection Error</h3>
             <p className="text-sm mb-2">{error.message}</p>
+            <p className="text-xs text-gray-300 mb-2">
+              Retrying automatically...
+            </p>
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}

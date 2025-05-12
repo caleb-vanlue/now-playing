@@ -10,9 +10,9 @@ interface MediaDataContextValue {
   mediaData: MediaData | null;
   loading: boolean;
   error: Error | null;
-  lastUpdated: Date;
+  lastSyncTime: Date;
+  isConnected: boolean;
   refreshData: () => void;
-
   getSpotifyUrl: (artist: string, trackTitle: string) => Promise<string | null>;
 }
 
@@ -22,14 +22,22 @@ const MediaDataContext = createContext<MediaDataContextValue | undefined>(
 
 interface MediaDataProviderProps {
   children: ReactNode;
-  pollingInterval?: number;
+  activePollingInterval?: number;
+  pausedPollingInterval?: number;
+  idlePollingInterval?: number;
 }
 
 export function MediaDataProvider({
   children,
-  pollingInterval = 10000,
+  activePollingInterval = 30000, // 30 seconds when playing
+  pausedPollingInterval = 120000, // 2 minutes when paused
+  idlePollingInterval = 300000, // 5 minutes when idle
 }: MediaDataProviderProps) {
-  const mediaDataState = useMediaData(pollingInterval);
+  const mediaDataState = useMediaData({
+    activePollingInterval,
+    pausedPollingInterval,
+    idlePollingInterval,
+  });
 
   const getSpotifyUrl = async (
     artist: string,
