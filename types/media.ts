@@ -1,4 +1,4 @@
-interface BaseMedia {
+export interface BaseMedia {
   id: string;
   title: string;
   userId: string;
