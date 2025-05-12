@@ -1,5 +1,63 @@
 import { NextResponse } from "next/server";
 
+function sanitizeUserData(user: any) {
+  if (!user) return user;
+  return {
+    title: user.title,
+  };
+}
+
+function sanitizePlayerData(player: any) {
+  if (!player) return player;
+  return {
+    device: player.device,
+    model: player.model,
+    platform: player.platform,
+    platformVersion: player.platformVersion,
+    product: player.product,
+    profile: player.profile,
+    state: player.state,
+    title: player.title,
+    version: player.version,
+    vendor: player.vendor,
+    local: player.local,
+    relayed: player.relayed,
+    secure: player.secure,
+  };
+}
+
+function sanitizeSessionData(session: any) {
+  if (!session) return session;
+  return {
+    bandwidth: session.bandwidth,
+    location: session.location,
+  };
+}
+
+function sanitizeTranscodeSessionData(transcodeSession: any) {
+  if (!transcodeSession) return transcodeSession;
+  const { key, ...safeData } = transcodeSession;
+  return safeData;
+}
+
+function sanitizeMediaData(data: any) {
+  if (!data?.MediaContainer?.Metadata) return data;
+
+  return {
+    ...data,
+    MediaContainer: {
+      ...data.MediaContainer,
+      Metadata: data.MediaContainer.Metadata.map((item: any) => ({
+        ...item,
+        User: sanitizeUserData(item.User),
+        Player: sanitizePlayerData(item.Player),
+        Session: sanitizeSessionData(item.Session),
+        TranscodeSession: sanitizeTranscodeSessionData(item.TranscodeSession),
+      })),
+    },
+  };
+}
+
 export async function GET() {
   const PLEX_URL = process.env.PLEX_URL;
   const PLEX_TOKEN = process.env.PLEX_TOKEN;
@@ -27,7 +85,10 @@ export async function GET() {
     }
 
     const data = await response.json();
-    return NextResponse.json(data);
+
+    const sanitizedData = sanitizeMediaData(data);
+
+    return NextResponse.json(sanitizedData);
   } catch (error) {
     console.error("Error fetching from Plex:", error);
     return NextResponse.json(
