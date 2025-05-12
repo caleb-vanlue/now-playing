@@ -1,9 +1,25 @@
-import React, { useState, useRef, useEffect } from "react";
+import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { Episode } from "../../types/media";
 import { getTimeAgo } from "../../utils/dateUtils";
 import { getThumbnailUrl } from "../../utils/plexApi";
+import {
+  calculateProgress,
+  calculateFinishTime,
+  formatDuration,
+  formatQuality,
+  cardVariants,
+  imageVariants,
+} from "../../utils/mediaCardUtils";
+import { useMediaCard } from "../hooks/useMediaCard";
+import {
+  ImageLoadingSpinner,
+  PlayingStateIndicator,
+  ProgressBar,
+  ProgressInfo,
+} from "./CardComponents";
+import { UserInfo, UserAvatar } from "./UserAvatar";
 
 interface TVShowCardProps {
   item: Episode;
@@ -11,13 +27,19 @@ interface TVShowCardProps {
 }
 
 export default function TVShowCard({ item, index = 0 }: TVShowCardProps) {
-  const [showDetails, setShowDetails] = useState<boolean>(false);
-  const [imageError, setImageError] = useState<boolean>(false);
-  const [imageLoaded, setImageLoaded] = useState<boolean>(false);
-  const [avatarError, setAvatarError] = useState<boolean>(false);
-  const cardRef = useRef<HTMLDivElement>(null);
-  const headerRef = useRef<HTMLDivElement>(null);
-  const [contentMaxHeight, setContentMaxHeight] = useState("calc(100% - 60px)");
+  const {
+    showDetails,
+    imageError,
+    imageLoaded,
+    avatarError,
+    cardRef,
+    headerRef,
+    contentMaxHeight,
+    toggleDetails,
+    setImageError,
+    setImageLoaded,
+    setAvatarError,
+  } = useMediaCard();
 
   const {
     title,
@@ -39,100 +61,15 @@ export default function TVShowCard({ item, index = 0 }: TVShowCardProps) {
     viewOffset,
   } = item;
 
-  const progressPercentage =
-    viewOffset && duration ? (viewOffset / duration) * 100 : 0;
-
+  const progressPercentage = calculateProgress(viewOffset, duration);
   const startedAt = new Date(startTime);
-  const currentTime = new Date();
-  const remainingMs = duration - (viewOffset || 0);
-  const estimatedFinishTime = new Date(currentTime.getTime() + remainingMs);
-
+  const estimatedFinishTime = calculateFinishTime(duration, viewOffset);
   const seasonEpisode = `S${season}:E${episode}`;
   const thumbnailUrl = getThumbnailUrl(thumbnailFileId);
   const bgColorClass = "bg-gray-800";
-
   const timeAgo = getTimeAgo(startedAt);
-
-  const toggleDetails = () => {
-    setShowDetails(!showDetails);
-  };
-
-  const durationMinutes = Math.round(duration / 60000);
-  const formattedDuration =
-    durationMinutes >= 60
-      ? `${Math.floor(durationMinutes / 60)}h ${durationMinutes % 60}m`
-      : `${durationMinutes}m`;
-
-  const formatTime = (date: Date): string => {
-    return date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-  };
-
-  function formatQuality(): string {
-    const parts = [];
-
-    if (videoResolution) {
-      parts.push(videoResolution.toUpperCase());
-    }
-
-    if (audioCodec) {
-      parts.push(audioCodec.toUpperCase());
-    }
-
-    return parts.join(" • ");
-  }
-
-  useEffect(() => {
-    if (!showDetails) return;
-
-    const handleClickOutside = (event: MouseEvent) => {
-      if (cardRef.current && !cardRef.current.contains(event.target as Node)) {
-        setShowDetails(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [showDetails]);
-
-  useEffect(() => {
-    if (showDetails && headerRef.current) {
-      const updateContentHeight = () => {
-        const headerHeight = headerRef.current?.offsetHeight || 0;
-        setContentMaxHeight(`calc(100% - ${headerHeight}px)`);
-      };
-
-      updateContentHeight();
-      window.addEventListener("resize", updateContentHeight);
-
-      return () => window.removeEventListener("resize", updateContentHeight);
-    }
-  }, [showDetails]);
-
-  const cardVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.4,
-        delay: index * 0.05,
-      },
-    },
-    hover: {
-      y: -8,
-      scale: 1.02,
-      boxShadow:
-        "0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1)",
-      transition: { duration: 0.2 },
-    },
-  };
-
-  const imageVariants = {
-    hover: {
-      scale: 1.05,
-      transition: { duration: 0.4 },
-    },
-  };
+  const formattedDuration = formatDuration(duration);
+  const qualityFormatted = formatQuality(videoResolution, audioCodec);
 
   return (
     <motion.div
@@ -141,17 +78,14 @@ export default function TVShowCard({ item, index = 0 }: TVShowCardProps) {
       animate="visible"
       whileHover="hover"
       variants={cardVariants}
+      custom={index}
       className="bg-[#1c1c1c] rounded-lg overflow-hidden shadow-md relative col-span-2"
     >
       <div className="cursor-pointer" onClick={toggleDetails}>
         <div className="relative overflow-hidden">
           {thumbnailUrl && !imageError ? (
             <div className="aspect-[16/9] relative">
-              {!imageLoaded && (
-                <div className="absolute inset-0 flex items-center justify-center bg-gray-800">
-                  <div className="w-6 h-6 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
-                </div>
-              )}
+              {!imageLoaded && <ImageLoadingSpinner />}
               <motion.div
                 variants={imageVariants}
                 className="relative w-full h-full"
@@ -189,40 +123,10 @@ export default function TVShowCard({ item, index = 0 }: TVShowCardProps) {
             </motion.div>
           )}
 
-          <div
-            className={`absolute top-2 right-2 text-xs px-2 py-1 rounded-full
-              ${
-                state === "playing"
-                  ? "bg-green-500 shadow-sm shadow-green-500/30"
-                  : "bg-gray-700"
-              }`}
-          >
-            {state === "playing" ? (
-              <div className="flex items-center">
-                <span className="mr-1">Playing</span>
-                <div className="flex items-end space-x-0.5 h-2">
-                  {[...Array(3)].map((_, i) => (
-                    <span
-                      key={i}
-                      className="w-0.5 h-2 bg-white equalizer-bar"
-                    ></span>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              "Paused"
-            )}
-          </div>
+          <PlayingStateIndicator state={state} />
         </div>
 
-        {progressPercentage > 0 && (
-          <div className="h-1 w-full bg-gray-800 relative">
-            <div
-              className="absolute top-0 left-0 h-full bg-orange-500"
-              style={{ width: `${progressPercentage}%` }}
-            ></div>
-          </div>
-        )}
+        <ProgressBar percentage={progressPercentage} />
 
         <div className="p-4">
           <div className="flex flex-col">
@@ -236,40 +140,23 @@ export default function TVShowCard({ item, index = 0 }: TVShowCardProps) {
             <div className="mt-2">
               <p className="text-gray-400 text-sm flex items-center gap-2">
                 <span>{formattedDuration}</span>
-                {formatQuality() && (
+                {qualityFormatted && (
                   <>
                     <span className="text-gray-600">•</span>
-                    <span>{formatQuality()}</span>
+                    <span>{qualityFormatted}</span>
                   </>
                 )}
               </p>
             </div>
           </div>
 
-          <div className="mt-3 flex items-center justify-between">
-            <div className="flex items-center">
-              {userAvatar && !avatarError ? (
-                <div className="relative w-8 h-8 rounded-full overflow-hidden">
-                  <Image
-                    src={userAvatar}
-                    alt={userId}
-                    fill
-                    sizes="32px"
-                    className="object-cover"
-                    onError={() => setAvatarError(true)}
-                  />
-                </div>
-              ) : (
-                <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-xs">
-                  {userId.charAt(0)}
-                </div>
-              )}
-              <span className="ml-2 truncate max-w-[80px]" title={userId}>
-                {userId}
-              </span>
-            </div>
-            <span className="text-xs text-gray-500">{timeAgo}</span>
-          </div>
+          <UserInfo
+            userId={userId}
+            userAvatar={userAvatar}
+            avatarError={avatarError}
+            onAvatarError={() => setAvatarError(true)}
+            timeAgo={timeAgo}
+          />
         </div>
       </div>
 
@@ -321,23 +208,10 @@ export default function TVShowCard({ item, index = 0 }: TVShowCardProps) {
               className="p-4 overflow-y-auto"
               style={{ maxHeight: contentMaxHeight }}
             >
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.15 }}
-                className="mb-4 bg-gray-800/50 rounded-lg p-3"
-              >
-                <div className="flex justify-between items-center mb-1 text-sm">
-                  <span>{Math.round(progressPercentage)}% complete</span>
-                  <span>Ends at {formatTime(estimatedFinishTime)}</span>
-                </div>
-                <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-orange-500 rounded-full"
-                    style={{ width: `${progressPercentage}%` }}
-                  ></div>
-                </div>
-              </motion.div>
+              <ProgressInfo
+                percentage={progressPercentage}
+                estimatedFinishTime={estimatedFinishTime}
+              />
 
               {summary && (
                 <motion.div
@@ -368,7 +242,7 @@ export default function TVShowCard({ item, index = 0 }: TVShowCardProps) {
                 {videoResolution && (
                   <div className="stagger-item stagger-delay-3">
                     <p className="text-gray-400 text-sm">Quality</p>
-                    <p>{formatQuality()}</p>
+                    <p>{qualityFormatted}</p>
                   </div>
                 )}
                 <div className="stagger-item stagger-delay-4">
@@ -382,19 +256,14 @@ export default function TVShowCard({ item, index = 0 }: TVShowCardProps) {
                 <div className="stagger-item stagger-delay-6">
                   <p className="text-gray-400 text-sm">User</p>
                   <div className="flex items-center">
-                    {userAvatar && !avatarError ? (
-                      <div className="relative w-5 h-5 rounded-full overflow-hidden mr-2">
-                        <Image
-                          src={userAvatar}
-                          alt={userId}
-                          fill
-                          sizes="20px"
-                          className="object-cover"
-                          onError={() => setAvatarError(true)}
-                        />
-                      </div>
-                    ) : null}
-                    <span>{userId}</span>
+                    <UserAvatar
+                      userId={userId}
+                      userAvatar={userAvatar}
+                      avatarError={avatarError}
+                      onAvatarError={() => setAvatarError(true)}
+                      size="small"
+                    />
+                    <span className="ml-2">{userId}</span>
                   </div>
                 </div>
                 <div className="stagger-item stagger-delay-7">
