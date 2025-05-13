@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef, useMemo, memo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { useMediaDataContext } from "./MediaDataContext";
 
@@ -17,6 +18,7 @@ const MediaDashboard = memo(({ children }: MediaDashboardProps) => {
   const [headerHeight, setHeaderHeight] = useState<number>(0);
   const headerRef = useRef<HTMLDivElement>(null);
 
+  // Update sync text less frequently
   useEffect(() => {
     const updateSyncText = () => {
       if (!syncTextRef.current) return;
@@ -38,6 +40,7 @@ const MediaDashboard = memo(({ children }: MediaDashboardProps) => {
     return () => clearInterval(timer);
   }, [lastSyncTime]);
 
+  // Memoize counts to prevent unnecessary recalculation
   const counts = useMemo(() => {
     const musicCount = mediaData?.tracks?.length || 0;
     const moviesCount = mediaData?.movies?.length || 0;
@@ -73,6 +76,7 @@ const MediaDashboard = memo(({ children }: MediaDashboardProps) => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  // Memoize header content
   const headerContent = useMemo(
     () => (
       <div className="w-full flex flex-col md:flex-row md:items-center md:justify-between items-center">
@@ -125,24 +129,31 @@ const MediaDashboard = memo(({ children }: MediaDashboardProps) => {
 
   return (
     <>
-      {showLoading && (
-        <div className="fixed inset-0 bg-[#141414] z-50 flex items-center justify-center">
-          <div className="flex flex-col items-center">
-            <div className="relative w-16 h-16">
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-12 h-12 border-t-2 border-b-2 border-orange-500 rounded-full animate-spin"></div>
+      <AnimatePresence>
+        {showLoading && (
+          <motion.div
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+            className="fixed inset-0 bg-[#141414] z-50 flex items-center justify-center"
+          >
+            <div className="flex flex-col items-center">
+              <div className="relative w-16 h-16">
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-12 h-12 border-t-2 border-b-2 border-orange-500 rounded-full animate-spin"></div>
+                </div>
+              </div>
+
+              <div className="mt-6 flex flex-col items-center">
+                <h2 className="text-xl font-bold">Loading media data</h2>
+                <p className="text-gray-400 mt-2">
+                  Fetching the latest streams...
+                </p>
               </div>
             </div>
-
-            <div className="mt-6 flex flex-col items-center">
-              <h2 className="text-xl font-bold">Loading media data</h2>
-              <p className="text-gray-400 mt-2">
-                Fetching the latest streams...
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <header
         ref={headerRef}

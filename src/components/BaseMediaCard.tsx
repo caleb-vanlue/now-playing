@@ -1,4 +1,5 @@
 import React, { memo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useMediaCard } from "../hooks/useMediaCard";
 import { PlayingStateIndicator, ProgressBar } from "./CardComponents";
 import { UserInfo } from "./UserAvatar";
@@ -25,7 +26,6 @@ interface BaseMediaCardProps<T extends BaseMedia> {
 
 function BaseMediaCardComponent<T extends BaseMedia>({
   item,
-  index = 0,
   renderThumbnail,
   renderMainContent,
   renderDetailHeader,
@@ -79,29 +79,41 @@ function BaseMediaCardComponent<T extends BaseMedia>({
         </div>
       </div>
 
-      {showDetails && (
-        <div className="absolute inset-0 z-30 overflow-hidden rounded-lg shadow-xl bg-[#141414]/95 backdrop-blur-sm fade-in">
-          <div
-            ref={headerRef}
-            className="flex justify-between items-start p-4 border-b border-gray-800/50"
+      <AnimatePresence>
+        {showDetails && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{
+              type: "spring",
+              stiffness: 300,
+              damping: 30,
+            }}
+            className="absolute inset-0 z-30 overflow-hidden rounded-lg shadow-xl bg-[#141414]/95 backdrop-blur-sm"
           >
-            {renderDetailHeader(item)}
-            <button
-              onClick={toggleDetails}
-              className="text-gray-400 hover:text-white w-8 h-8 flex items-center justify-center transition-colors"
+            <div
+              ref={headerRef}
+              className="flex justify-between items-start p-4 border-b border-gray-800/50"
             >
-              ×
-            </button>
-          </div>
+              {renderDetailHeader(item)}
+              <button
+                onClick={toggleDetails}
+                className="text-gray-400 hover:text-white w-8 h-8 flex items-center justify-center transition-colors"
+              >
+                ×
+              </button>
+            </div>
 
-          <div
-            className="p-4 overflow-y-auto"
-            style={{ maxHeight: contentMaxHeight }}
-          >
-            {renderDetailContent(item)}
-          </div>
-        </div>
-      )}
+            <div
+              className="p-4 overflow-y-auto"
+              style={{ maxHeight: contentMaxHeight }}
+            >
+              {renderDetailContent(item)}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

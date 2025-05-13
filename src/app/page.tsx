@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useCallback, memo } from "react";
+import Image from "next/image";
 import MediaDashboard from "../components/MediaDashboard";
 import PageTransition from "../components/PageTransition";
 import NavigationTabs from "../components/NavigationTabs";
@@ -12,6 +13,7 @@ import { useSwipeable } from "react-swipeable";
 
 type MediaType = "music" | "movies" | "tvshows";
 
+// Memoized empty state component
 const EmptyState = memo(({ type }: { type: MediaType }) => {
   const messages = {
     music: {
@@ -140,13 +142,13 @@ function MediaPage() {
         rel="noopener noreferrer"
         className="fixed bottom-6 right-6 z-50 hover:opacity-80 transition-opacity"
       >
-        <img
+        <Image
           src="/images/logos/github-mark-white.svg"
           alt="GitHub"
-          width="48"
-          height="48"
+          width={48}
+          height={48}
           className="w-12 h-12"
-          loading="lazy"
+          priority={false}
         />
       </a>
     </MediaDashboard>
