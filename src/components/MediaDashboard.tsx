@@ -136,9 +136,14 @@ export default function MediaDashboard({ children }: MediaDashboardProps) {
                 )}
                 <span ref={syncTextRef}>Synced 0s ago</span>
               </span>
-              <div className="text-xs bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded transition-colors">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={refreshData}
+                className="text-xs bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded transition-colors"
+              >
                 Refresh
-              </div>
+              </motion.button>
             </div>
           </div>
           <div className="flex items-center">
