@@ -29,6 +29,8 @@ function mapPlexState(plexState: string | undefined): "playing" | "paused" {
 function mapToMovie(session: any): Movie {
   const sessionId =
     session.Session?.id || `movie-${session.ratingKey}-${Date.now()}`;
+  const mediaInfo = session.Media?.[0];
+  const streamInfo = mediaInfo?.Part?.[0]?.Stream?.[0];
 
   return {
     id: session.ratingKey,
@@ -44,20 +46,65 @@ function mapToMovie(session: any): Movie {
     startTime: new Date(Date.now() - (session.viewOffset || 0)).toISOString(),
     sessionId: sessionId,
     year: session.year || 0,
-    director: session.director || "Unknown",
+    director: session.Director?.[0]?.tag || session.director || "Unknown",
     studio: session.studio || "Unknown Studio",
-    duration: session.duration || session.Media?.[0]?.duration || 0,
+    duration: session.duration || mediaInfo?.duration || 0,
     summary: session.summary || "",
-    videoResolution: session.Media?.[0]?.videoResolution || "",
-    audioCodec: session.Media?.[0]?.audioCodec || "",
+    videoResolution: mediaInfo?.videoResolution || "",
+    audioCodec: mediaInfo?.audioCodec || "",
     contentRating: session.contentRating || "",
     viewOffset: session.viewOffset || 0,
+    genre: session.Genre?.map((g: any) => g.tag) || [],
+    country: session.Country?.map((c: any) => c.tag) || [],
+    rating: session.rating,
+    audienceRating: session.audienceRating,
+    ratingImage: session.ratingImage,
+    audienceRatingImage: session.audienceRatingImage,
+    tagline: session.tagline,
+    originallyAvailableAt: session.originallyAvailableAt,
+    // Media details
+    container: mediaInfo?.container,
+    videoCodec: mediaInfo?.videoCodec,
+    videoProfile: mediaInfo?.videoProfile,
+    audioProfile: mediaInfo?.audioProfile,
+    audioChannels: mediaInfo?.audioChannels,
+    // Stream details
+    bitrate: mediaInfo?.bitrate,
+    height: mediaInfo?.height,
+    width: mediaInfo?.width,
+    frameRate: mediaInfo?.videoFrameRate,
+    chromaSubsampling: streamInfo?.chromaSubsampling,
+    colorPrimaries: streamInfo?.colorPrimaries,
+    // Transcode info
+    transcodeDecision:
+      session.TranscodeSession?.videoDecision === "transcode" ||
+      session.TranscodeSession?.audioDecision === "transcode"
+        ? "transcode"
+        : "direct",
+    videoDecision: session.TranscodeSession?.videoDecision || "direct",
+    audioDecision: session.TranscodeSession?.audioDecision || "direct",
+    transcodeProgress: session.TranscodeSession?.progress,
+    transcodeHwRequested: session.TranscodeSession?.transcodeHwRequested,
+    // Session info
+    bandwidth: session.Session?.bandwidth,
+    location: session.Session?.location,
+    secure: session.Player?.secure,
+    local: session.Player?.local,
+    relayed: session.Player?.relayed,
+    // Platform info
+    platform: session.Player?.platform,
+    platformVersion: session.Player?.platformVersion,
+    device: session.Player?.device,
+    product: session.Player?.product,
+    playerVersion: session.Player?.version,
   };
 }
 
 function mapToEpisode(session: any): Episode {
   const sessionId =
     session.Session?.id || `episode-${session.ratingKey}-${Date.now()}`;
+  const mediaInfo = session.Media?.[0];
+  const streamInfo = mediaInfo?.Part?.[0]?.Stream?.[0];
 
   return {
     id: session.ratingKey,
@@ -75,12 +122,44 @@ function mapToEpisode(session: any): Episode {
     showTitle: session.grandparentTitle || "Unknown Show",
     season: session.parentIndex || 0,
     episode: session.index || 0,
-    duration: session.duration || session.Media?.[0]?.duration || 0,
+    duration: session.duration || mediaInfo?.duration || 0,
     summary: session.summary || "",
-    videoResolution: session.Media?.[0]?.videoResolution || "",
-    audioCodec: session.Media?.[0]?.audioCodec || "",
+    videoResolution: mediaInfo?.videoResolution || "",
+    audioCodec: mediaInfo?.audioCodec || "",
     contentRating: session.contentRating || "",
     viewOffset: session.viewOffset || 0,
+    genre: session.Genre?.map((g: any) => g.tag) || [],
+    rating: session.rating,
+    audienceRating: session.audienceRating,
+    // Media details
+    container: mediaInfo?.container,
+    videoCodec: mediaInfo?.videoCodec,
+    videoProfile: mediaInfo?.videoProfile,
+    audioProfile: mediaInfo?.audioProfile,
+    audioChannels: mediaInfo?.audioChannels,
+    // Stream details
+    bitrate: mediaInfo?.bitrate,
+    height: mediaInfo?.height,
+    width: mediaInfo?.width,
+    frameRate: mediaInfo?.videoFrameRate,
+    // Transcode info
+    transcodeDecision: session.TranscodeSession?.key ? "transcode" : "direct",
+    videoDecision: session.TranscodeSession?.videoDecision,
+    audioDecision: session.TranscodeSession?.audioDecision,
+    transcodeProgress: session.TranscodeSession?.progress,
+    transcodeHwRequested: session.TranscodeSession?.transcodeHwRequested,
+    // Session info
+    bandwidth: session.Session?.bandwidth,
+    location: session.Session?.location,
+    secure: session.Player?.secure,
+    local: session.Player?.local,
+    relayed: session.Player?.relayed,
+    // Platform info
+    platform: session.Player?.platform,
+    platformVersion: session.Player?.platformVersion,
+    device: session.Player?.device,
+    product: session.Player?.product,
+    playerVersion: session.Player?.version,
   };
 }
 

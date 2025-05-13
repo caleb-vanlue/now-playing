@@ -58,6 +58,16 @@ export default function MovieCard({ item: movie, index = 0 }: MovieCardProps) {
               {movie.contentRating}
             </div>
           )}
+
+          {movie.videoDecision && (
+            <div className="absolute top-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded-md backdrop-blur-sm">
+              {movie.videoDecision === "transcode"
+                ? "Video Transcode"
+                : movie.audioDecision === "transcode"
+                ? "Audio Transcode"
+                : "Direct Play"}
+            </div>
+          )}
         </div>
       );
     }
@@ -80,6 +90,12 @@ export default function MovieCard({ item: movie, index = 0 }: MovieCardProps) {
               <span>{qualityFormatted}</span>
             </>
           )}
+          {movie.rating && (
+            <>
+              <span className="text-gray-600">•</span>
+              <span>⭐ {movie.rating}/10</span>
+            </>
+          )}
         </p>
       </div>
     </>
@@ -98,7 +114,16 @@ export default function MovieCard({ item: movie, index = 0 }: MovieCardProps) {
         )}
         <span className="text-gray-600">•</span>
         <span>{formattedDuration}</span>
+        {(movie.genre?.length ?? 0) > 0 && (
+          <>
+            <span className="text-gray-600">•</span>
+            <span>{movie.genre?.slice(0, 2).join(", ")}</span>
+          </>
+        )}
       </div>
+      {movie.tagline && (
+        <p className="text-gray-500 italic text-sm mt-1">{movie.tagline}</p>
+      )}
     </div>
   );
 
@@ -108,6 +133,35 @@ export default function MovieCard({ item: movie, index = 0 }: MovieCardProps) {
         percentage={progressPercentage}
         estimatedFinishTime={estimatedFinishTime}
       />
+
+      {movie.transcodeProgress !== undefined &&
+        (movie.videoDecision === "transcode" ||
+          movie.audioDecision === "transcode") && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="mb-4 bg-gray-800/50 rounded-lg p-3"
+          >
+            <div className="flex justify-between items-center mb-1 text-sm">
+              <span>
+                {movie.videoDecision === "transcode" &&
+                movie.audioDecision === "transcode"
+                  ? "Transcode Progress"
+                  : movie.videoDecision === "transcode"
+                  ? "Video Transcode Progress"
+                  : "Audio Transcode Progress"}
+              </span>
+              <span>{Math.round(movie.transcodeProgress)}%</span>
+            </div>
+            <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-blue-500 rounded-full"
+                style={{ width: `${movie.transcodeProgress}%` }}
+              ></div>
+            </div>
+          </motion.div>
+        )}
 
       {movie.summary && (
         <motion.div
@@ -133,17 +187,91 @@ export default function MovieCard({ item: movie, index = 0 }: MovieCardProps) {
             <p>{movie.studio}</p>
           </div>
         )}
-        {movie.videoResolution && (
+        {movie.director && (
           <div className="stagger-item stagger-delay-2">
-            <p className="text-gray-400 text-sm">Quality</p>
+            <p className="text-gray-400 text-sm">Director</p>
+            <p>{movie.director}</p>
+          </div>
+        )}
+        {movie.videoResolution && (
+          <div className="stagger-item stagger-delay-3">
+            <p className="text-gray-400 text-sm">Video Quality</p>
             <p>{qualityFormatted}</p>
           </div>
         )}
-        <div className="stagger-item stagger-delay-3">
-          <p className="text-gray-400 text-sm">Device</p>
-          <p>{movie.player}</p>
+        {movie.videoCodec && (
+          <div className="stagger-item stagger-delay-4">
+            <p className="text-gray-400 text-sm">Video Format</p>
+            <p className="uppercase">
+              {movie.videoCodec}{" "}
+              {movie.videoProfile ? `(${movie.videoProfile})` : ""}
+            </p>
+          </div>
+        )}
+        {movie.audioCodec && (
+          <div className="stagger-item stagger-delay-5">
+            <p className="text-gray-400 text-sm">Audio Format</p>
+            <p className="uppercase">
+              {movie.audioCodec}{" "}
+              {movie.audioChannels ? `${movie.audioChannels}.1` : ""}
+            </p>
+          </div>
+        )}
+        {movie.bitrate && (
+          <div className="stagger-item stagger-delay-6">
+            <p className="text-gray-400 text-sm">Bitrate</p>
+            <p>{(movie.bitrate / 1000).toFixed(1)} Mbps</p>
+          </div>
+        )}
+        <div className="stagger-item stagger-delay-7">
+          <p className="text-gray-400 text-sm">Playback Type</p>
+          <p>
+            {movie.videoDecision === "copy" && movie.audioDecision === "copy"
+              ? "Direct Play"
+              : movie.videoDecision === "transcode" &&
+                movie.audioDecision === "transcode"
+              ? "Full Transcode"
+              : movie.videoDecision === "transcode"
+              ? "Video Transcode"
+              : movie.audioDecision === "transcode"
+              ? "Audio Transcode"
+              : "Direct Play"}
+            {movie.transcodeHwRequested && " (HW)"}
+          </p>
         </div>
-        <div className="stagger-item stagger-delay-4">
+        <div className="stagger-item stagger-delay-8">
+          <p className="text-gray-400 text-sm">Connection</p>
+          <p>
+            {movie.location?.toUpperCase() || "Unknown"}
+            {movie.secure && " • Secure"}
+            {movie.local && " • Local"}
+          </p>
+        </div>
+        <div className="stagger-item stagger-delay-9">
+          <p className="text-gray-400 text-sm">Bandwidth</p>
+          <p>
+            {movie.bandwidth
+              ? `${(movie.bandwidth / 1000).toFixed(1)} Mbps`
+              : "N/A"}
+          </p>
+        </div>
+        <div className="stagger-item stagger-delay-10">
+          <p className="text-gray-400 text-sm">Platform</p>
+          <p>
+            {movie.platform} {movie.platformVersion}
+          </p>
+        </div>
+        <div className="stagger-item stagger-delay-11">
+          <p className="text-gray-400 text-sm">Device</p>
+          <p>{movie.device || movie.player}</p>
+        </div>
+        <div className="stagger-item stagger-delay-12">
+          <p className="text-gray-400 text-sm">Player Version</p>
+          <p className="text-xs truncate">
+            {movie.playerVersion || movie.product}
+          </p>
+        </div>
+        <div className="stagger-item stagger-delay-13">
           <p className="text-gray-400 text-sm">User</p>
           <div className="flex items-center">
             <UserAvatar
@@ -156,19 +284,40 @@ export default function MovieCard({ item: movie, index = 0 }: MovieCardProps) {
             <span className="ml-2">{movie.userId}</span>
           </div>
         </div>
-        <div className="stagger-item stagger-delay-5">
+        <div className="stagger-item stagger-delay-14">
           <p className="text-gray-400 text-sm">Started</p>
           <p>{startedAt.toLocaleTimeString()}</p>
         </div>
-        <div className="stagger-item stagger-delay-6">
+        <div className="stagger-item stagger-delay-15">
           <p className="text-gray-400 text-sm">Status</p>
           <p className="capitalize">{movie.state}</p>
         </div>
-        <div className="stagger-item stagger-delay-7 col-span-2">
+        <div className="stagger-item stagger-delay-16 col-span-2">
           <p className="text-gray-400 text-sm">Session ID</p>
           <p className="font-mono text-xs">{movie.sessionId}</p>
         </div>
       </motion.div>
+
+      {movie.genre && movie.genre.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="mt-4"
+        >
+          <p className="text-gray-400 text-sm mb-2">Genres</p>
+          <div className="flex flex-wrap gap-2">
+            {movie.genre.map((g, i) => (
+              <span
+                key={i}
+                className="bg-gray-800 px-2 py-1 rounded-md text-xs"
+              >
+                {g}
+              </span>
+            ))}
+          </div>
+        </motion.div>
+      )}
     </>
   );
 

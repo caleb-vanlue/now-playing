@@ -9,6 +9,18 @@ export interface BaseMedia {
   startTime: string;
   sessionId: string;
   viewOffset?: number;
+  // Session info
+  bandwidth?: number;
+  location?: string;
+  secure?: boolean;
+  local?: boolean;
+  relayed?: boolean;
+  // Platform info
+  platform?: string;
+  platformVersion?: string;
+  device?: string;
+  product?: string;
+  playerVersion?: string;
 }
 
 export interface Track extends BaseMedia {
@@ -29,6 +41,33 @@ export interface Movie extends BaseMedia {
   videoResolution?: string;
   audioCodec?: string;
   contentRating?: string;
+  genre?: string[];
+  country?: string[];
+  rating?: number;
+  audienceRating?: number;
+  ratingImage?: string;
+  audienceRatingImage?: string;
+  tagline?: string;
+  originallyAvailableAt?: string;
+  // Media details
+  container?: string;
+  videoCodec?: string;
+  videoProfile?: string;
+  audioProfile?: string;
+  audioChannels?: number;
+  // Stream details
+  bitrate?: number;
+  height?: number;
+  width?: number;
+  frameRate?: string;
+  chromaSubsampling?: string;
+  colorPrimaries?: string;
+  // Transcode info
+  transcodeDecision?: string;
+  videoDecision?: string;
+  audioDecision?: string;
+  transcodeProgress?: number;
+  transcodeHwRequested?: boolean;
 }
 
 export interface Episode extends BaseMedia {
@@ -40,6 +79,26 @@ export interface Episode extends BaseMedia {
   videoResolution?: string;
   audioCodec?: string;
   contentRating?: string;
+  genre?: string[];
+  rating?: number;
+  audienceRating?: number;
+  // Media details
+  container?: string;
+  videoCodec?: string;
+  videoProfile?: string;
+  audioProfile?: string;
+  audioChannels?: number;
+  // Stream details
+  bitrate?: number;
+  height?: number;
+  width?: number;
+  frameRate?: string;
+  // Transcode info
+  transcodeDecision?: string;
+  videoDecision?: string;
+  audioDecision?: string;
+  transcodeProgress?: number;
+  transcodeHwRequested?: boolean;
 }
 
 export interface MediaData {

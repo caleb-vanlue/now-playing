@@ -66,6 +66,16 @@ export default function TVShowCard({
               {episode.contentRating}
             </div>
           )}
+
+          {episode.videoDecision && (
+            <div className="absolute top-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded-md backdrop-blur-sm">
+              {episode.videoDecision === "transcode"
+                ? "Video Transcode"
+                : episode.audioDecision === "transcode"
+                ? "Audio Transcode"
+                : "Direct Play"}
+            </div>
+          )}
         </div>
       );
     }
@@ -91,6 +101,12 @@ export default function TVShowCard({
             <>
               <span className="text-gray-600">•</span>
               <span>{qualityFormatted}</span>
+            </>
+          )}
+          {episode.rating && (
+            <>
+              <span className="text-gray-600">•</span>
+              <span>⭐ {episode.rating}/10</span>
             </>
           )}
         </p>
@@ -122,6 +138,35 @@ export default function TVShowCard({
         estimatedFinishTime={estimatedFinishTime}
       />
 
+      {episode.transcodeProgress !== undefined &&
+        (episode.videoDecision === "transcode" ||
+          episode.audioDecision === "transcode") && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="mb-4 bg-gray-800/50 rounded-lg p-3"
+          >
+            <div className="flex justify-between items-center mb-1 text-sm">
+              <span>
+                {episode.videoDecision === "transcode" &&
+                episode.audioDecision === "transcode"
+                  ? "Transcode Progress"
+                  : episode.videoDecision === "transcode"
+                  ? "Video Transcode Progress"
+                  : "Audio Transcode Progress"}
+              </span>
+              <span>{Math.round(episode.transcodeProgress)}%</span>
+            </div>
+            <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-blue-500 rounded-full"
+                style={{ width: `${episode.transcodeProgress}%` }}
+              ></div>
+            </div>
+          </motion.div>
+        )}
+
       {episode.summary && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
@@ -150,19 +195,88 @@ export default function TVShowCard({
         </div>
         {episode.videoResolution && (
           <div className="stagger-item stagger-delay-3">
-            <p className="text-gray-400 text-sm">Quality</p>
+            <p className="text-gray-400 text-sm">Video Quality</p>
             <p>{qualityFormatted}</p>
           </div>
         )}
-        <div className="stagger-item stagger-delay-4">
+        {episode.videoCodec && (
+          <div className="stagger-item stagger-delay-4">
+            <p className="text-gray-400 text-sm">Video Format</p>
+            <p className="uppercase">
+              {episode.videoCodec}{" "}
+              {episode.videoProfile ? `(${episode.videoProfile})` : ""}
+            </p>
+          </div>
+        )}
+        {episode.audioCodec && (
+          <div className="stagger-item stagger-delay-5">
+            <p className="text-gray-400 text-sm">Audio Format</p>
+            <p className="uppercase">
+              {episode.audioCodec}{" "}
+              {episode.audioChannels ? `${episode.audioChannels}.1` : ""}
+            </p>
+          </div>
+        )}
+        <div className="stagger-item stagger-delay-6">
           <p className="text-gray-400 text-sm">Duration</p>
           <p>{formattedDuration}</p>
         </div>
-        <div className="stagger-item stagger-delay-5">
-          <p className="text-gray-400 text-sm">Device</p>
-          <p>{episode.player}</p>
+        {episode.bitrate && (
+          <div className="stagger-item stagger-delay-7">
+            <p className="text-gray-400 text-sm">Bitrate</p>
+            <p>{(episode.bitrate / 1000).toFixed(1)} Mbps</p>
+          </div>
+        )}
+        <div className="stagger-item stagger-delay-8">
+          <p className="text-gray-400 text-sm">Playback Type</p>
+          <p>
+            {episode.videoDecision === "copy" &&
+            episode.audioDecision === "copy"
+              ? "Direct Play"
+              : episode.videoDecision === "transcode" &&
+                episode.audioDecision === "transcode"
+              ? "Full Transcode"
+              : episode.videoDecision === "transcode"
+              ? "Video Transcode"
+              : episode.audioDecision === "transcode"
+              ? "Audio Transcode"
+              : "Direct Play"}
+            {episode.transcodeHwRequested && " (HW)"}
+          </p>
         </div>
-        <div className="stagger-item stagger-delay-6">
+        <div className="stagger-item stagger-delay-9">
+          <p className="text-gray-400 text-sm">Connection</p>
+          <p>
+            {episode.location?.toUpperCase() || "Unknown"}
+            {episode.secure && " • Secure"}
+            {episode.local && " • Local"}
+          </p>
+        </div>
+        <div className="stagger-item stagger-delay-10">
+          <p className="text-gray-400 text-sm">Bandwidth</p>
+          <p>
+            {episode.bandwidth
+              ? `${(episode.bandwidth / 1000).toFixed(1)} Mbps`
+              : "N/A"}
+          </p>
+        </div>
+        <div className="stagger-item stagger-delay-11">
+          <p className="text-gray-400 text-sm">Platform</p>
+          <p>
+            {episode.platform} {episode.platformVersion}
+          </p>
+        </div>
+        <div className="stagger-item stagger-delay-12">
+          <p className="text-gray-400 text-sm">Device</p>
+          <p>{episode.device || episode.player}</p>
+        </div>
+        <div className="stagger-item stagger-delay-13">
+          <p className="text-gray-400 text-sm">Player Version</p>
+          <p className="text-xs truncate">
+            {episode.playerVersion || episode.product}
+          </p>
+        </div>
+        <div className="stagger-item stagger-delay-14">
           <p className="text-gray-400 text-sm">User</p>
           <div className="flex items-center">
             <UserAvatar
@@ -175,19 +289,40 @@ export default function TVShowCard({
             <span className="ml-2">{episode.userId}</span>
           </div>
         </div>
-        <div className="stagger-item stagger-delay-7">
+        <div className="stagger-item stagger-delay-15">
           <p className="text-gray-400 text-sm">Started</p>
           <p>{startedAt.toLocaleTimeString()}</p>
         </div>
-        <div className="stagger-item stagger-delay-8">
+        <div className="stagger-item stagger-delay-16">
           <p className="text-gray-400 text-sm">Status</p>
           <p className="capitalize">{episode.state}</p>
         </div>
-        <div className="stagger-item stagger-delay-9 col-span-2">
+        <div className="stagger-item stagger-delay-17 col-span-2">
           <p className="text-gray-400 text-sm">Session ID</p>
           <p className="font-mono text-xs">{episode.sessionId}</p>
         </div>
       </motion.div>
+
+      {episode.genre && episode.genre.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="mt-4"
+        >
+          <p className="text-gray-400 text-sm mb-2">Genres</p>
+          <div className="flex flex-wrap gap-2">
+            {episode.genre.map((g, i) => (
+              <span
+                key={i}
+                className="bg-gray-800 px-2 py-1 rounded-md text-xs"
+              >
+                {g}
+              </span>
+            ))}
+          </div>
+        </motion.div>
+      )}
     </>
   );
 
