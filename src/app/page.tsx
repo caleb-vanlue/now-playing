@@ -20,10 +20,16 @@ export default function MediaPage() {
   const order = ["music", "movies", "tvshows"];
   const swipeHandlers = useSwipeable({
     onSwipedLeft: () => {
-      setActiveTab(order[order.indexOf(activeTab ?? "music") + 1] as MediaType);
+      setActiveTab(
+        order[
+          Math.min(order.indexOf(activeTab) + 1, order.length - 1)
+        ] as MediaType
+      );
     },
     onSwipedRight: () => {
-      setActiveTab(order[order.indexOf(activeTab ?? "music") - 1] as MediaType);
+      setActiveTab(
+        order[Math.max(order.indexOf(activeTab) - 1, 0)] as MediaType
+      );
     },
     preventScrollOnSwipe: true,
   });
