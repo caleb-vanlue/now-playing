@@ -174,9 +174,40 @@ export async function fetchPlexData(): Promise<MediaData> {
 }
 
 export function getThumbnailUrl(
-  thumbnailPath: string | undefined
+  thumbnailPath: string | undefined,
+  options?: {
+    quality?: "low" | "medium" | "high" | "original";
+    width?: number;
+  }
 ): string | null {
   if (!thumbnailPath) return null;
 
-  return `/api/plex/thumbnail?path=${encodeURIComponent(thumbnailPath)}`;
+  const params = new URLSearchParams({
+    path: thumbnailPath,
+    quality: options?.quality || "medium",
+  });
+
+  if (options?.width) {
+    params.append("width", options.width.toString());
+  }
+
+  return `/api/plex/thumbnail?${params.toString()}`;
+}
+
+export function getResponsiveThumbnailUrl(
+  thumbnailPath: string | undefined,
+  type: "music" | "movie" | "tv"
+): string | null {
+  if (!thumbnailPath) return null;
+
+  const sizes: Record<
+    "music" | "movie" | "tv",
+    { quality: "low" | "medium" | "high" | "original"; width: number }
+  > = {
+    music: { quality: "medium", width: 300 },
+    movie: { quality: "medium", width: 400 },
+    tv: { quality: "medium", width: 600 },
+  };
+
+  return getThumbnailUrl(thumbnailPath, sizes[type]);
 }

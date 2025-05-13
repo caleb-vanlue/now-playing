@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
+import sharp from "sharp";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const path = searchParams.get("path");
+  const quality = searchParams.get("quality") || "medium";
+  const width = searchParams.get("width");
 
   if (!path) {
-    return NextResponse.json(
-      { error: "Missing thumbnail path" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Path required" }, { status: 400 });
   }
 
   const PLEX_URL = process.env.PLEX_URL;
@@ -22,26 +22,44 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    let fullUrl = "";
-    if (path.startsWith("http")) {
-      const separator = path.includes("?") ? "&" : "?";
-      fullUrl = `${path}${separator}X-Plex-Token=${PLEX_TOKEN}`;
-    } else {
-      fullUrl = `${PLEX_URL}${path}?X-Plex-Token=${PLEX_TOKEN}`;
-    }
+    const qualitySettings = {
+      low: { quality: 60, width: 200 },
+      medium: { quality: 75, width: 400 },
+      high: { quality: 85, width: 800 },
+      original: { quality: 100, width: null },
+    };
 
-    const response = await fetch(fullUrl);
+    const settings =
+      qualitySettings[quality as keyof typeof qualitySettings] ||
+      qualitySettings.medium;
+    const targetWidth = width ? parseInt(width) : settings.width;
+
+    const imageUrl = `${PLEX_URL}${path}?X-Plex-Token=${PLEX_TOKEN}`;
+    const response = await fetch(imageUrl);
 
     if (!response.ok) {
-      throw new Error(`Thumbnail error: ${response.status}`);
+      throw new Error(`Plex API Error: ${response.status}`);
     }
 
-    const imageBuffer = await response.arrayBuffer();
+    const buffer = await response.arrayBuffer();
 
-    return new NextResponse(imageBuffer, {
+    let pipeline = sharp(buffer);
+
+    if (targetWidth) {
+      pipeline = pipeline.resize(targetWidth, null, {
+        withoutEnlargement: true,
+        fit: "inside",
+      });
+    }
+
+    const optimizedBuffer = await pipeline
+      .jpeg({ quality: settings.quality, progressive: true })
+      .toBuffer();
+
+    return new NextResponse(optimizedBuffer, {
       headers: {
-        "Content-Type": response.headers.get("content-type") || "image/jpeg",
-        "Cache-Control": "public, max-age=86400",
+        "Content-Type": "image/jpeg",
+        "Cache-Control": "public, max-age=31536000, immutable",
       },
     });
   } catch (error) {
