@@ -3,15 +3,15 @@ import { MediaData } from "../../types/media";
 import { fetchMediaData } from "../../utils/api";
 
 interface UseMediaDataOptions {
-  activePollingInterval?: number; // When media is playing (default: 30s)
-  pausedPollingInterval?: number; // When all paused (default: 120s)
-  idlePollingInterval?: number; // When no sessions (default: 300s)
+  activePollingInterval?: number;
+  pausedPollingInterval?: number;
+  idlePollingInterval?: number;
 }
 
 const DEFAULT_OPTIONS: UseMediaDataOptions = {
-  activePollingInterval: 30000,
-  pausedPollingInterval: 120000,
-  idlePollingInterval: 300000,
+  activePollingInterval: 60000, // 1 minute (was 30s)
+  pausedPollingInterval: 300000, // 5 minutes (was 2m)
+  idlePollingInterval: 600000, // 10 minutes (was 5m)
 };
 
 export function useMediaData(options?: UseMediaDataOptions) {
@@ -27,6 +27,7 @@ export function useMediaData(options?: UseMediaDataOptions) {
   const pollingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const retryCount = useRef(0);
   const lastMediaDataRef = useRef<MediaData | null>(null);
+  const lastProgressUpdate = useRef<number>(Date.now());
 
   const getPollingInterval = useCallback(
     (data: MediaData | null): number => {
@@ -50,6 +51,13 @@ export function useMediaData(options?: UseMediaDataOptions) {
   );
 
   const updateProgress = useCallback(() => {
+    const now = Date.now();
+    const timeSinceLastUpdate = now - lastProgressUpdate.current;
+
+    if (timeSinceLastUpdate < 5000) return; // Skip if less than 5 seconds
+
+    lastProgressUpdate.current = now;
+
     setMediaData((current) => {
       if (!current) return current;
 
@@ -59,21 +67,30 @@ export function useMediaData(options?: UseMediaDataOptions) {
           ...track,
           viewOffset:
             track.state === "playing" && track.duration
-              ? Math.min((track.viewOffset || 0) + 1000, track.duration)
+              ? Math.min(
+                  (track.viewOffset || 0) + timeSinceLastUpdate,
+                  track.duration
+                )
               : track.viewOffset,
         })),
         movies: current.movies.map((movie) => ({
           ...movie,
           viewOffset:
             movie.state === "playing"
-              ? Math.min((movie.viewOffset || 0) + 1000, movie.duration)
+              ? Math.min(
+                  (movie.viewOffset || 0) + timeSinceLastUpdate,
+                  movie.duration
+                )
               : movie.viewOffset,
         })),
         episodes: current.episodes.map((episode) => ({
           ...episode,
           viewOffset:
             episode.state === "playing"
-              ? Math.min((episode.viewOffset || 0) + 1000, episode.duration)
+              ? Math.min(
+                  (episode.viewOffset || 0) + timeSinceLastUpdate,
+                  episode.duration
+                )
               : episode.viewOffset,
         })),
       };
@@ -85,47 +102,43 @@ export function useMediaData(options?: UseMediaDataOptions) {
       const data = await fetchMediaData();
 
       if (lastMediaDataRef.current) {
-        data.tracks = data.tracks.map((track) => {
-          const oldTrack = lastMediaDataRef.current?.tracks.find(
-            (t) => t.id === track.id
-          );
-          if (
-            oldTrack &&
-            Math.abs((track.viewOffset || 0) - (oldTrack.viewOffset || 0)) <
-              5000
-          ) {
-            return { ...track, viewOffset: oldTrack.viewOffset };
-          }
-          return track;
-        });
+        const hasChanges =
+          data.tracks.length !== lastMediaDataRef.current.tracks.length ||
+          data.movies.length !== lastMediaDataRef.current.movies.length ||
+          data.episodes.length !== lastMediaDataRef.current.episodes.length ||
+          data.tracks.some((track, i) => {
+            const oldTrack = lastMediaDataRef.current!.tracks[i];
+            return (
+              !oldTrack ||
+              track.id !== oldTrack.id ||
+              track.state !== oldTrack.state
+            );
+          }) ||
+          data.movies.some((movie, i) => {
+            const oldMovie = lastMediaDataRef.current!.movies[i];
+            return (
+              !oldMovie ||
+              movie.id !== oldMovie.id ||
+              movie.state !== oldMovie.state
+            );
+          }) ||
+          data.episodes.some((episode, i) => {
+            const oldEpisode = lastMediaDataRef.current!.episodes[i];
+            return (
+              !oldEpisode ||
+              episode.id !== oldEpisode.id ||
+              episode.state !== oldEpisode.state
+            );
+          });
 
-        data.movies = data.movies.map((movie) => {
-          const oldMovie = lastMediaDataRef.current?.movies.find(
-            (m) => m.id === movie.id
-          );
-          if (
-            oldMovie &&
-            Math.abs((movie.viewOffset || 0) - (oldMovie.viewOffset || 0)) <
-              5000
-          ) {
-            return { ...movie, viewOffset: oldMovie.viewOffset };
+        if (!hasChanges) {
+          const nextInterval = getPollingInterval(data);
+          if (pollingTimerRef.current) {
+            clearTimeout(pollingTimerRef.current);
           }
-          return movie;
-        });
-
-        data.episodes = data.episodes.map((episode) => {
-          const oldEpisode = lastMediaDataRef.current?.episodes.find(
-            (e) => e.id === episode.id
-          );
-          if (
-            oldEpisode &&
-            Math.abs((episode.viewOffset || 0) - (oldEpisode.viewOffset || 0)) <
-              5000
-          ) {
-            return { ...episode, viewOffset: oldEpisode.viewOffset };
-          }
-          return episode;
-        });
+          pollingTimerRef.current = setTimeout(fetchData, nextInterval);
+          return;
+        }
       }
 
       setMediaData(data);
@@ -151,9 +164,9 @@ export function useMediaData(options?: UseMediaDataOptions) {
 
       retryCount.current++;
       const retryDelay = Math.min(
-        (config.activePollingInterval ?? 30000) *
+        (config.activePollingInterval ?? 60000) *
           Math.pow(2, retryCount.current - 1),
-        config.idlePollingInterval ?? 300000
+        config.idlePollingInterval ?? 600000
       );
 
       if (pollingTimerRef.current) {
@@ -163,7 +176,6 @@ export function useMediaData(options?: UseMediaDataOptions) {
     }
   }, [getPollingInterval, config]);
 
-  // Initial fetch and cleanup
   useEffect(() => {
     fetchData();
 
@@ -175,13 +187,12 @@ export function useMediaData(options?: UseMediaDataOptions) {
         clearInterval(progressTimerRef.current);
       }
     };
-  }, []); // Empty dependency array - run only once
+  }, []);
 
-  // Handle progress updates and visibility changes
   useEffect(() => {
     const startProgressUpdates = () => {
       if (progressTimerRef.current) return;
-      progressTimerRef.current = setInterval(updateProgress, 1000);
+      progressTimerRef.current = setInterval(updateProgress, 5000); // Update every 5 seconds
     };
 
     const stopProgressUpdates = () => {
@@ -196,7 +207,6 @@ export function useMediaData(options?: UseMediaDataOptions) {
         stopProgressUpdates();
       } else {
         startProgressUpdates();
-        // Don't fetch data on visibility change - let polling handle it
       }
     };
 
@@ -218,7 +228,7 @@ export function useMediaData(options?: UseMediaDataOptions) {
       stopProgressUpdates();
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [mediaData, updateProgress]); // Remove fetchData from dependencies
+  }, [mediaData, updateProgress]);
 
   const refreshData = useCallback(() => {
     retryCount.current = 0;

@@ -1,11 +1,9 @@
-import React from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { memo } from "react";
 import { useMediaCard } from "../hooks/useMediaCard";
 import { PlayingStateIndicator, ProgressBar } from "./CardComponents";
 import { UserInfo } from "./UserAvatar";
 import { BaseMedia } from "../../types/media";
 import { getTimeAgo } from "../../utils/dateUtils";
-import { cardVariants } from "../../utils/mediaCardUtils";
 
 export interface ImageState {
   imageError: boolean;
@@ -25,7 +23,7 @@ interface BaseMediaCardProps<T extends BaseMedia> {
   className?: string;
 }
 
-export function BaseMediaCard<T extends BaseMedia>({
+function BaseMediaCardComponent<T extends BaseMedia>({
   item,
   index = 0,
   renderThumbnail,
@@ -53,14 +51,13 @@ export function BaseMediaCard<T extends BaseMedia>({
   const imageState = { imageError, imageLoaded, setImageError, setImageLoaded };
 
   return (
-    <motion.div
+    <div
       ref={cardRef}
-      initial="hidden"
-      animate="visible"
-      whileHover="hover"
-      variants={cardVariants}
-      custom={index}
-      className={`bg-[#1c1c1c] rounded-lg overflow-hidden shadow-md relative ${className}`}
+      className={`bg-[#1c1c1c] rounded-lg overflow-hidden shadow-md relative card-transition ${className}`}
+      style={{
+        opacity: 1,
+        transform: "translateY(0)",
+      }}
     >
       <div className="cursor-pointer" onClick={toggleDetails}>
         <div className="relative overflow-hidden">
@@ -82,46 +79,41 @@ export function BaseMediaCard<T extends BaseMedia>({
         </div>
       </div>
 
-      <AnimatePresence>
-        {showDetails && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{
-              type: "spring",
-              stiffness: 300,
-              damping: 30,
-            }}
-            className="absolute inset-0 z-30 overflow-hidden rounded-lg shadow-xl bg-[#141414]/95 backdrop-blur-sm"
+      {showDetails && (
+        <div className="absolute inset-0 z-30 overflow-hidden rounded-lg shadow-xl bg-[#141414]/95 backdrop-blur-sm fade-in">
+          <div
+            ref={headerRef}
+            className="flex justify-between items-start p-4 border-b border-gray-800/50"
           >
-            <motion.div
-              ref={headerRef}
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="flex justify-between items-start p-4 border-b border-gray-800/50"
+            {renderDetailHeader(item)}
+            <button
+              onClick={toggleDetails}
+              className="text-gray-400 hover:text-white w-8 h-8 flex items-center justify-center transition-colors"
             >
-              {renderDetailHeader(item)}
-              <motion.button
-                whileHover={{ scale: 1.1, rotate: 90 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={toggleDetails}
-                className="text-gray-400 hover:text-white w-8 h-8 flex items-center justify-center"
-              >
-                ×
-              </motion.button>
-            </motion.div>
+              ×
+            </button>
+          </div>
 
-            <div
-              className="p-4 overflow-y-auto"
-              style={{ maxHeight: contentMaxHeight }}
-            >
-              {renderDetailContent(item)}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
+          <div
+            className="p-4 overflow-y-auto"
+            style={{ maxHeight: contentMaxHeight }}
+          >
+            {renderDetailContent(item)}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
+
+export const BaseMediaCard = memo(
+  BaseMediaCardComponent,
+  (prevProps, nextProps) => {
+    return (
+      prevProps.item.id === nextProps.item.id &&
+      prevProps.item.state === nextProps.item.state &&
+      prevProps.item.viewOffset === nextProps.item.viewOffset &&
+      prevProps.progressPercentage === nextProps.progressPercentage
+    );
+  }
+) as typeof BaseMediaCardComponent;

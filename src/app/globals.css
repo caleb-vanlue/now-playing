@@ -15,13 +15,7 @@
 }
 
 body {
-  background: linear-gradient(
-    135deg,
-    var(--background) 0%,
-    #121212 50%,
-    #181818 100%
-  );
-  background-attachment: fixed;
+  background: #141414;
   color: var(--foreground);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
@@ -29,50 +23,21 @@ body {
 }
 
 .bg-animated-gradient {
-  position: relative;
-  overflow: hidden;
+  background: linear-gradient(135deg, #141414 0%, #181818 100%);
 }
 
-.bg-animated-gradient::before {
-  content: "";
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(
-    circle at center,
-    rgba(255, 107, 0, 0.03) 0%,
-    rgba(20, 20, 20, 0) 50%
-  );
-  opacity: 0.5;
-  animation: pulseGradient 15s ease-in-out infinite;
-  pointer-events: none;
+.card-transition {
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
 }
 
-@keyframes pulseGradient {
-  0% {
-    transform: translate(-10%, -10%) rotate(0deg);
-    opacity: 0.3;
-  }
-  50% {
-    transform: translate(10%, 10%) rotate(180deg);
-    opacity: 0.5;
-  }
-  100% {
-    transform: translate(-10%, -10%) rotate(360deg);
-    opacity: 0.3;
-  }
+.card-transition:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
 
 a,
-button,
-.card-transition {
-  transition: all 0.2s ease-out;
-}
-
-a {
-  transition: color 0.2s ease;
+button {
+  transition: all 0.15s ease-out;
 }
 
 a:hover {
@@ -91,20 +56,25 @@ a:hover {
   }
 }
 
+.equalizer-bar {
+  background-color: white;
+  width: 2px;
+}
+
 .equalizer-bar:nth-child(1) {
-  animation: equalizerBar 0.9s ease-in-out infinite;
+  animation: equalizerBar 1.5s ease-in-out infinite;
 }
 
 .equalizer-bar:nth-child(2) {
-  animation: equalizerBar 0.9s ease-in-out 0.2s infinite;
+  animation: equalizerBar 1.5s ease-in-out 0.3s infinite;
 }
 
 .equalizer-bar:nth-child(3) {
-  animation: equalizerBar 0.9s ease-in-out 0.4s infinite;
+  animation: equalizerBar 1.5s ease-in-out 0.6s infinite;
 }
 
 .fade-in {
-  animation: fadeIn 0.3s ease-in-out forwards;
+  animation: fadeIn 0.2s ease-out forwards;
 }
 
 @keyframes fadeIn {
@@ -116,78 +86,38 @@ a:hover {
   }
 }
 
-.slide-up {
-  animation: slideUp 0.3s ease-out forwards;
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 .stagger-item {
-  opacity: 0;
-  animation: staggerFadeIn 0.5s ease-out forwards;
-}
-
-.stagger-delay-1 {
-  animation-delay: 0.05s;
-}
-.stagger-delay-2 {
-  animation-delay: 0.1s;
-}
-.stagger-delay-3 {
-  animation-delay: 0.15s;
-}
-.stagger-delay-4 {
-  animation-delay: 0.2s;
-}
-.stagger-delay-5 {
-  animation-delay: 0.25s;
-}
-.stagger-delay-6 {
-  animation-delay: 0.3s;
-}
-.stagger-delay-7 {
-  animation-delay: 0.35s;
-}
-.stagger-delay-8 {
-  animation-delay: 0.4s;
-}
-
-@keyframes staggerFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(15px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  opacity: 1;
+  transform: translateY(0);
 }
 
 ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.1);
 }
 
 ::-webkit-scrollbar-thumb {
   background: #333;
-  border-radius: 10px;
-  transition: "background" 0.2s ease;
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--accent);
+}
+
+* {
+  will-change: auto;
+}
+
+.animate-on-hover {
+  will-change: transform;
+}
+
+.reduce-layers {
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
