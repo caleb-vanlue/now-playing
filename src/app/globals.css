@@ -109,14 +109,6 @@ a:hover {
   background: var(--accent);
 }
 
-* {
-  will-change: auto;
-}
-
-.animate-on-hover {
-  will-change: transform;
-}
-
 .reduce-layers {
   transform: translateZ(0);
   backface-visibility: hidden;
