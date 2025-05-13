@@ -201,12 +201,12 @@ export function getResponsiveThumbnailUrl(
   if (!thumbnailPath) return null;
 
   const sizes: Record<
-    "music" | "movie" | "tv",
+    string,
     { quality: "low" | "medium" | "high" | "original"; width: number }
   > = {
-    music: { quality: "medium", width: 300 },
-    movie: { quality: "medium", width: 400 },
-    tv: { quality: "medium", width: 600 },
+    music: { quality: "high", width: 500 },
+    movie: { quality: "high", width: 600 },
+    tv: { quality: "medium", width: 800 },
   };
 
   return getThumbnailUrl(thumbnailPath, sizes[type]);

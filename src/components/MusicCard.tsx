@@ -48,7 +48,7 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
               src={thumbnailUrl}
               alt={track.album || track.title}
               fill
-              sizes="(max-width: 640px) 200px, (max-width: 1024px) 250px, 300px"
+              sizes="(max-width: 640px) 300px, (max-width: 1024px) 400px, 500px"
               className={`object-cover ${
                 imageState.imageLoaded ? "opacity-100" : "opacity-0"
               }`}
@@ -56,7 +56,7 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
               onLoad={() => imageState.setImageLoaded(true)}
               style={{ transition: "opacity 0.3s" }}
               loading="lazy"
-              quality={75}
+              quality={85}
             />
 
             {track.year && (

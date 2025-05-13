@@ -18,7 +18,6 @@ const MediaDashboard = memo(({ children }: MediaDashboardProps) => {
   const [headerHeight, setHeaderHeight] = useState<number>(0);
   const headerRef = useRef<HTMLDivElement>(null);
 
-  // Update sync text less frequently
   useEffect(() => {
     const updateSyncText = () => {
       if (!syncTextRef.current) return;
@@ -40,7 +39,6 @@ const MediaDashboard = memo(({ children }: MediaDashboardProps) => {
     return () => clearInterval(timer);
   }, [lastSyncTime]);
 
-  // Memoize counts to prevent unnecessary recalculation
   const counts = useMemo(() => {
     const musicCount = mediaData?.tracks?.length || 0;
     const moviesCount = mediaData?.movies?.length || 0;
@@ -76,7 +74,6 @@ const MediaDashboard = memo(({ children }: MediaDashboardProps) => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Memoize header content
   const headerContent = useMemo(
     () => (
       <div className="w-full flex flex-col md:flex-row md:items-center md:justify-between items-center">

@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import sharp from "sharp";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -22,20 +21,44 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    const plexParams = new URLSearchParams({
+      "X-Plex-Token": PLEX_TOKEN,
+    });
+
     const qualitySettings = {
-      low: { quality: 60, width: 200 },
-      medium: { quality: 75, width: 400 },
-      high: { quality: 85, width: 800 },
-      original: { quality: 100, width: null },
+      low: { width: 200, height: 200, quality: 60 },
+      medium: { width: 400, height: 400, quality: 75 },
+      high: { width: 800, height: 800, quality: 85 },
     };
 
     const settings =
       qualitySettings[quality as keyof typeof qualitySettings] ||
       qualitySettings.medium;
-    const targetWidth = width ? parseInt(width) : settings.width;
 
-    const imageUrl = `${PLEX_URL}${path}?X-Plex-Token=${PLEX_TOKEN}`;
-    const response = await fetch(imageUrl);
+    if (settings.width) {
+      plexParams.append("width", settings.width.toString());
+      plexParams.append("height", settings.height.toString());
+    }
+
+    if (settings.quality) {
+      plexParams.append("quality", settings.quality.toString());
+    }
+
+    if (width) {
+      plexParams.set("width", width);
+      plexParams.set("height", width); // Keep aspect ratio
+    }
+
+    plexParams.append("minSize", "1");
+    plexParams.append("upscale", "0");
+
+    const imageUrl = `${PLEX_URL}${path}?${plexParams.toString()}`;
+
+    const response = await fetch(imageUrl, {
+      headers: {
+        Accept: "image/webp,image/jpeg,image/*",
+      },
+    });
 
     if (!response.ok) {
       throw new Error(`Plex API Error: ${response.status}`);
@@ -43,22 +66,9 @@ export async function GET(request: NextRequest) {
 
     const buffer = await response.arrayBuffer();
 
-    let pipeline = sharp(buffer);
-
-    if (targetWidth) {
-      pipeline = pipeline.resize(targetWidth, null, {
-        withoutEnlargement: true,
-        fit: "inside",
-      });
-    }
-
-    const optimizedBuffer = await pipeline
-      .jpeg({ quality: settings.quality, progressive: true })
-      .toBuffer();
-
-    return new NextResponse(optimizedBuffer, {
+    return new NextResponse(buffer, {
       headers: {
-        "Content-Type": "image/jpeg",
+        "Content-Type": response.headers.get("Content-Type") || "image/jpeg",
         "Cache-Control": "public, max-age=31536000, immutable",
       },
     });

@@ -13,7 +13,6 @@ import { useSwipeable } from "react-swipeable";
 
 type MediaType = "music" | "movies" | "tvshows";
 
-// Memoized empty state component
 const EmptyState = memo(({ type }: { type: MediaType }) => {
   const messages = {
     music: {
