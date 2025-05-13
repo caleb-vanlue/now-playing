@@ -9,12 +9,24 @@ import MusicCard from "../components/MusicCard";
 import MovieCard from "../components/MovieCard";
 import TVShowCard from "../components/TVShowCard";
 import { useMediaDataContext } from "../components/MediaDataContext";
+import { useSwipeable } from "react-swipeable";
 
 type MediaType = "music" | "movies" | "tvshows";
 
 export default function MediaPage() {
   const { mediaData } = useMediaDataContext();
   const [activeTab, setActiveTab] = useState<MediaType>("music");
+
+  const order = ["music", "movies", "tvshows"];
+  const swipeHandlers = useSwipeable({
+    onSwipedLeft: () => {
+      setActiveTab(order[order.indexOf(activeTab ?? "music") + 1] as MediaType);
+    },
+    onSwipedRight: () => {
+      setActiveTab(order[order.indexOf(activeTab ?? "music") - 1] as MediaType);
+    },
+    preventScrollOnSwipe: true,
+  });
 
   const tracks = mediaData?.tracks || [];
   const movies = mediaData?.movies || [];
@@ -142,7 +154,9 @@ export default function MediaPage() {
           activeTab={`#${activeTab}`}
         />
       </div>
-      <PageTransition key={activeTab}>{renderContent()}</PageTransition>
+      <div {...swipeHandlers}>
+        <PageTransition key={activeTab}>{renderContent()}</PageTransition>
+      </div>
       <a
         href="https://github.com/caleb-vanlue/now-playing"
         target="_blank"
