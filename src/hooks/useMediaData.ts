@@ -9,9 +9,9 @@ interface UseMediaDataOptions {
 }
 
 const DEFAULT_OPTIONS: UseMediaDataOptions = {
-  activePollingInterval: 60000, // 1 minute (was 30s)
-  pausedPollingInterval: 300000, // 5 minutes (was 2m)
-  idlePollingInterval: 600000, // 10 minutes (was 5m)
+  activePollingInterval: 30000, // 30 seconds
+  pausedPollingInterval: 120000, // 2 minutes
+  idlePollingInterval: 300000, // 5 minutes
 };
 
 export function useMediaData(options?: UseMediaDataOptions) {
@@ -26,8 +26,6 @@ export function useMediaData(options?: UseMediaDataOptions) {
   const progressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const pollingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const retryCount = useRef(0);
-  const lastMediaDataRef = useRef<MediaData | null>(null);
-  const lastProgressUpdate = useRef<number>(Date.now());
 
   const getPollingInterval = useCallback(
     (data: MediaData | null): number => {
@@ -51,13 +49,6 @@ export function useMediaData(options?: UseMediaDataOptions) {
   );
 
   const updateProgress = useCallback(() => {
-    const now = Date.now();
-    const timeSinceLastUpdate = now - lastProgressUpdate.current;
-
-    if (timeSinceLastUpdate < 5000) return;
-
-    lastProgressUpdate.current = now;
-
     setMediaData((current) => {
       if (!current) return current;
 
@@ -67,30 +58,21 @@ export function useMediaData(options?: UseMediaDataOptions) {
           ...track,
           viewOffset:
             track.state === "playing" && track.duration
-              ? Math.min(
-                  (track.viewOffset || 0) + timeSinceLastUpdate,
-                  track.duration
-                )
+              ? Math.min((track.viewOffset || 0) + 1000, track.duration)
               : track.viewOffset,
         })),
         movies: current.movies.map((movie) => ({
           ...movie,
           viewOffset:
             movie.state === "playing"
-              ? Math.min(
-                  (movie.viewOffset || 0) + timeSinceLastUpdate,
-                  movie.duration
-                )
+              ? Math.min((movie.viewOffset || 0) + 1000, movie.duration)
               : movie.viewOffset,
         })),
         episodes: current.episodes.map((episode) => ({
           ...episode,
           viewOffset:
             episode.state === "playing"
-              ? Math.min(
-                  (episode.viewOffset || 0) + timeSinceLastUpdate,
-                  episode.duration
-                )
+              ? Math.min((episode.viewOffset || 0) + 1000, episode.duration)
               : episode.viewOffset,
         })),
       };
@@ -101,48 +83,7 @@ export function useMediaData(options?: UseMediaDataOptions) {
     try {
       const data = await fetchMediaData();
 
-      if (lastMediaDataRef.current) {
-        const hasChanges =
-          data.tracks.length !== lastMediaDataRef.current.tracks.length ||
-          data.movies.length !== lastMediaDataRef.current.movies.length ||
-          data.episodes.length !== lastMediaDataRef.current.episodes.length ||
-          data.tracks.some((track, i) => {
-            const oldTrack = lastMediaDataRef.current!.tracks[i];
-            return (
-              !oldTrack ||
-              track.id !== oldTrack.id ||
-              track.state !== oldTrack.state
-            );
-          }) ||
-          data.movies.some((movie, i) => {
-            const oldMovie = lastMediaDataRef.current!.movies[i];
-            return (
-              !oldMovie ||
-              movie.id !== oldMovie.id ||
-              movie.state !== oldMovie.state
-            );
-          }) ||
-          data.episodes.some((episode, i) => {
-            const oldEpisode = lastMediaDataRef.current!.episodes[i];
-            return (
-              !oldEpisode ||
-              episode.id !== oldEpisode.id ||
-              episode.state !== oldEpisode.state
-            );
-          });
-
-        if (!hasChanges) {
-          const nextInterval = getPollingInterval(data);
-          if (pollingTimerRef.current) {
-            clearTimeout(pollingTimerRef.current);
-          }
-          pollingTimerRef.current = setTimeout(fetchData, nextInterval);
-          return;
-        }
-      }
-
       setMediaData(data);
-      lastMediaDataRef.current = data;
       setLastSyncTime(new Date());
       setLoading(false);
       setError(null);
@@ -150,10 +91,14 @@ export function useMediaData(options?: UseMediaDataOptions) {
       retryCount.current = 0;
 
       const nextInterval = getPollingInterval(data);
+
       if (pollingTimerRef.current) {
         clearTimeout(pollingTimerRef.current);
       }
-      pollingTimerRef.current = setTimeout(fetchData, nextInterval);
+
+      pollingTimerRef.current = setTimeout(() => {
+        fetchData();
+      }, nextInterval);
     } catch (err) {
       console.error("Error fetching media data:", err);
       setError(
@@ -164,17 +109,19 @@ export function useMediaData(options?: UseMediaDataOptions) {
 
       retryCount.current++;
       const retryDelay = Math.min(
-        (config.activePollingInterval ?? 60000) *
-          Math.pow(2, retryCount.current - 1),
-        config.idlePollingInterval ?? 600000
+        5000 * Math.pow(2, retryCount.current - 1),
+        60000
       );
 
       if (pollingTimerRef.current) {
         clearTimeout(pollingTimerRef.current);
       }
-      pollingTimerRef.current = setTimeout(fetchData, retryDelay);
+
+      pollingTimerRef.current = setTimeout(() => {
+        fetchData();
+      }, retryDelay);
     }
-  }, [getPollingInterval, config]);
+  }, [getPollingInterval]);
 
   useEffect(() => {
     fetchData();
@@ -192,21 +139,13 @@ export function useMediaData(options?: UseMediaDataOptions) {
   useEffect(() => {
     const startProgressUpdates = () => {
       if (progressTimerRef.current) return;
-      progressTimerRef.current = setInterval(updateProgress, 5000); // Update every 5 seconds
+      progressTimerRef.current = setInterval(updateProgress, 1000);
     };
 
     const stopProgressUpdates = () => {
       if (progressTimerRef.current) {
         clearInterval(progressTimerRef.current);
         progressTimerRef.current = null;
-      }
-    };
-
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        stopProgressUpdates();
-      } else {
-        startProgressUpdates();
       }
     };
 
@@ -222,6 +161,14 @@ export function useMediaData(options?: UseMediaDataOptions) {
       stopProgressUpdates();
     }
 
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        stopProgressUpdates();
+      } else if (hasActivePlayback) {
+        startProgressUpdates();
+      }
+    };
+
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
@@ -231,10 +178,12 @@ export function useMediaData(options?: UseMediaDataOptions) {
   }, [mediaData, updateProgress]);
 
   const refreshData = useCallback(() => {
-    retryCount.current = 0;
     if (pollingTimerRef.current) {
       clearTimeout(pollingTimerRef.current);
     }
+
+    retryCount.current = 0;
+
     fetchData();
   }, [fetchData]);
 
