@@ -1,6 +1,55 @@
 import { NextResponse } from "next/server";
 
-function sanitizeUserData(user: any) {
+interface PlexUser {
+  title?: string;
+  thumb?: string;
+}
+
+interface PlexPlayer {
+  device?: string;
+  model?: string;
+  platform?: string;
+  platformVersion?: string;
+  product?: string;
+  profile?: string;
+  state?: string;
+  title?: string;
+  version?: string;
+  vendor?: string;
+  local?: boolean;
+  relayed?: boolean;
+  secure?: boolean;
+}
+
+interface PlexSession {
+  bandwidth?: number;
+  location?: string;
+}
+
+interface PlexTranscodeSession {
+  key?: string;
+  [key: string]: unknown;
+}
+
+interface PlexMetadataItem {
+  User?: PlexUser;
+  Player?: PlexPlayer;
+  Session?: PlexSession;
+  TranscodeSession?: PlexTranscodeSession;
+  [key: string]: unknown;
+}
+
+interface PlexMediaContainer {
+  Metadata?: PlexMetadataItem[];
+  [key: string]: unknown;
+}
+
+interface PlexResponse {
+  MediaContainer?: PlexMediaContainer;
+  [key: string]: unknown;
+}
+
+function sanitizeUserData(user: PlexUser | undefined) {
   if (!user) return user;
   return {
     title: user.title,
@@ -8,7 +57,7 @@ function sanitizeUserData(user: any) {
   };
 }
 
-function sanitizePlayerData(player: any) {
+function sanitizePlayerData(player: PlexPlayer | undefined) {
   if (!player) return player;
   return {
     device: player.device,
@@ -27,7 +76,7 @@ function sanitizePlayerData(player: any) {
   };
 }
 
-function sanitizeSessionData(session: any) {
+function sanitizeSessionData(session: PlexSession | undefined) {
   if (!session) return session;
   return {
     bandwidth: session.bandwidth,
@@ -35,20 +84,22 @@ function sanitizeSessionData(session: any) {
   };
 }
 
-function sanitizeTranscodeSessionData(transcodeSession: any) {
+function sanitizeTranscodeSessionData(
+  transcodeSession: PlexTranscodeSession | undefined
+) {
   if (!transcodeSession) return transcodeSession;
-  const { key, ...safeData } = transcodeSession;
+  const { ...safeData } = transcodeSession;
   return safeData;
 }
 
-function sanitizeMediaData(data: any) {
+function sanitizeMediaData(data: PlexResponse) {
   if (!data?.MediaContainer?.Metadata) return data;
 
   return {
     ...data,
     MediaContainer: {
       ...data.MediaContainer,
-      Metadata: data.MediaContainer.Metadata.map((item: any) => ({
+      Metadata: data.MediaContainer.Metadata.map((item: PlexMetadataItem) => ({
         ...item,
         User: sanitizeUserData(item.User),
         Player: sanitizePlayerData(item.Player),

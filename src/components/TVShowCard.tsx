@@ -40,7 +40,7 @@ export default function TVShowCard({
   );
   const startedAt = new Date(episode.startTime);
 
-  const renderThumbnail = (_: Episode, imageState: ImageState) => {
+  const renderThumbnail = (episode: Episode, imageState: ImageState) => {
     if (thumbnailUrl && !imageState.imageError) {
       return (
         <div className="aspect-[16/9] relative">
@@ -86,7 +86,7 @@ export default function TVShowCard({
     );
   };
 
-  const renderMainContent = (_: Episode) => (
+  const renderMainContent = (episode: Episode) => (
     <div className="flex flex-col">
       <h2 className="text-xl font-bold truncate" title={episode.title}>
         {episode.title}
@@ -111,7 +111,7 @@ export default function TVShowCard({
     </div>
   );
 
-  const renderDetailHeader = (_: Episode) => (
+  const renderDetailHeader = (episode: Episode) => (
     <div>
       <h2 className="text-xl font-bold">{episode.title}</h2>
       <div className="flex items-center gap-2 text-sm text-gray-400 mt-1">
@@ -128,7 +128,7 @@ export default function TVShowCard({
     </div>
   );
 
-  const renderDetailContent = (_: Episode) => (
+  const renderDetailContent = (episode: Episode) => (
     <>
       <ProgressInfo
         percentage={progressPercentage}

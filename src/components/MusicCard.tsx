@@ -34,7 +34,7 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
   const { spotifyUrl } = useSpotifyTrack(track.artist, track.title);
   const startedAt = new Date(track.startTime);
 
-  const renderThumbnail = (_: Track, imageState: ImageState) => {
+  const renderThumbnail = (track: Track, imageState: ImageState) => {
     if (thumbnailUrl && !imageState.imageError) {
       return (
         <div className="aspect-[1] relative">
@@ -97,7 +97,7 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
     );
   };
 
-  const renderMainContent = (_: Track) => (
+  const renderMainContent = (track: Track) => (
     <>
       <h2 className="text-xl font-bold truncate" title={track.title}>
         {track.title}
@@ -116,7 +116,7 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
     </>
   );
 
-  const renderDetailHeader = (_: Track) => (
+  const renderDetailHeader = (track: Track) => (
     <div>
       <h2 className="text-xl font-bold">{track.title}</h2>
       <div className="flex items-center gap-2 text-sm text-gray-400 mt-1">
@@ -137,7 +137,7 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
     </div>
   );
 
-  const renderDetailContent = (_: Track) => (
+  const renderDetailContent = (track: Track) => (
     <>
       {track.duration && track.duration > 0 && (
         <ProgressInfo

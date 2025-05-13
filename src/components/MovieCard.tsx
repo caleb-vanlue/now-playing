@@ -36,7 +36,7 @@ export default function MovieCard({ item: movie, index = 0 }: MovieCardProps) {
   const formattedDuration = formatDuration(movie.duration);
   const startedAt = new Date(movie.startTime);
 
-  const renderThumbnail = (_: Movie, imageState: ImageState) => {
+  const renderThumbnail = (movie: Movie, imageState: ImageState) => {
     if (thumbnailUrl && !imageState.imageError) {
       return (
         <div className="aspect-[2/3] relative">
@@ -78,7 +78,7 @@ export default function MovieCard({ item: movie, index = 0 }: MovieCardProps) {
     );
   };
 
-  const renderMainContent = (_: Movie) => (
+  const renderMainContent = (movie: Movie) => (
     <>
       <h2 className="text-xl font-bold truncate" title={movie.title}>
         {movie.title}
@@ -98,7 +98,7 @@ export default function MovieCard({ item: movie, index = 0 }: MovieCardProps) {
     </>
   );
 
-  const renderDetailHeader = (_: Movie) => (
+  const renderDetailHeader = (movie: Movie) => (
     <div>
       <h2 className="text-xl font-bold">{movie.title}</h2>
       <div className="flex items-center gap-2 text-sm text-gray-400 mt-1">
@@ -115,7 +115,7 @@ export default function MovieCard({ item: movie, index = 0 }: MovieCardProps) {
     </div>
   );
 
-  const renderDetailContent = (_: Movie) => (
+  const renderDetailContent = (movie: Movie) => (
     <>
       <ProgressInfo
         percentage={progressPercentage}
