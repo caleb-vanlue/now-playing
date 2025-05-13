@@ -116,31 +116,14 @@ export default function MediaDashboard({ children }: MediaDashboardProps) {
         <div className="w-full flex flex-col md:flex-row md:items-center md:justify-between items-center">
           <div className="flex flex-col mb-3 md:mb-0 items-center md:items-start text-center md:text-left">
             <div className="flex items-center justify-center md:justify-start">
-              <motion.h1
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5, delay: 0.3 }}
-                className="text-3xl sm:text-4xl font-bold"
-              >
-                Now Playing
-              </motion.h1>
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.5, delay: 0.3 }}
-                className="flex items-center ml-2"
-              >
+              <div className="text-3xl sm:text-4xl font-bold"> Now Playing</div>
+              <div className="flex items-center ml-2">
                 <span className="text-2xl">🎶</span>
                 <span className="text-2xl ml-1">🎬</span>
                 <span className="text-2xl ml-1">📺</span>
-              </motion.div>
+              </div>
             </div>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-              className="text-gray-400 text-sm mt-1 flex items-center gap-3"
-            >
+            <div className="text-gray-400 text-sm mt-1 flex items-center gap-3">
               <span>
                 {totalCount} active session{totalCount !== 1 ? "s" : ""}
               </span>
@@ -153,23 +136,12 @@ export default function MediaDashboard({ children }: MediaDashboardProps) {
                 )}
                 <span ref={syncTextRef}>Synced 0s ago</span>
               </span>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={refreshData}
-                className="text-xs bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded transition-colors"
-              >
+              <div className="text-xs bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded transition-colors">
                 Refresh
-              </motion.button>
-            </motion.div>
+              </div>
+            </div>
           </div>
-
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-            className="flex items-center"
-          >
+          <div className="flex items-center">
             <span className="text-gray-400 mr-2 text-sm">Powered by</span>
             <Image
               src="/images/plex.png"
@@ -179,7 +151,7 @@ export default function MediaDashboard({ children }: MediaDashboardProps) {
               className="inline-block"
               priority
             />
-          </motion.div>
+          </div>
         </div>
       </motion.header>
 

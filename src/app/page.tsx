@@ -65,17 +65,12 @@ export default function MediaPage() {
       case "music":
         if (tracks.length === 0) {
           return (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="text-center text-gray-500 py-20"
-            >
+            <div className="text-center text-gray-500 py-20">
               <p className="text-xl">No music currently playing</p>
               <p className="mt-2">
                 Music will appear here when someone starts playing
               </p>
-            </motion.div>
+            </div>
           );
         }
         return (
@@ -94,17 +89,12 @@ export default function MediaPage() {
       case "movies":
         if (movies.length === 0) {
           return (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="text-center text-gray-500 py-20"
-            >
+            <div className="text-center text-gray-500 py-20">
               <p className="text-xl">No movies currently playing</p>
               <p className="mt-2">
                 Movies will appear here when someone starts playing
               </p>
-            </motion.div>
+            </div>
           );
         }
         return (
@@ -123,17 +113,12 @@ export default function MediaPage() {
       case "tvshows":
         if (episodes.length === 0) {
           return (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="text-center text-gray-500 py-20"
-            >
+            <div className="text-center text-gray-500 py-20">
               <p className="text-xl">No TV shows currently playing</p>
               <p className="mt-2">
                 TV shows will appear here when someone starts playing
               </p>
-            </motion.div>
+            </div>
           );
         }
         return (

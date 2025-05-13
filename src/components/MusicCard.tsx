@@ -39,23 +39,18 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
       return (
         <div className="aspect-[1] relative">
           {!imageState.imageLoaded && <ImageLoadingSpinner />}
-          <motion.div
-            variants={imageVariants}
-            className="relative w-full h-full"
-          >
-            <Image
-              src={thumbnailUrl}
-              alt={track.album || track.title}
-              fill
-              sizes="(max-width: 768px) 100vw, 33vw"
-              className={`object-cover ${
-                imageState.imageLoaded ? "opacity-100" : "opacity-0"
-              }`}
-              onError={() => imageState.setImageError(true)}
-              onLoad={() => imageState.setImageLoaded(true)}
-              style={{ transition: "opacity 0.3s" }}
-            />
-          </motion.div>
+          <Image
+            src={thumbnailUrl}
+            alt={track.album || track.title}
+            fill
+            sizes="(max-width: 768px) 100vw, 33vw"
+            className={`object-cover ${
+              imageState.imageLoaded ? "opacity-100" : "opacity-0"
+            }`}
+            onError={() => imageState.setImageError(true)}
+            onLoad={() => imageState.setImageLoaded(true)}
+            style={{ transition: "opacity 0.3s" }}
+          />
 
           {track.year && (
             <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-md backdrop-blur-sm">
@@ -88,12 +83,7 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
     }
 
     return (
-      <motion.div
-        variants={imageVariants}
-        className="aspect-square bg-gray-800 flex items-center justify-center p-4 text-center"
-      >
-        <span className="text-lg font-bold">{track.album || track.title}</span>
-      </motion.div>
+      <span className="text-lg font-bold">{track.album || track.title}</span>
     );
   };
 

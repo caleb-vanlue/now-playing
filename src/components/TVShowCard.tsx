@@ -45,23 +45,18 @@ export default function TVShowCard({
       return (
         <div className="aspect-[16/9] relative">
           {!imageState.imageLoaded && <ImageLoadingSpinner />}
-          <motion.div
-            variants={imageVariants}
-            className="relative w-full h-full"
-          >
-            <Image
-              src={thumbnailUrl}
-              alt={episode.title}
-              fill
-              sizes="(max-width: 768px) 100vw, 50vw"
-              className={`object-cover ${
-                imageState.imageLoaded ? "opacity-100" : "opacity-0"
-              }`}
-              onError={() => imageState.setImageError(true)}
-              onLoad={() => imageState.setImageLoaded(true)}
-              style={{ transition: "opacity 0.3s" }}
-            />
-          </motion.div>
+          <Image
+            src={thumbnailUrl}
+            alt={episode.title}
+            fill
+            sizes="(max-width: 768px) 100vw, 50vw"
+            className={`object-cover ${
+              imageState.imageLoaded ? "opacity-100" : "opacity-0"
+            }`}
+            onError={() => imageState.setImageError(true)}
+            onLoad={() => imageState.setImageLoaded(true)}
+            style={{ transition: "opacity 0.3s" }}
+          />
 
           <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded-md backdrop-blur-sm">
             {seasonEpisode}
@@ -76,14 +71,7 @@ export default function TVShowCard({
       );
     }
 
-    return (
-      <motion.div
-        variants={imageVariants}
-        className="aspect-[16/9] bg-gray-800 flex items-center justify-center p-4 text-center"
-      >
-        <span className="text-lg font-bold">{episode.title}</span>
-      </motion.div>
-    );
+    return <span className="text-lg font-bold">{episode.title}</span>;
   };
 
   const renderMainContent = (episode: Episode) => (

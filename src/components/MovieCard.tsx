@@ -41,23 +41,18 @@ export default function MovieCard({ item: movie, index = 0 }: MovieCardProps) {
       return (
         <div className="aspect-[2/3] relative">
           {!imageState.imageLoaded && <ImageLoadingSpinner />}
-          <motion.div
-            variants={imageVariants}
-            className="relative w-full h-full"
-          >
-            <Image
-              src={thumbnailUrl}
-              alt={movie.title}
-              fill
-              sizes="(max-width: 768px) 100vw, 33vw"
-              className={`object-cover ${
-                imageState.imageLoaded ? "opacity-100" : "opacity-0"
-              }`}
-              onError={() => imageState.setImageError(true)}
-              onLoad={() => imageState.setImageLoaded(true)}
-              style={{ transition: "opacity 0.3s" }}
-            />
-          </motion.div>
+          <Image
+            src={thumbnailUrl}
+            alt={movie.title}
+            fill
+            sizes="(max-width: 768px) 100vw, 33vw"
+            className={`object-cover ${
+              imageState.imageLoaded ? "opacity-100" : "opacity-0"
+            }`}
+            onError={() => imageState.setImageError(true)}
+            onLoad={() => imageState.setImageLoaded(true)}
+            style={{ transition: "opacity 0.3s" }}
+          />
 
           {movie.contentRating && (
             <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-md backdrop-blur-sm">
@@ -68,14 +63,7 @@ export default function MovieCard({ item: movie, index = 0 }: MovieCardProps) {
       );
     }
 
-    return (
-      <motion.div
-        variants={imageVariants}
-        className="aspect-[2/3] bg-gray-800 flex items-center justify-center p-4 text-center"
-      >
-        <span className="text-lg font-bold">{movie.title}</span>
-      </motion.div>
-    );
+    return <span className="text-lg font-bold">{movie.title}</span>;
   };
 
   const renderMainContent = (movie: Movie) => (
