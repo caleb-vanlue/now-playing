@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { Track } from "../../types/media";
@@ -18,28 +18,28 @@ interface MusicCardProps {
   index?: number;
 }
 
-const MusicCard = React.memo(
-  ({ track, index = 0 }: MusicCardProps) => {
-    const progressPercentage = calculateProgress(
-      track.viewOffset,
-      track.duration
-    );
-    const estimatedFinishTime = track.duration
-      ? calculateFinishTime(track.duration, track.viewOffset)
-      : new Date();
-    const formattedDuration = track.duration
-      ? formatDurationMMSS(track.duration)
-      : "0:00";
+export default function MusicCard({ track, index = 0 }: MusicCardProps) {
+  const { spotifyUrl } = useSpotifyTrack(track.artist, track.title);
 
-    // Use optimized thumbnail URL
-    const thumbnailUrl = getResponsiveThumbnailUrl(
-      track.thumbnailFileId,
-      "music"
-    );
-    const { spotifyUrl } = useSpotifyTrack(track.artist, track.title);
-    const startedAt = new Date(track.startTime);
+  const progressPercentage = calculateProgress(
+    track.viewOffset,
+    track.duration
+  );
+  const estimatedFinishTime = track.duration
+    ? calculateFinishTime(track.duration, track.viewOffset)
+    : new Date();
+  const formattedDuration = track.duration
+    ? formatDurationMMSS(track.duration)
+    : "0:00";
 
-    const renderThumbnail = (track: Track, imageState: ImageState) => {
+  const thumbnailUrl = getResponsiveThumbnailUrl(
+    track.thumbnailFileId,
+    "music"
+  );
+  const startedAt = new Date(track.startTime);
+
+  const renderThumbnail = useCallback(
+    (track: Track, imageState: ImageState) => {
       if (thumbnailUrl && !imageState.imageError) {
         return (
           <div className="aspect-[1] relative">
@@ -56,8 +56,6 @@ const MusicCard = React.memo(
               onLoad={() => imageState.setImageLoaded(true)}
               style={{ transition: "opacity 0.3s" }}
               loading="lazy"
-              placeholder="blur"
-              blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAf/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
               quality={75}
             />
 
@@ -68,7 +66,10 @@ const MusicCard = React.memo(
             )}
 
             {spotifyUrl && (
-              <a
+              <motion.a
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.2 }}
                 href={spotifyUrl}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -85,7 +86,7 @@ const MusicCard = React.memo(
                   />
                   <span>Listen</span>
                 </div>
-              </a>
+              </motion.a>
             )}
           </div>
         );
@@ -94,9 +95,12 @@ const MusicCard = React.memo(
       return (
         <span className="text-lg font-bold">{track.album || track.title}</span>
       );
-    };
+    },
+    [thumbnailUrl, spotifyUrl]
+  );
 
-    const renderMainContent = (track: Track) => (
+  const renderMainContent = useCallback(
+    (track: Track) => (
       <>
         <h2 className="text-xl font-bold truncate" title={track.title}>
           {track.title}
@@ -113,9 +117,12 @@ const MusicCard = React.memo(
           </p>
         )}
       </>
-    );
+    ),
+    []
+  );
 
-    const renderDetailHeader = (track: Track) => (
+  const renderDetailHeader = useCallback(
+    (track: Track) => (
       <div>
         <h2 className="text-xl font-bold">{track.title}</h2>
         <div className="flex items-center gap-2 text-sm text-gray-400 mt-1">
@@ -134,9 +141,12 @@ const MusicCard = React.memo(
           )}
         </div>
       </div>
-    );
+    ),
+    []
+  );
 
-    const renderDetailContent = (track: Track) => (
+  const renderDetailContent = useCallback(
+    (track: Track) => (
       <>
         {track.duration && track.duration > 0 && (
           <ProgressInfo
@@ -239,29 +249,26 @@ const MusicCard = React.memo(
           </div>
         </motion.div>
       </>
-    );
+    ),
+    [
+      spotifyUrl,
+      progressPercentage,
+      estimatedFinishTime,
+      formattedDuration,
+      startedAt,
+    ]
+  );
 
-    return (
-      <BaseMediaCard
-        item={track}
-        index={index}
-        renderThumbnail={renderThumbnail}
-        renderMainContent={renderMainContent}
-        renderDetailHeader={renderDetailHeader}
-        renderDetailContent={renderDetailContent}
-        progressPercentage={progressPercentage}
-      />
-    );
-  },
-  (prevProps, nextProps) => {
-    return (
-      prevProps.track.id === nextProps.track.id &&
-      prevProps.track.state === nextProps.track.state &&
-      prevProps.track.viewOffset === nextProps.track.viewOffset
-    );
-  }
-);
-
-MusicCard.displayName = "MusicCard";
-
-export default MusicCard;
+  return (
+    <BaseMediaCard
+      key={`${track.id}-${spotifyUrl ? "spotify" : "no-spotify"}`} // Force re-render with key change
+      item={track}
+      index={index}
+      renderThumbnail={renderThumbnail}
+      renderMainContent={renderMainContent}
+      renderDetailHeader={renderDetailHeader}
+      renderDetailContent={renderDetailContent}
+      progressPercentage={progressPercentage}
+    />
+  );
+}

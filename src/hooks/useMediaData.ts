@@ -54,7 +54,7 @@ export function useMediaData(options?: UseMediaDataOptions) {
     const now = Date.now();
     const timeSinceLastUpdate = now - lastProgressUpdate.current;
 
-    if (timeSinceLastUpdate < 5000) return; // Skip if less than 5 seconds
+    if (timeSinceLastUpdate < 5000) return;
 
     lastProgressUpdate.current = now;
 

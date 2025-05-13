@@ -15,7 +15,7 @@ export interface ImageState {
 
 interface BaseMediaCardProps<T extends BaseMedia> {
   item: T;
-  index?: number;
+  index?: number; // Keep for compatibility but mark as optional
   renderThumbnail: (item: T, imageState: ImageState) => React.ReactNode;
   renderMainContent: (item: T) => React.ReactNode;
   renderDetailHeader: (item: T) => React.ReactNode;
@@ -118,14 +118,7 @@ function BaseMediaCardComponent<T extends BaseMedia>({
   );
 }
 
+// Memoize the component with custom comparison
 export const BaseMediaCard = memo(
-  BaseMediaCardComponent,
-  (prevProps, nextProps) => {
-    return (
-      prevProps.item.id === nextProps.item.id &&
-      prevProps.item.state === nextProps.item.state &&
-      prevProps.item.viewOffset === nextProps.item.viewOffset &&
-      prevProps.progressPercentage === nextProps.progressPercentage
-    );
-  }
+  BaseMediaCardComponent
 ) as typeof BaseMediaCardComponent;
