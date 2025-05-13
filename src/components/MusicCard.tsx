@@ -8,7 +8,6 @@ import {
   calculateProgress,
   calculateFinishTime,
   formatDurationMMSS,
-  imageVariants,
 } from "../../utils/mediaCardUtils";
 import { BaseMediaCard, ImageState } from "./BaseMediaCard";
 import { ImageLoadingSpinner, ProgressInfo } from "./CardComponents";
