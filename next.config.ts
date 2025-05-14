@@ -14,6 +14,11 @@ const nextConfig: NextConfig = {
         hostname: "metadata-static.plex.tv",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "image.tmdb.org",
+        pathname: "/**",
+      },
     ],
   },
 };
