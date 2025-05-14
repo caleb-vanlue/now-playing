@@ -300,7 +300,7 @@ export default function TVShowCard({
               userAvatar={episode.userAvatar}
               avatarError={false}
               onAvatarError={() => {}}
-              size="small"
+              size="medium"
             />
             <span className="ml-2">{episode.userId}</span>
           </div>
@@ -318,6 +318,27 @@ export default function TVShowCard({
           <p className="font-mono text-xs">{episode.sessionId}</p>
         </div>
       </motion.div>
+
+      {episode.genre && episode.genre.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="mt-4"
+        >
+          <p className="text-gray-400 text-sm mb-2">Genres</p>
+          <div className="flex flex-wrap gap-2">
+            {episode.genre.map((g, i) => (
+              <span
+                key={i}
+                className="bg-gray-800 px-2 py-1 rounded-md text-xs"
+              >
+                {g}
+              </span>
+            ))}
+          </div>
+        </motion.div>
+      )}
 
       {episode.ratings && episode.ratings.length > 0 && (
         <motion.div
@@ -348,19 +369,19 @@ export default function TVShowCard({
           className="mt-4"
         >
           <p className="text-gray-400 text-sm mb-2">Cast</p>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-3">
             {episode.actors.slice(0, 6).map((actor, i) => (
-              <div key={i} className="flex items-center gap-2">
+              <div key={i} className="flex items-center gap-3">
                 {actor.thumb ? (
                   <Image
                     src={actor.thumb}
                     alt={actor.tag}
-                    width={24}
-                    height={24}
+                    width={40}
+                    height={40}
                     className="rounded-full object-cover"
                   />
                 ) : (
-                  <div className="w-6 h-6 rounded-full bg-gray-700 flex items-center justify-center text-[10px] font-medium text-gray-300">
+                  <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center text-xs font-medium text-gray-300">
                     {actor.tag
                       .split(" ")
                       .map((n) => n[0])
