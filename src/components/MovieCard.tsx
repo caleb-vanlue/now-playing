@@ -367,7 +367,7 @@ export default function MovieCard({ item: movie, index = 0 }: MovieCardProps) {
           <div className="grid grid-cols-2 gap-2">
             {movie.actors.slice(0, 6).map((actor, i) => (
               <div key={i} className="flex items-center gap-2">
-                {actor.thumb && (
+                {actor.thumb ? (
                   <Image
                     src={actor.thumb}
                     alt={actor.tag}
@@ -375,6 +375,15 @@ export default function MovieCard({ item: movie, index = 0 }: MovieCardProps) {
                     height={24}
                     className="rounded-full object-cover"
                   />
+                ) : (
+                  <div className="w-6 h-6 rounded-full bg-gray-700 flex items-center justify-center text-[10px] font-medium text-gray-300">
+                    {actor.tag
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                      .slice(0, 2)
+                      .toUpperCase()}
+                  </div>
                 )}
                 <div className="text-xs">
                   <p className="font-medium">{actor.tag}</p>

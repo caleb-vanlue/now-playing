@@ -128,6 +128,7 @@ function mapToEpisode(session: any): Episode {
     player: session.Player?.title || session.Player?.product || "Video Player",
     startTime: new Date(Date.now() - (session.viewOffset || 0)).toISOString(),
     sessionId: sessionId,
+    sessionKey: session.sessionKey,
     showTitle: session.grandparentTitle || "Unknown Show",
     season: session.parentIndex || 0,
     episode: session.index || 0,
@@ -153,9 +154,13 @@ function mapToEpisode(session: any): Episode {
     width: mediaInfo?.width,
     frameRate: mediaInfo?.videoFrameRate,
     // Transcode info
-    transcodeDecision: session.TranscodeSession?.key ? "transcode" : "direct",
-    videoDecision: session.TranscodeSession?.videoDecision,
-    audioDecision: session.TranscodeSession?.audioDecision,
+    transcodeDecision:
+      session.TranscodeSession?.videoDecision === "transcode" ||
+      session.TranscodeSession?.audioDecision === "transcode"
+        ? "transcode"
+        : "direct",
+    videoDecision: session.TranscodeSession?.videoDecision || "direct",
+    audioDecision: session.TranscodeSession?.audioDecision || "direct",
     transcodeProgress: session.TranscodeSession?.progress,
     transcodeHwRequested: session.TranscodeSession?.transcodeHwRequested,
     // Session info
@@ -170,6 +175,13 @@ function mapToEpisode(session: any): Episode {
     device: session.Player?.device,
     product: session.Player?.product,
     playerVersion: session.Player?.version,
+    // People and metadata
+    ratings: session.Rating,
+    directors: session.Director,
+    writers: session.Writer,
+    actors: session.Role?.slice(0, 10),
+    producers: session.Producer,
+    ultraBlurColors: session.UltraBlurColors,
   };
 }
 
