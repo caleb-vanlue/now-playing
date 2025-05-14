@@ -45,6 +45,7 @@ function mapToMovie(session: any): Movie {
     player: session.Player?.title || session.Player?.product || "Video Player",
     startTime: new Date(Date.now() - (session.viewOffset || 0)).toISOString(),
     sessionId: sessionId,
+    sessionKey: session.sessionKey,
     year: session.year || 0,
     director: session.Director?.[0]?.tag || session.director || "Unknown",
     studio: session.studio || "Unknown Studio",
@@ -54,6 +55,7 @@ function mapToMovie(session: any): Movie {
     audioCodec: mediaInfo?.audioCodec || "",
     contentRating: session.contentRating || "",
     viewOffset: session.viewOffset || 0,
+    // Additional details
     genre: session.Genre?.map((g: any) => g.tag) || [],
     country: session.Country?.map((c: any) => c.tag) || [],
     rating: session.rating,
@@ -97,6 +99,13 @@ function mapToMovie(session: any): Movie {
     device: session.Player?.device,
     product: session.Player?.product,
     playerVersion: session.Player?.version,
+    // People and metadata
+    ratings: session.Rating,
+    directors: session.Director,
+    writers: session.Writer,
+    actors: session.Role?.slice(0, 10), // Limit to first 10 actors for performance
+    producers: session.Producer,
+    ultraBlurColors: session.UltraBlurColors,
   };
 }
 
@@ -128,6 +137,7 @@ function mapToEpisode(session: any): Episode {
     audioCodec: mediaInfo?.audioCodec || "",
     contentRating: session.contentRating || "",
     viewOffset: session.viewOffset || 0,
+    // Additional details
     genre: session.Genre?.map((g: any) => g.tag) || [],
     rating: session.rating,
     audienceRating: session.audienceRating,
@@ -180,6 +190,7 @@ function mapToTrack(session: any): Track {
     player: session.Player?.title || session.Player?.product || "Music Player",
     startTime: new Date(Date.now() - (session.viewOffset || 0)).toISOString(),
     sessionId: sessionId,
+    sessionKey: session.sessionKey,
     artist: session.artist || session.grandparentTitle || "Unknown Artist",
     album: session.album || session.parentTitle || "Unknown Album",
     audioCodec: session.Media?.[0]?.audioCodec || "",

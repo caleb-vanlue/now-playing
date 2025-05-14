@@ -1,3 +1,25 @@
+export interface Rating {
+  image?: string;
+  type: string;
+  value: string;
+  count?: string;
+}
+
+export interface Person {
+  id?: string;
+  tag: string;
+  role?: string;
+  thumb?: string;
+  count?: string;
+}
+
+export interface UltraBlurColor {
+  bottomLeft: string;
+  bottomRight: string;
+  topLeft: string;
+  topRight: string;
+}
+
 export interface BaseMedia {
   id: string;
   title: string;
@@ -8,6 +30,7 @@ export interface BaseMedia {
   player: string;
   startTime: string;
   sessionId: string;
+  sessionKey?: string;
   viewOffset?: number;
   // Session info
   bandwidth?: number;
@@ -41,6 +64,7 @@ export interface Movie extends BaseMedia {
   videoResolution?: string;
   audioCodec?: string;
   contentRating?: string;
+  // Additional details
   genre?: string[];
   country?: string[];
   rating?: number;
@@ -68,6 +92,13 @@ export interface Movie extends BaseMedia {
   audioDecision?: string;
   transcodeProgress?: number;
   transcodeHwRequested?: boolean;
+  // People and metadata
+  ratings?: Rating[];
+  directors?: Person[];
+  writers?: Person[];
+  actors?: Person[];
+  producers?: Person[];
+  ultraBlurColors?: UltraBlurColor[];
 }
 
 export interface Episode extends BaseMedia {
@@ -79,6 +110,7 @@ export interface Episode extends BaseMedia {
   videoResolution?: string;
   audioCodec?: string;
   contentRating?: string;
+  // Additional details
   genre?: string[];
   rating?: number;
   audienceRating?: number;
@@ -99,6 +131,13 @@ export interface Episode extends BaseMedia {
   audioDecision?: string;
   transcodeProgress?: number;
   transcodeHwRequested?: boolean;
+  // People and metadata
+  ratings?: Rating[];
+  directors?: Person[];
+  writers?: Person[];
+  actors?: Person[];
+  producers?: Person[];
+  ultraBlurColors?: UltraBlurColor[];
 }
 
 export interface MediaData {

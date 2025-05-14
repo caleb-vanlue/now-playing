@@ -18,6 +18,22 @@ interface TVShowCardProps {
   index?: number;
 }
 
+function getRatingSource(rating: { image?: string; type: string }): string {
+  if (!rating.image) return rating.type;
+
+  const imageUrl = rating.image.toLowerCase();
+
+  if (imageUrl.includes("imdb")) return "IMDB";
+  if (imageUrl.includes("rottentomatoes")) {
+    if (imageUrl.includes("spilled")) return "Rotten Tomatoes (Audience)";
+    if (imageUrl.includes("ripe")) return "Rotten Tomatoes (Critics)";
+    return "Rotten Tomatoes";
+  }
+  if (imageUrl.includes("themoviedb")) return "TMDB";
+
+  return rating.type;
+}
+
 export default function TVShowCard({
   item: episode,
   index = 0,
@@ -303,24 +319,82 @@ export default function TVShowCard({
         </div>
       </motion.div>
 
-      {episode.genre && episode.genre.length > 0 && (
+      {episode.ratings && episode.ratings.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
           className="mt-4"
         >
-          <p className="text-gray-400 text-sm mb-2">Genres</p>
-          <div className="flex flex-wrap gap-2">
-            {episode.genre.map((g, i) => (
-              <span
-                key={i}
-                className="bg-gray-800 px-2 py-1 rounded-md text-xs"
-              >
-                {g}
-              </span>
+          <p className="text-gray-400 text-sm mb-2">Ratings</p>
+          <div className="flex flex-wrap gap-3">
+            {episode.ratings.map((rating, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <span className="text-xs text-gray-400">
+                  {getRatingSource(rating)}:
+                </span>
+                <span className="text-sm font-medium">{rating.value}</span>
+              </div>
             ))}
           </div>
+        </motion.div>
+      )}
+
+      {episode.actors && episode.actors.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          className="mt-4"
+        >
+          <p className="text-gray-400 text-sm mb-2">Cast</p>
+          <div className="grid grid-cols-2 gap-2">
+            {episode.actors.slice(0, 6).map((actor, i) => (
+              <div key={i} className="flex items-center gap-2">
+                {actor.thumb && (
+                  <Image
+                    src={actor.thumb}
+                    alt={actor.tag}
+                    width={24}
+                    height={24}
+                    className="rounded-full object-cover"
+                  />
+                )}
+                <div className="text-xs">
+                  <p className="font-medium">{actor.tag}</p>
+                  {actor.role && <p className="text-gray-500">{actor.role}</p>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+      )}
+
+      {episode.directors && episode.directors.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.7 }}
+          className="mt-4"
+        >
+          <p className="text-gray-400 text-sm mb-1">Directors</p>
+          <p className="text-sm">
+            {episode.directors.map((d) => d.tag).join(", ")}
+          </p>
+        </motion.div>
+      )}
+
+      {episode.writers && episode.writers.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8 }}
+          className="mt-4"
+        >
+          <p className="text-gray-400 text-sm mb-1">Writers</p>
+          <p className="text-sm">
+            {episode.writers.map((w) => w.tag).join(", ")}
+          </p>
         </motion.div>
       )}
     </>

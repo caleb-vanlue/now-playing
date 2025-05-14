@@ -9,6 +9,11 @@ const nextConfig: NextConfig = {
         hostname: "plex.tv",
         pathname: "/users/**",
       },
+      {
+        protocol: "https",
+        hostname: "metadata-static.plex.tv",
+        pathname: "/**",
+      },
     ],
   },
 };
