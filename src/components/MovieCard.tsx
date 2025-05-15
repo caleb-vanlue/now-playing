@@ -8,6 +8,7 @@ import {
   calculateFinishTime,
   formatDuration,
   formatQuality,
+  getRatingSource,
 } from "../../utils/mediaCardUtils";
 import { BaseMediaCard, ImageState } from "./BaseMediaCard";
 import { ImageLoadingSpinner, ProgressInfo } from "./CardComponents";
@@ -16,22 +17,6 @@ import { UserAvatar } from "./UserAvatar";
 interface MovieCardProps {
   item: Movie;
   index?: number;
-}
-
-function getRatingSource(rating: { image?: string; type: string }): string {
-  if (!rating.image) return rating.type;
-
-  const imageUrl = rating.image.toLowerCase();
-
-  if (imageUrl.includes("imdb")) return "IMDB";
-  if (imageUrl.includes("rottentomatoes")) {
-    if (imageUrl.includes("spilled")) return "Rotten Tomatoes (Audience)";
-    if (imageUrl.includes("ripe")) return "Rotten Tomatoes (Critics)";
-    return "Rotten Tomatoes";
-  }
-  if (imageUrl.includes("themoviedb")) return "TMDB";
-
-  return rating.type;
 }
 
 export default function MovieCard({ item: movie, index = 0 }: MovieCardProps) {

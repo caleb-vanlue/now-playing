@@ -71,3 +71,22 @@ export const calculateFinishTime = (
   const remainingMs = duration - viewOffset;
   return new Date(currentTime.getTime() + remainingMs);
 };
+
+export const getRatingSource = (rating: {
+  image?: string;
+  type: string;
+}): string => {
+  if (!rating.image) return rating.type;
+
+  const imageUrl = rating.image.toLowerCase();
+
+  if (imageUrl.includes("imdb")) return "IMDB";
+  if (imageUrl.includes("rottentomatoes")) {
+    if (imageUrl.includes("spilled")) return "Rotten Tomatoes (Audience)";
+    if (imageUrl.includes("ripe")) return "Rotten Tomatoes (Critics)";
+    return "Rotten Tomatoes";
+  }
+  if (imageUrl.includes("themoviedb")) return "TMDB";
+
+  return rating.type;
+};
