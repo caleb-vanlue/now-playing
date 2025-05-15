@@ -55,6 +55,16 @@ const HistoryItemCard = memo(
       }
     };
 
+    const getTypeStyles = (type: string) => {
+      return (
+        {
+          episode: "bg-orange-500/30 text-orange-300",
+          movie: "bg-orange-600/30 text-orange-200",
+          track: "bg-orange-700/30 text-orange-100",
+        }[type] || "bg-orange-500/30 text-orange-300"
+      );
+    };
+
     return (
       <motion.div
         ref={ref}
@@ -64,14 +74,14 @@ const HistoryItemCard = memo(
           delay: Math.min(index, 10) * 0.02,
           duration: 0.3,
         }}
-        className="bg-gray-900/30 rounded-lg p-4 hover:bg-gray-900/40 transition-colors hardware-accelerated"
+        className="bg-[#1c1c1c] rounded-lg p-4 hover:bg-[#252525] transition-colors hardware-accelerated card-transition"
       >
         <div className="hidden sm:flex items-center gap-4">
           <div className="flex-shrink-0 w-24 h-16 flex items-center justify-center">
             <div
               className={`${getAspectRatioClass(
                 item.type
-              )} h-full relative rounded overflow-hidden bg-gray-800`}
+              )} h-full relative rounded overflow-hidden bg-[#141414]`}
             >
               {thumbnailUrl && !hasImageError && inView ? (
                 <Image
@@ -107,13 +117,9 @@ const HistoryItemCard = memo(
             )}
             <div className="flex items-center gap-3 mt-2">
               <span
-                className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                  item.type === "episode"
-                    ? "bg-blue-900/30 text-blue-300"
-                    : item.type === "movie"
-                    ? "bg-purple-900/30 text-purple-300"
-                    : "bg-green-900/30 text-green-300"
-                }`}
+                className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getTypeStyles(
+                  item.type
+                )}`}
               >
                 {item.type === "episode"
                   ? "TV Show"
@@ -135,7 +141,7 @@ const HistoryItemCard = memo(
               <div
                 className={`${getAspectRatioClass(
                   item.type
-                )} h-full relative rounded overflow-hidden bg-gray-800`}
+                )} h-full relative rounded overflow-hidden bg-[#141414]`}
               >
                 {thumbnailUrl && !hasImageError && inView ? (
                   <Image
@@ -175,13 +181,9 @@ const HistoryItemCard = memo(
           <div className="flex items-center justify-between">
             <div className="w-20 flex justify-center">
               <span
-                className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                  item.type === "episode"
-                    ? "bg-blue-900/30 text-blue-300"
-                    : item.type === "movie"
-                    ? "bg-purple-900/30 text-purple-300"
-                    : "bg-green-900/30 text-green-300"
-                }`}
+                className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getTypeStyles(
+                  item.type
+                )}`}
               >
                 {item.type === "episode"
                   ? "TV Show"
@@ -277,13 +279,16 @@ export default function HistoryTable({ items, loading }: HistoryTableProps) {
     );
   }
 
+  const selectStyles =
+    "w-full appearance-none bg-[#1c1c1c] text-white border border-gray-800 rounded-md pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 cursor-pointer hover:bg-[#252525]";
+
   const filterSection = (
     <div className="mb-4 flex flex-col sm:flex-row gap-3">
       <div className="relative w-full sm:w-auto">
         <select
           value={selectedUser}
           onChange={(e) => setSelectedUser(e.target.value)}
-          className="w-full appearance-none bg-gray-800 text-white border border-gray-700 rounded-md pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 cursor-pointer hover:bg-gray-750"
+          className={selectStyles}
         >
           <option value="all">All Users</option>
           {users.map((user) => (
@@ -307,7 +312,7 @@ export default function HistoryTable({ items, loading }: HistoryTableProps) {
         <select
           value={selectedType}
           onChange={(e) => setSelectedType(e.target.value)}
-          className="w-full appearance-none bg-gray-800 text-white border border-gray-700 rounded-md pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 cursor-pointer hover:bg-gray-750"
+          className={selectStyles}
         >
           <option value="all">All Types</option>
           {mediaTypes.map((type) => (
@@ -337,7 +342,7 @@ export default function HistoryTable({ items, loading }: HistoryTableProps) {
             setSelectedUser("all");
             setSelectedType("all");
           }}
-          className="text-sm text-gray-400 hover:text-white transition-colors sm:ml-auto"
+          className="text-sm text-gray-400 hover:text-orange-500 transition-colors sm:ml-auto"
         >
           Clear filters
         </button>
