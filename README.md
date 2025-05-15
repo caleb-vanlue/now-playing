@@ -1,6 +1,6 @@
 # Now Playing: A Plex Dashboard
 
-A sleek, real-time dashboard to monitor and display media currently streaming on your Plex server. This application provides a sleek interface showing what's playing right now across music, movies, and TV shows.
+A sleek, real-time dashboard to monitor and display media currently streaming on your Plex server. This application provides a modern interface showing what's playing right now across music, movies, and TV shows, along with viewing history.
 
 ![Dashboard Screenshot](screenshots/dashboard.png)
 
@@ -8,8 +8,13 @@ A sleek, real-time dashboard to monitor and display media currently streaming on
 
 - **Real-time Monitoring**: See what's currently playing on your Plex server with automatic updates
 - **Multi-format Support**: Tracks movies, TV shows, and music streams
+- **Viewing History**: Browse through past watch activity with filtering by user and media type
 - **Detailed Media Cards**: Rich information including progress, quality, user data, and more
-- **Responsive Design**: Optimized viewing experience on mobile and desktop devices
+- **Media Details**: In-depth information on each media item with expandable details view
+- **Transcode Progress**: Live monitoring of transcoding status and progress
+- **Responsive Design**: Optimized viewing experience on mobile and desktop devices with swipe navigation
+- **Adaptive Polling**: Smart polling that adjusts frequency based on media playback state and user activity
+- **Connection Management**: Automatic reconnection and status monitoring for reliable operation
 - **Spotify Integration**: Direct links to music tracks on Spotify
 - **Animated UI**: Smooth transitions and loading states using Framer Motion
 - **Docker Deployment**: Simple deployment with containerization
@@ -26,11 +31,17 @@ _Mobile Views_
 | ---------------------------------------- | -------------------------------------- | -------------------------------------- |
 | ![Movies](screenshots/movies-mobile.png) | ![TV Shows](screenshots/tv-mobile.png) | ![Music](screenshots/music-mobile.png) |
 
+| History                             |
+| ----------------------------------- |
+| ![History](screenshots/history.png) |
+
 ## Tech Stack
 
 - **Frontend**: Next.js 15, React 19, TypeScript
 - **Styling**: Tailwind CSS 4
 - **Animations**: Framer Motion
+- **State Management**: React Context API
+- **Gesture Support**: react-swipeable
 - **Containerization**: Docker
 - **APIs**: Plex API, Spotify API
 
@@ -119,8 +130,16 @@ _Mobile Views_
 The dashboard automatically communicates with your Plex server. If you need direct access to the API, the following endpoints are available:
 
 - `/api/plex/sessions` - Get currently playing sessions
+- `/api/plex/history` - Get viewing history
 - `/api/plex/thumbnail` - Get media thumbnails
 - `/api/spotify/search` - Search for tracks on Spotify
+
+## Performance Optimizations
+
+- **Adaptive Polling**: Polling frequency adjusts based on playback state and user activity
+- **Lazy Loading**: Images and components load only when needed
+- **Optimized Rendering**: React memo and hooks optimize rendering performance
+- **Responsive Assets**: Images are served at appropriate sizes for different devices
 
 ## Acknowledgments
 
