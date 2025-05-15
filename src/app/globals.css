@@ -44,6 +44,19 @@ a:hover {
   color: var(--accent);
 }
 
+/* Custom hover state for gray-750 */
+.hover\:bg-gray-750:hover {
+  background-color: #2d2d2d;
+}
+
+/* Ensure focus rings are fully visible */
+select:focus,
+button:focus,
+input:focus {
+  position: relative;
+  z-index: 10;
+}
+
 @keyframes equalizerBar {
   0% {
     height: 2px;

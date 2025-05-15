@@ -12,10 +12,11 @@ export default function PageTransition({ children }: PageTransitionProps) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{
-        duration: 0.3,
+        duration: 0.2,
         ease: "easeInOut",
       }}
       className="w-full"
+      style={{ minHeight: "calc(100vh - 200px)" }}
     >
       {children}
     </motion.div>

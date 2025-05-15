@@ -19,6 +19,46 @@ const nextConfig: NextConfig = {
         hostname: "image.tmdb.org",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "imdb-api.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "m.media-amazon.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "themoviedb.org",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "thetvdb.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "artworks.thetvdb.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "meta.plex.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "meta.plex.tv",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "artworks.thetvdb.com",
+        pathname: "/**",
+      },
     ],
   },
 };

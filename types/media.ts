@@ -145,3 +145,34 @@ export interface MediaData {
   movies: Movie[];
   episodes: Episode[];
 }
+
+export interface HistoryItem {
+  historyKey: string;
+  key: string;
+  ratingKey: string;
+  librarySectionID: string;
+  parentKey?: string;
+  grandparentKey?: string;
+  title: string;
+  parentTitle?: string;
+  grandparentTitle?: string;
+  type: "movie" | "episode" | "track";
+  thumb?: string;
+  parentThumb?: string;
+  grandparentThumb?: string;
+  grandparentArt?: string;
+  index?: number;
+  parentIndex?: number;
+  originallyAvailableAt?: string;
+  viewedAt: number;
+  accountID: number;
+  deviceID: number;
+  // Additional fields for display
+  displayTitle?: string;
+  displaySubtitle?: string;
+  userName?: string; // Add username field
+}
+export interface HistoryData {
+  items: HistoryItem[];
+  size: number;
+}

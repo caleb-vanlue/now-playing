@@ -8,10 +8,12 @@ import NavigationTabs from "../components/NavigationTabs";
 import MusicCard from "../components/MusicCard";
 import MovieCard from "../components/MovieCard";
 import TVShowCard from "../components/TVShowCard";
+import HistoryTable from "../components/HistoryTable";
 import { useMediaDataContext } from "../components/MediaDataContext";
+import { useHistory } from "../hooks/useHistory";
 import { useSwipeable } from "react-swipeable";
 
-type MediaType = "music" | "movies" | "tvshows";
+type MediaType = "music" | "movies" | "tvshows" | "history";
 
 const EmptyState = memo(({ type }: { type: MediaType }) => {
   const messages = {
@@ -26,6 +28,10 @@ const EmptyState = memo(({ type }: { type: MediaType }) => {
     tvshows: {
       title: "No TV shows currently playing",
       subtitle: "TV shows will appear here when someone starts playing",
+    },
+    history: {
+      title: "No watch history found",
+      subtitle: "Your viewing history will appear here",
     },
   };
 
@@ -43,9 +49,10 @@ EmptyState.displayName = "EmptyState";
 
 function MediaPage() {
   const { mediaData } = useMediaDataContext();
+  const { history, loading: historyLoading } = useHistory({ limit: 100 });
   const [activeTab, setActiveTab] = useState<MediaType>("music");
 
-  const order = ["music", "movies", "tvshows"];
+  const order = ["music", "movies", "tvshows", "history"];
   const swipeHandlers = useSwipeable({
     onSwipedLeft: () => {
       setActiveTab(
@@ -74,6 +81,7 @@ function MediaPage() {
       { href: "#music", label: "Music", count: tracks.length },
       { href: "#movies", label: "Movies", count: movies.length },
       { href: "#tvshows", label: "TV Shows", count: episodes.length },
+      { href: "#history", label: "History", count: 0 },
     ],
     [tracks.length, movies.length, episodes.length]
   );
@@ -120,8 +128,11 @@ function MediaPage() {
             ))}
           </div>
         );
+
+      case "history":
+        return <HistoryTable items={history} loading={historyLoading} />;
     }
-  }, [activeTab, tracks, movies, episodes]);
+  }, [activeTab, tracks, movies, episodes, history, historyLoading]);
 
   return (
     <MediaDashboard>

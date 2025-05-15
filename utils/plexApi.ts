@@ -286,7 +286,7 @@ export function getThumbnailUrl(
 
   const params = new URLSearchParams({
     path: thumbnailPath,
-    quality: options?.quality || "medium",
+    quality: options?.quality || "low",
   });
 
   if (options?.width) {
