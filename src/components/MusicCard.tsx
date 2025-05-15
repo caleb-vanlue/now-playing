@@ -261,7 +261,7 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
 
   return (
     <BaseMediaCard
-      key={`${track.id}-${spotifyUrl ? "spotify" : "no-spotify"}`} // Force re-render with key change
+      key={`${track.id}-${spotifyUrl}`}
       item={track}
       index={index}
       renderThumbnail={renderThumbnail}
