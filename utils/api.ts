@@ -4,8 +4,8 @@ import {
   getThumbnailUrl as getPlexThumbnailUrl,
 } from "./plexApi";
 
-export async function fetchMediaData(): Promise<MediaData> {
-  return fetchPlexData();
+export async function fetchMediaData(signal?: AbortSignal): Promise<MediaData> {
+  return fetchPlexData(signal);
 }
 
 export function getThumbnailUrl(fileId: string | undefined): string | null {

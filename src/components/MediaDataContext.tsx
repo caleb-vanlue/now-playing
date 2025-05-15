@@ -1,6 +1,13 @@
 "use client";
 
-import React, { createContext, useContext, ReactNode } from "react";
+import React, {
+  createContext,
+  useContext,
+  ReactNode,
+  useMemo,
+  useCallback,
+  useRef,
+} from "react";
 import { useMediaData } from "../hooks/useMediaData";
 import { MediaData } from "../../types/media";
 import { spotifyCache } from "../../utils/spotifyCache";
@@ -39,40 +46,66 @@ export function MediaDataProvider({
     idlePollingInterval,
   });
 
-  const getSpotifyUrl = async (
-    artist: string,
-    trackTitle: string
-  ): Promise<string | null> => {
-    if (!artist || !trackTitle) return null;
+  const pendingRequests = useRef<Record<string, Promise<string | null>>>({});
 
-    const cachedUrl = spotifyCache.getUrl(artist, trackTitle);
-    if (cachedUrl !== null) {
-      return cachedUrl;
-    }
+  const getSpotifyUrl = useCallback(
+    async (artist: string, trackTitle: string): Promise<string | null> => {
+      if (!artist || !trackTitle) return null;
 
-    try {
-      const result = await searchSpotifyTrack(artist, trackTitle);
-
-      if (result.found && result.spotifyUrl) {
-        spotifyCache.setUrl(artist, trackTitle, result.spotifyUrl);
-        return result.spotifyUrl;
-      } else {
-        spotifyCache.setUrl(artist, trackTitle, "");
-        return null;
+      const cacheKey = `${artist.trim().toLowerCase()}-${trackTitle
+        .trim()
+        .toLowerCase()}`;
+      const cachedUrl = spotifyCache.getUrl(artist, trackTitle);
+      if (cachedUrl !== null) {
+        return cachedUrl;
       }
-    } catch (error) {
-      console.error("Error fetching Spotify URL:", error);
-      return null;
-    }
-  };
+
+      if (await pendingRequests.current[cacheKey]) {
+        return pendingRequests.current[cacheKey];
+      }
+
+      const requestPromise = (async () => {
+        try {
+          const result = await searchSpotifyTrack(artist, trackTitle);
+
+          if (result.found && result.spotifyUrl) {
+            spotifyCache.setUrl(artist, trackTitle, result.spotifyUrl);
+            return result.spotifyUrl;
+          } else {
+            spotifyCache.setUrl(artist, trackTitle, "");
+            return null;
+          }
+        } catch (error) {
+          console.error("Error fetching Spotify URL:", error);
+          return null;
+        } finally {
+          delete pendingRequests.current[cacheKey];
+        }
+      })();
+
+      pendingRequests.current[cacheKey] = requestPromise;
+      return requestPromise;
+    },
+    []
+  );
+
+  const contextValue = useMemo(
+    () => ({
+      ...mediaDataState,
+      getSpotifyUrl,
+    }),
+    [
+      mediaDataState.mediaData,
+      mediaDataState.loading,
+      mediaDataState.error,
+      mediaDataState.lastSyncTime,
+      mediaDataState.isConnected,
+      getSpotifyUrl,
+    ]
+  );
 
   return (
-    <MediaDataContext.Provider
-      value={{
-        ...mediaDataState,
-        getSpotifyUrl,
-      }}
-    >
+    <MediaDataContext.Provider value={contextValue}>
       {children}
     </MediaDataContext.Provider>
   );

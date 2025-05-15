@@ -219,12 +219,13 @@ function mapToTrack(session: any): Track {
   };
 }
 
-export async function fetchPlexData(): Promise<MediaData> {
+export async function fetchPlexData(signal?: AbortSignal): Promise<MediaData> {
   try {
     const response = await fetchWithTimeout(`/api/plex/sessions`, {
       headers: {
         Accept: "application/json",
       },
+      signal,
     });
 
     if (!response.ok) {

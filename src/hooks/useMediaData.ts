@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { MediaData } from "../../types/media";
 import { fetchMediaData } from "../../utils/api";
 
@@ -26,9 +26,35 @@ export function useMediaData(options?: UseMediaDataOptions) {
   const progressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const pollingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const retryCount = useRef(0);
+  const lastUserActivityRef = useRef<number>(Date.now());
+  const prevMediaDataRef = useRef<MediaData | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    const updateActivity = () => {
+      lastUserActivityRef.current = Date.now();
+    };
+
+    window.addEventListener("mousemove", updateActivity, { passive: true });
+    window.addEventListener("keydown", updateActivity, { passive: true });
+    window.addEventListener("touchstart", updateActivity, { passive: true });
+    window.addEventListener("scroll", updateActivity, { passive: true });
+
+    return () => {
+      window.removeEventListener("mousemove", updateActivity);
+      window.removeEventListener("keydown", updateActivity);
+      window.removeEventListener("touchstart", updateActivity);
+      window.removeEventListener("scroll", updateActivity);
+    };
+  }, []);
 
   const getPollingInterval = useCallback(
     (data: MediaData | null): number => {
+      const userInactiveTime = Date.now() - lastUserActivityRef.current;
+      if (userInactiveTime > 10 * 60 * 1000) {
+        return Math.min(config.idlePollingInterval! * 2, 600000); // Max 10 minutes
+      }
+
       if (!data) return config.idlePollingInterval!;
 
       const hasActivePlayback =
@@ -48,11 +74,53 @@ export function useMediaData(options?: UseMediaDataOptions) {
     [config]
   );
 
+  const processMediaData = useCallback((newData: MediaData): MediaData => {
+    if (!prevMediaDataRef.current) {
+      prevMediaDataRef.current = newData;
+      return newData;
+    }
+
+    const prevData = prevMediaDataRef.current;
+    const tracksChanged =
+      prevData.tracks.length !== newData.tracks.length ||
+      JSON.stringify(
+        newData.tracks.map((t) => t.id + t.state + t.viewOffset)
+      ) !==
+        JSON.stringify(
+          prevData.tracks.map((t) => t.id + t.state + t.viewOffset)
+        );
+
+    const moviesChanged =
+      prevData.movies.length !== newData.movies.length ||
+      JSON.stringify(
+        newData.movies.map((m) => m.id + m.state + m.viewOffset)
+      ) !==
+        JSON.stringify(
+          prevData.movies.map((m) => m.id + m.state + m.viewOffset)
+        );
+
+    const episodesChanged =
+      prevData.episodes.length !== newData.episodes.length ||
+      JSON.stringify(
+        newData.episodes.map((e) => e.id + e.state + e.viewOffset)
+      ) !==
+        JSON.stringify(
+          prevData.episodes.map((e) => e.id + e.state + e.viewOffset)
+        );
+
+    if (!tracksChanged && !moviesChanged && !episodesChanged) {
+      return prevData;
+    }
+
+    prevMediaDataRef.current = newData;
+    return newData;
+  }, []);
+
   const updateProgress = useCallback(() => {
     setMediaData((current) => {
       if (!current) return current;
 
-      return {
+      const updated = {
         ...current,
         tracks: current.tracks.map((track) => ({
           ...track,
@@ -76,21 +144,39 @@ export function useMediaData(options?: UseMediaDataOptions) {
               : episode.viewOffset,
         })),
       };
+
+      const hasChanges =
+        current.tracks.some((t) => t.state === "playing") ||
+        current.movies.some((m) => m.state === "playing") ||
+        current.episodes.some((e) => e.state === "playing");
+
+      return hasChanges ? updated : current;
     });
   }, []);
 
   const fetchData = useCallback(async () => {
-    try {
-      const data = await fetchMediaData();
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
 
-      setMediaData(data);
+    abortControllerRef.current = new AbortController();
+    try {
+      setLoading((prevLoading) => {
+        return !mediaData && prevLoading !== true ? true : prevLoading;
+      });
+
+      const data = await fetchMediaData(abortControllerRef.current.signal);
+
+      const processedData = processMediaData(data);
+
+      setMediaData(processedData);
       setLastSyncTime(new Date());
       setLoading(false);
       setError(null);
       setIsConnected(true);
       retryCount.current = 0;
 
-      const nextInterval = getPollingInterval(data);
+      const nextInterval = getPollingInterval(processedData);
 
       if (pollingTimerRef.current) {
         clearTimeout(pollingTimerRef.current);
@@ -100,28 +186,29 @@ export function useMediaData(options?: UseMediaDataOptions) {
         fetchData();
       }, nextInterval);
     } catch (err) {
-      console.error("Error fetching media data:", err);
-      setError(
-        err instanceof Error ? err : new Error("An unknown error occurred")
-      );
-      setLoading(false);
-      setIsConnected(false);
+      if (!(err instanceof DOMException && err.name === "AbortError")) {
+        console.error("Error fetching media data:", err);
+        setError(
+          err instanceof Error ? err : new Error("An unknown error occurred")
+        );
+        setLoading(false);
+        setIsConnected(false);
+        retryCount.current++;
+        const retryDelay = Math.min(
+          5000 * Math.pow(1.5, retryCount.current - 1),
+          60000
+        );
 
-      retryCount.current++;
-      const retryDelay = Math.min(
-        5000 * Math.pow(2, retryCount.current - 1),
-        60000
-      );
+        if (pollingTimerRef.current) {
+          clearTimeout(pollingTimerRef.current);
+        }
 
-      if (pollingTimerRef.current) {
-        clearTimeout(pollingTimerRef.current);
+        pollingTimerRef.current = setTimeout(() => {
+          fetchData();
+        }, retryDelay);
       }
-
-      pollingTimerRef.current = setTimeout(() => {
-        fetchData();
-      }, retryDelay);
     }
-  }, [getPollingInterval]);
+  }, [getPollingInterval, mediaData, processMediaData]);
 
   useEffect(() => {
     fetchData();
@@ -132,6 +219,9 @@ export function useMediaData(options?: UseMediaDataOptions) {
       }
       if (progressTimerRef.current) {
         clearInterval(progressTimerRef.current);
+      }
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
       }
     };
   }, []);
@@ -183,7 +273,7 @@ export function useMediaData(options?: UseMediaDataOptions) {
     }
 
     retryCount.current = 0;
-
+    lastUserActivityRef.current = Date.now();
     fetchData();
   }, [fetchData]);
 
