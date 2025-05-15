@@ -12,6 +12,11 @@ import {
 import { BaseMediaCard, ImageState } from "./BaseMediaCard";
 import { ImageLoadingSpinner, ProgressInfo } from "./CardComponents";
 import { UserAvatar } from "./UserAvatar";
+import {
+  YearBadge,
+  SpotifyBadge,
+  ImageWithFallback,
+} from "./ImageWithFallback";
 
 interface MusicCardProps {
   track: Track;
@@ -40,60 +45,32 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
 
   const renderThumbnail = useCallback(
     (track: Track, imageState: ImageState) => {
-      if (thumbnailUrl && !imageState.imageError) {
-        return (
-          <div className="aspect-[1] relative">
-            {!imageState.imageLoaded && <ImageLoadingSpinner />}
-            <Image
-              src={thumbnailUrl}
-              alt={track.album || track.title}
-              fill
-              sizes="(max-width: 640px) 300px, (max-width: 1024px) 400px, 500px"
-              className={`object-cover ${
-                imageState.imageLoaded ? "opacity-100" : "opacity-0"
-              }`}
-              onError={() => imageState.setImageError(true)}
-              onLoad={() => imageState.setImageLoaded(true)}
-              style={{ transition: "opacity 0.3s" }}
-              loading="lazy"
-              quality={85}
-            />
+      const thumbnailUrl = getResponsiveThumbnailUrl(
+        track.thumbnailFileId,
+        "music"
+      );
 
-            {track.year && (
-              <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-md backdrop-blur-sm">
-                {track.year}
-              </div>
-            )}
+      const badges = [];
 
-            {spotifyUrl && (
-              <motion.a
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.2 }}
-                href={spotifyUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
-                className="absolute top-2 left-2 text-xs px-2 py-1 rounded-full bg-[#1DB954] hover:bg-[#1DB954]/90 text-white shadow-sm shadow-[#1DB954]/30 transition-colors"
-              >
-                <div className="flex items-center">
-                  <Image
-                    src="/images/logos/Primary_Logo_White_CMYK.svg"
-                    alt="Spotify"
-                    width={12}
-                    height={12}
-                    className="mr-1"
-                  />
-                  <span>Listen</span>
-                </div>
-              </motion.a>
-            )}
-          </div>
-        );
+      if (track.year) {
+        badges.push(<YearBadge year={track.year} />);
+      }
+
+      if (spotifyUrl) {
+        badges.push(<SpotifyBadge url={spotifyUrl} />);
       }
 
       return (
-        <span className="text-lg font-bold">{track.album || track.title}</span>
+        <ImageWithFallback
+          src={thumbnailUrl}
+          alt={track.album || track.title}
+          aspectRatio="square"
+          sizes="(max-width: 640px) 300px, (max-width: 1024px) 400px, 500px"
+          quality={85}
+          fallbackIcon="🎵"
+          badges={badges}
+          onLoad={() => imageState.setImageLoaded(true)}
+        />
       );
     },
     [thumbnailUrl, spotifyUrl]

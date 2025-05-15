@@ -13,6 +13,12 @@ import {
 import { BaseMediaCard, ImageState } from "./BaseMediaCard";
 import { ImageLoadingSpinner, ProgressInfo } from "./CardComponents";
 import { UserAvatar } from "./UserAvatar";
+import {
+  SeasonEpisodeBadge,
+  ContentRatingBadge,
+  TranscodeStatusBadge,
+  ImageWithFallback,
+} from "./ImageWithFallback";
 
 interface TVShowCardProps {
   item: Episode;
@@ -41,47 +47,37 @@ export default function TVShowCard({
   const startedAt = new Date(episode.startTime);
 
   const renderThumbnail = (episode: Episode, imageState: ImageState) => {
-    if (thumbnailUrl && !imageState.imageError) {
-      return (
-        <div className="aspect-[16/9] relative">
-          {!imageState.imageLoaded && <ImageLoadingSpinner />}
-          <Image
-            src={thumbnailUrl}
-            alt={episode.title}
-            fill
-            sizes="(max-width: 768px) 100vw, 50vw"
-            className={`object-cover ${
-              imageState.imageLoaded ? "opacity-100" : "opacity-0"
-            }`}
-            onError={() => imageState.setImageError(true)}
-            onLoad={() => imageState.setImageLoaded(true)}
-            style={{ transition: "opacity 0.3s" }}
-          />
+    const thumbnailUrl = getThumbnailUrl(episode.thumbnailFileId);
+    const seasonEpisode = `S${episode.season}:E${episode.episode}`;
 
-          <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded-md backdrop-blur-sm">
-            {seasonEpisode}
-          </div>
+    const badges = [
+      <SeasonEpisodeBadge season={episode.season} episode={episode.episode} />,
+    ];
 
-          {episode.contentRating && (
-            <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-md backdrop-blur-sm">
-              {episode.contentRating}
-            </div>
-          )}
+    if (episode.contentRating) {
+      badges.push(<ContentRatingBadge rating={episode.contentRating} />);
+    }
 
-          {episode.videoDecision && (
-            <div className="absolute top-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded-md backdrop-blur-sm">
-              {episode.videoDecision === "transcode"
-                ? "Video Transcode"
-                : episode.audioDecision === "transcode"
-                ? "Audio Transcode"
-                : "Direct Play"}
-            </div>
-          )}
-        </div>
+    if (episode.videoDecision) {
+      badges.push(
+        <TranscodeStatusBadge
+          videoDecision={episode.videoDecision}
+          audioDecision={episode.audioDecision}
+        />
       );
     }
 
-    return <span className="text-lg font-bold">{episode.title}</span>;
+    return (
+      <ImageWithFallback
+        src={thumbnailUrl}
+        alt={episode.title}
+        aspectRatio="landscape"
+        sizes="(max-width: 768px) 100vw, 50vw"
+        fallbackIcon="📺"
+        badges={badges}
+        onLoad={() => imageState.setImageLoaded(true)}
+      />
+    );
   };
 
   const renderMainContent = (episode: Episode) => (

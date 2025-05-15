@@ -13,6 +13,11 @@ import {
 import { BaseMediaCard, ImageState } from "./BaseMediaCard";
 import { ImageLoadingSpinner, ProgressInfo } from "./CardComponents";
 import { UserAvatar } from "./UserAvatar";
+import {
+  ContentRatingBadge,
+  TranscodeStatusBadge,
+  ImageWithFallback,
+} from "./ImageWithFallback";
 
 interface MovieCardProps {
   item: Movie;
@@ -37,43 +42,34 @@ export default function MovieCard({ item: movie, index = 0 }: MovieCardProps) {
   const startedAt = new Date(movie.startTime);
 
   const renderThumbnail = (movie: Movie, imageState: ImageState) => {
-    if (thumbnailUrl && !imageState.imageError) {
-      return (
-        <div className="aspect-[2/3] relative">
-          {!imageState.imageLoaded && <ImageLoadingSpinner />}
-          <Image
-            src={thumbnailUrl}
-            alt={movie.title}
-            fill
-            sizes="(max-width: 768px) 100vw, 33vw"
-            className={`object-cover ${
-              imageState.imageLoaded ? "opacity-100" : "opacity-0"
-            }`}
-            onError={() => imageState.setImageError(true)}
-            onLoad={() => imageState.setImageLoaded(true)}
-            style={{ transition: "opacity 0.3s" }}
-          />
+    const thumbnailUrl = getThumbnailUrl(movie.thumbnailFileId);
 
-          {movie.contentRating && (
-            <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-md backdrop-blur-sm">
-              {movie.contentRating}
-            </div>
-          )}
+    const badges = [];
 
-          {movie.videoDecision && (
-            <div className="absolute top-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded-md backdrop-blur-sm">
-              {movie.videoDecision === "transcode"
-                ? "Video Transcode"
-                : movie.audioDecision === "transcode"
-                ? "Audio Transcode"
-                : "Direct Play"}
-            </div>
-          )}
-        </div>
+    if (movie.contentRating) {
+      badges.push(<ContentRatingBadge rating={movie.contentRating} />);
+    }
+
+    if (movie.videoDecision) {
+      badges.push(
+        <TranscodeStatusBadge
+          videoDecision={movie.videoDecision}
+          audioDecision={movie.audioDecision}
+        />
       );
     }
 
-    return <span className="text-lg font-bold">{movie.title}</span>;
+    return (
+      <ImageWithFallback
+        src={thumbnailUrl}
+        alt={movie.title}
+        aspectRatio="portrait"
+        sizes="(max-width: 768px) 100vw, 33vw"
+        fallbackIcon="🎬"
+        badges={badges}
+        onLoad={() => imageState.setImageLoaded(true)}
+      />
+    );
   };
 
   const renderMainContent = (movie: Movie) => (
