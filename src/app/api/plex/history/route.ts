@@ -13,7 +13,7 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const accountId = searchParams.get("accountId");
-  const limit = searchParams.get("limit") || "100";
+  const limit = searchParams.get("limit") || "50";
   const sort = searchParams.get("sort") || "viewedAt:desc";
 
   try {

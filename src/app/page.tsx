@@ -49,7 +49,7 @@ EmptyState.displayName = "EmptyState";
 
 function MediaPage() {
   const { mediaData } = useMediaDataContext();
-  const { history, loading: historyLoading } = useHistory({ limit: 100 });
+  const { history, loading: historyLoading } = useHistory({ limit: 50 });
   const [activeTab, setActiveTab] = useState<MediaType>("music");
 
   const order = ["music", "movies", "tvshows", "history"];
@@ -136,15 +136,20 @@ function MediaPage() {
 
   return (
     <MediaDashboard>
-      <div className="mb-6">
-        <NavigationTabs
-          items={navItems}
-          onTabClick={handleTabClick}
-          activeTab={`#${activeTab}`}
-        />
-      </div>
-      <div {...swipeHandlers}>
-        <PageTransition key={activeTab}>{renderContent}</PageTransition>
+      <div className="flex flex-col h-full overflow-hidden">
+        <div className="flex-shrink-0 px-4 sm:px-6 lg:px-8 pb-2">
+          <NavigationTabs
+            items={navItems}
+            onTabClick={handleTabClick}
+            activeTab={`#${activeTab}`}
+          />
+        </div>
+        <div
+          className="flex-1 h-full overflow-y-auto px-4 sm:px-6 lg:px-8 pb-16"
+          {...swipeHandlers}
+        >
+          <PageTransition key={activeTab}>{renderContent}</PageTransition>
+        </div>
       </div>
       <a
         href="https://github.com/caleb-vanlue/now-playing"

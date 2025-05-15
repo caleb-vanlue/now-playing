@@ -16,7 +16,6 @@ export default function PageTransition({ children }: PageTransitionProps) {
         ease: "easeInOut",
       }}
       className="w-full"
-      style={{ minHeight: "calc(100vh - 200px)" }}
     >
       {children}
     </motion.div>

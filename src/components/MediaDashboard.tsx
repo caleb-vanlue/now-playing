@@ -15,7 +15,7 @@ const MediaDashboard = memo(({ children }: MediaDashboardProps) => {
 
   const syncTextRef = useRef<HTMLSpanElement>(null);
   const [showLoading, setShowLoading] = useState(loading && !mediaData);
-  const [headerHeight, setHeaderHeight] = useState<number>(0);
+  const [, setHeaderHeight] = useState<number>(0);
   const headerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -152,18 +152,15 @@ const MediaDashboard = memo(({ children }: MediaDashboardProps) => {
         )}
       </AnimatePresence>
 
-      <header
-        ref={headerRef}
-        className="fixed top-0 left-0 right-0 z-20 bg-[#141414]/95 backdrop-blur-md px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-2 border-b border-gray-800/30 shadow-lg"
-      >
-        {headerContent}
-      </header>
+      <div className="fixed inset-0 flex flex-col bg-animated-gradient text-white overflow-hidden">
+        <header
+          ref={headerRef}
+          className="flex-shrink-0 z-20 bg-[#141414]/95 backdrop-blur-md px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-2 border-b border-gray-800/30 shadow-lg"
+        >
+          {headerContent}
+        </header>
 
-      <div
-        className="min-h-screen bg-animated-gradient text-white overflow-x-hidden"
-        style={{ paddingTop: `${headerHeight}px` }}
-      >
-        <main className="p-4 sm:p-6 lg:p-8 pt-4 pb-16">{children}</main>
+        <main className="flex-1 flex flex-col overflow-hidden">{children}</main>
       </div>
 
       {error && !isConnected && (

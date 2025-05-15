@@ -24,7 +24,7 @@ export default function NavigationTabs({
 
   if (!onTabClick) {
     return (
-      <nav className="relative flex space-x-8 border-b border-gray-800/50 mb-0">
+      <nav className="relative flex space-x-8 border-b border-gray-800/50 bg-[#141414]/80 backdrop-blur-sm -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8">
         {items.map((item) => (
           <Link
             key={item.href}
@@ -69,7 +69,7 @@ export default function NavigationTabs({
   const currentActive = activeTab || items[0]?.href;
 
   return (
-    <nav className="relative flex justify-center sm:justify-start space-x-8 border-b border-gray-800/50 mb-0">
+    <nav className="relative flex justify-center sm:justify-start space-x-8 border-b border-gray-800/50 bg-[#141414]/80 backdrop-blur-sm -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8">
       {items.map((item) => (
         <button
           key={item.href}
