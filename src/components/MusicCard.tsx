@@ -73,7 +73,7 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
         />
       );
     },
-    [thumbnailUrl, spotifyUrl]
+    [getResponsiveThumbnailUrl, spotifyUrl]
   );
 
   const renderMainContent = useCallback(

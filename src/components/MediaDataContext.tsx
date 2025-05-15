@@ -86,7 +86,7 @@ export function MediaDataProvider({
       pendingRequests.current[cacheKey] = requestPromise;
       return requestPromise;
     },
-    []
+    [pendingRequests]
   );
 
   const contextValue = useMemo(
