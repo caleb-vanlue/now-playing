@@ -49,7 +49,7 @@ EmptyState.displayName = "EmptyState";
 
 function MediaPage() {
   const { mediaData } = useMediaDataContext();
-  const { history, loading: historyLoading } = useHistory({ limit: 50 });
+  const { history, loading: historyLoading } = useHistory({ limit: 100 });
   const [activeTab, setActiveTab] = useState<MediaType>("music");
 
   const order = ["music", "movies", "tvshows", "history"];
