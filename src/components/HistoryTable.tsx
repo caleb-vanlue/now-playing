@@ -21,11 +21,13 @@ const HistoryItemCard = memo(
     index,
     imageErrors,
     onImageError,
+    userName,
   }: {
     item: HistoryItem;
     index: number;
     imageErrors: ImageStateMap;
     onImageError: (itemKey: string) => void;
+    userName: string;
   }) => {
     const itemKey = `${item.historyKey}-${index}`;
     const thumbnailUrl = getThumbnailUrl(item.thumb, {
@@ -127,6 +129,9 @@ const HistoryItemCard = memo(
                   ? "Movie"
                   : "Music"}
               </span>
+              <span className="text-xs text-gray-400">
+                Played by {userName}
+              </span>
             </div>
           </div>
 
@@ -175,6 +180,7 @@ const HistoryItemCard = memo(
                   {item.displaySubtitle}
                 </p>
               )}
+              <p className="text-xs text-gray-400 mt-1">Played by {userName}</p>
             </div>
           </div>
 
@@ -192,7 +198,9 @@ const HistoryItemCard = memo(
                   : "Music"}
               </span>
             </div>
-            <span className="text-sm text-gray-400">{timeAgo}</span>
+            <div className="flex items-center">
+              <span className="text-sm text-gray-400 mr-1">{timeAgo}</span>
+            </div>
           </div>
         </div>
       </motion.div>
@@ -374,6 +382,7 @@ export default function HistoryTable({ items, loading }: HistoryTableProps) {
             index={index}
             imageErrors={imageErrors}
             onImageError={handleImageError}
+            userName={getUserNameFromAccountId(item.accountID)}
           />
         ))}
       </div>
