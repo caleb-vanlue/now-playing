@@ -127,3 +127,9 @@ input:focus {
   transform: translateZ(0);
   backface-visibility: hidden;
 }
+
+.hardware-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: transform, opacity;
+}

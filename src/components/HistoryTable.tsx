@@ -1,9 +1,10 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, memo } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { HistoryItem } from "../../types/media";
 import { getTimeAgo } from "../../utils/dateUtils";
 import { getThumbnailUrl } from "../../utils/plexApi";
+import { useInView } from "react-intersection-observer";
 
 interface HistoryTableProps {
   items: HistoryItem[];
@@ -13,6 +14,191 @@ interface HistoryTableProps {
 interface ImageStateMap {
   [key: string]: boolean;
 }
+
+const HistoryItemCard = memo(
+  ({
+    item,
+    index,
+    imageErrors,
+    onImageError,
+  }: {
+    item: HistoryItem;
+    index: number;
+    imageErrors: ImageStateMap;
+    onImageError: (itemKey: string) => void;
+  }) => {
+    const itemKey = `${item.historyKey}-${index}`;
+    const thumbnailUrl = getThumbnailUrl(item.thumb, {
+      quality: "low",
+      width: 100,
+    });
+    const viewedDate = new Date(item.viewedAt * 1000);
+    const timeAgo = getTimeAgo(viewedDate);
+    const hasImageError = imageErrors[itemKey];
+
+    const [ref, inView] = useInView({
+      triggerOnce: true,
+      rootMargin: "400px 0px",
+      threshold: 0.1,
+    });
+
+    const getAspectRatioClass = (type: string) => {
+      switch (type) {
+        case "track":
+          return "aspect-square"; // 1:1 for music
+        case "movie":
+          return "aspect-[2/3]"; // 2:3 for movies
+        case "episode":
+          return "aspect-video"; // 16:9 for TV shows
+        default:
+          return "aspect-[2/3]";
+      }
+    };
+
+    return (
+      <motion.div
+        ref={ref}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{
+          delay: Math.min(index, 10) * 0.02,
+          duration: 0.3,
+        }}
+        className="bg-gray-900/30 rounded-lg p-4 hover:bg-gray-900/40 transition-colors hardware-accelerated"
+      >
+        <div className="hidden sm:flex items-center gap-4">
+          <div className="flex-shrink-0 w-24 h-16 flex items-center justify-center">
+            <div
+              className={`${getAspectRatioClass(
+                item.type
+              )} h-full relative rounded overflow-hidden bg-gray-800`}
+            >
+              {thumbnailUrl && !hasImageError && inView ? (
+                <Image
+                  src={thumbnailUrl}
+                  alt={item.title}
+                  fill
+                  sizes="80px"
+                  className="object-cover"
+                  loading="eager"
+                  quality={60}
+                  onError={() => onImageError(itemKey)}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-600 text-2xl">
+                  {item.type === "episode"
+                    ? "📺"
+                    : item.type === "movie"
+                    ? "🎬"
+                    : "🎵"}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="flex-1 min-w-0">
+            <h3 className="font-medium text-white leading-tight truncate">
+              {item.displayTitle}
+            </h3>
+            {item.displaySubtitle && (
+              <p className="text-sm text-gray-400 mt-0.5 truncate">
+                {item.displaySubtitle}
+              </p>
+            )}
+            <div className="flex items-center gap-3 mt-2">
+              <span
+                className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                  item.type === "episode"
+                    ? "bg-blue-900/30 text-blue-300"
+                    : item.type === "movie"
+                    ? "bg-purple-900/30 text-purple-300"
+                    : "bg-green-900/30 text-green-300"
+                }`}
+              >
+                {item.type === "episode"
+                  ? "TV Show"
+                  : item.type === "movie"
+                  ? "Movie"
+                  : "Music"}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex-shrink-0">
+            <span className="text-sm text-gray-400">{timeAgo}</span>
+          </div>
+        </div>
+
+        <div className="flex sm:hidden flex-col gap-3">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 w-20 h-20 flex items-center justify-center">
+              <div
+                className={`${getAspectRatioClass(
+                  item.type
+                )} h-full relative rounded overflow-hidden bg-gray-800`}
+              >
+                {thumbnailUrl && !hasImageError && inView ? (
+                  <Image
+                    src={thumbnailUrl}
+                    alt={item.title}
+                    fill
+                    sizes="80px"
+                    className="object-cover"
+                    loading="eager"
+                    quality={60}
+                    onError={() => onImageError(itemKey)}
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-gray-600 text-3xl">
+                    {item.type === "episode"
+                      ? "📺"
+                      : item.type === "movie"
+                      ? "🎬"
+                      : "🎵"}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex-1 min-w-0">
+              <h3 className="font-medium text-white leading-tight">
+                {item.displayTitle}
+              </h3>
+              {item.displaySubtitle && (
+                <p className="text-sm text-gray-400 mt-0.5">
+                  {item.displaySubtitle}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="w-20 flex justify-center">
+              <span
+                className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                  item.type === "episode"
+                    ? "bg-blue-900/30 text-blue-300"
+                    : item.type === "movie"
+                    ? "bg-purple-900/30 text-purple-300"
+                    : "bg-green-900/30 text-green-300"
+                }`}
+              >
+                {item.type === "episode"
+                  ? "TV Show"
+                  : item.type === "movie"
+                  ? "Movie"
+                  : "Music"}
+              </span>
+            </div>
+            <span className="text-sm text-gray-400">{timeAgo}</span>
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
+);
+
+HistoryItemCard.displayName = "HistoryItemCard";
 
 export default function HistoryTable({ items, loading }: HistoryTableProps) {
   const [imageErrors, setImageErrors] = useState<ImageStateMap>({});
@@ -25,7 +211,6 @@ export default function HistoryTable({ items, loading }: HistoryTableProps) {
     };
   }, []);
 
-  // Helper function to map accountID to username
   const getUserNameFromAccountId = (accountId: number): string => {
     switch (accountId) {
       case 1:
@@ -37,7 +222,6 @@ export default function HistoryTable({ items, loading }: HistoryTableProps) {
     }
   };
 
-  // Get unique users from the history items
   const users = useMemo(() => {
     const userSet = new Set<string>();
     items.forEach((item) => {
@@ -47,7 +231,6 @@ export default function HistoryTable({ items, loading }: HistoryTableProps) {
     return Array.from(userSet).sort();
   }, [items]);
 
-  // Get media types from the history items
   const mediaTypes = useMemo(() => {
     const typeSet = new Set<string>();
     items.forEach((item) => {
@@ -56,7 +239,6 @@ export default function HistoryTable({ items, loading }: HistoryTableProps) {
     return Array.from(typeSet).sort();
   }, [items]);
 
-  // Filter items based on selected user and type
   const filteredItems = useMemo(() => {
     let filtered = items;
 
@@ -74,6 +256,10 @@ export default function HistoryTable({ items, loading }: HistoryTableProps) {
     return filtered;
   }, [items, selectedUser, selectedType]);
 
+  const handleImageError = (itemKey: string) => {
+    setImageErrors((prev) => ({ ...prev, [itemKey]: true }));
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -90,23 +276,6 @@ export default function HistoryTable({ items, loading }: HistoryTableProps) {
       </div>
     );
   }
-
-  const getAspectRatioClass = (type: string) => {
-    switch (type) {
-      case "track":
-        return "aspect-square"; // 1:1 for music
-      case "movie":
-        return "aspect-[2/3]"; // 2:3 for movies (portrait)
-      case "episode":
-        return "aspect-video"; // 16:9 for TV shows
-      default:
-        return "aspect-[2/3]";
-    }
-  };
-
-  const handleImageError = (itemKey: string) => {
-    setImageErrors((prev) => ({ ...prev, [itemKey]: true }));
-  };
 
   const filterSection = (
     <div className="mb-4 flex flex-col sm:flex-row gap-3">
@@ -192,165 +361,16 @@ export default function HistoryTable({ items, loading }: HistoryTableProps) {
     <>
       {filterSection}
 
-      {/* Content */}
       <div className="space-y-3">
-        {filteredItems.map((item, index) => {
-          const itemKey = `${item.historyKey}-${index}`;
-          const thumbnailUrl = getThumbnailUrl(item.thumb, {
-            quality: "low",
-            width: 100,
-          });
-          const viewedDate = new Date(item.viewedAt * 1000);
-          const timeAgo = getTimeAgo(viewedDate);
-          const hasImageError = imageErrors[itemKey];
-
-          return (
-            <motion.div
-              key={itemKey}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.03 }}
-              className="bg-gray-900/30 rounded-lg p-4 hover:bg-gray-900/40 transition-colors"
-            >
-              {/* Desktop Layout */}
-              <div className="hidden sm:flex items-center gap-4">
-                {/* Fixed-width Thumbnail Container */}
-                <div className="flex-shrink-0 w-24 h-16 flex items-center justify-center">
-                  <div
-                    className={`${getAspectRatioClass(
-                      item.type
-                    )} h-full relative rounded overflow-hidden bg-gray-800`}
-                  >
-                    {thumbnailUrl && !hasImageError ? (
-                      <Image
-                        src={thumbnailUrl}
-                        alt={item.title}
-                        fill
-                        sizes="80px"
-                        className="object-cover"
-                        loading="lazy"
-                        quality={50}
-                        unoptimized={true}
-                        onError={() => handleImageError(itemKey)}
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-600 text-2xl">
-                        {item.type === "episode"
-                          ? "📺"
-                          : item.type === "movie"
-                          ? "🎬"
-                          : "🎵"}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-medium text-white leading-tight truncate">
-                    {item.displayTitle}
-                  </h3>
-                  {item.displaySubtitle && (
-                    <p className="text-sm text-gray-400 mt-0.5 truncate">
-                      {item.displaySubtitle}
-                    </p>
-                  )}
-                  <div className="flex items-center gap-3 mt-2">
-                    <span
-                      className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                        item.type === "episode"
-                          ? "bg-blue-900/30 text-blue-300"
-                          : item.type === "movie"
-                          ? "bg-purple-900/30 text-purple-300"
-                          : "bg-green-900/30 text-green-300"
-                      }`}
-                    >
-                      {item.type === "episode"
-                        ? "TV Show"
-                        : item.type === "movie"
-                        ? "Movie"
-                        : "Music"}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Time */}
-                <div className="flex-shrink-0">
-                  <span className="text-sm text-gray-400">{timeAgo}</span>
-                </div>
-              </div>
-
-              {/* Mobile Layout */}
-              <div className="flex sm:hidden flex-col gap-3">
-                <div className="flex items-start gap-3">
-                  {/* Fixed-width Thumbnail Container */}
-                  <div className="flex-shrink-0 w-20 h-20 flex items-center justify-center">
-                    <div
-                      className={`${getAspectRatioClass(
-                        item.type
-                      )} h-full relative rounded overflow-hidden bg-gray-800`}
-                    >
-                      {thumbnailUrl && !hasImageError ? (
-                        <Image
-                          src={thumbnailUrl}
-                          alt={item.title}
-                          fill
-                          sizes="80px"
-                          className="object-cover"
-                          loading="lazy"
-                          quality={50}
-                          unoptimized={true}
-                          onError={() => handleImageError(itemKey)}
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-600 text-3xl">
-                          {item.type === "episode"
-                            ? "📺"
-                            : item.type === "movie"
-                            ? "🎬"
-                            : "🎵"}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Content */}
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-white leading-tight">
-                      {item.displayTitle}
-                    </h3>
-                    {item.displaySubtitle && (
-                      <p className="text-sm text-gray-400 mt-0.5">
-                        {item.displaySubtitle}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="w-20 flex justify-center">
-                    <span
-                      className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                        item.type === "episode"
-                          ? "bg-blue-900/30 text-blue-300"
-                          : item.type === "movie"
-                          ? "bg-purple-900/30 text-purple-300"
-                          : "bg-green-900/30 text-green-300"
-                      }`}
-                    >
-                      {item.type === "episode"
-                        ? "TV Show"
-                        : item.type === "movie"
-                        ? "Movie"
-                        : "Music"}
-                    </span>
-                  </div>
-                  <span className="text-sm text-gray-400">{timeAgo}</span>
-                </div>
-              </div>
-            </motion.div>
-          );
-        })}
+        {filteredItems.map((item, index) => (
+          <HistoryItemCard
+            key={`${item.historyKey}-${index}`}
+            item={item}
+            index={index}
+            imageErrors={imageErrors}
+            onImageError={handleImageError}
+          />
+        ))}
       </div>
     </>
   );
