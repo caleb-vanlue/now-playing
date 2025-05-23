@@ -34,7 +34,7 @@ const MediaDashboard = memo(({ children }: MediaDashboardProps) => {
     };
 
     updateSyncText();
-    const timer = setInterval(updateSyncText, 5000); // Update every 5 seconds instead of 1
+    const timer = setInterval(updateSyncText, 5000);
 
     return () => clearInterval(timer);
   }, [lastSyncTime]);
@@ -108,7 +108,12 @@ const MediaDashboard = memo(({ children }: MediaDashboardProps) => {
             </button>
           </div>
         </div>
-        <div className="flex items-center">
+        <a
+          href="https://www.plex.tv"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center hover:opacity-80 transition-opacity duration-200 cursor-pointer"
+        >
           <span className="text-gray-400 mr-2 text-sm">Powered by</span>
           <Image
             src="/images/plex.png"
@@ -118,7 +123,7 @@ const MediaDashboard = memo(({ children }: MediaDashboardProps) => {
             className="inline-block"
             priority
           />
-        </div>
+        </a>
       </div>
     ),
     [counts.totalCount, isConnected, refreshData]
