@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { MediaDataProvider } from "../components/MediaDataContext";
-import { Analytics } from "@vercel/analytics/next";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -29,7 +28,6 @@ export default function RootLayout({
       <body
         className={`${inter.variable} antialiased bg-[#141414] text-white font-sans`}
       >
-        <Analytics />
         <MediaDataProvider>{children}</MediaDataProvider>{" "}
       </body>
     </html>
