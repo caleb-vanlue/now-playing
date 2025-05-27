@@ -79,6 +79,7 @@ export interface Movie extends BaseMedia {
   videoProfile?: string;
   audioProfile?: string;
   audioChannels?: number;
+  audioChannelLayout?: string;
   // Stream details
   bitrate?: number;
   height?: number;
@@ -120,6 +121,7 @@ export interface Episode extends BaseMedia {
   videoProfile?: string;
   audioProfile?: string;
   audioChannels?: number;
+  audioChannelLayout?: string;
   // Stream details
   bitrate?: number;
   height?: number;
@@ -167,10 +169,9 @@ export interface HistoryItem {
   viewedAt: number;
   accountID: number;
   deviceID: number;
-  // Additional fields for display
   displayTitle?: string;
   displaySubtitle?: string;
-  userName?: string; // Add username field
+  userName?: string;
 }
 export interface HistoryData {
   items: HistoryItem[];
