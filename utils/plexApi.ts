@@ -31,6 +31,9 @@ function mapToMovie(session: any): Movie {
     session.Session?.id || `movie-${session.ratingKey}-${Date.now()}`;
   const mediaInfo = session.Media?.[0];
   const streamInfo = mediaInfo?.Part?.[0]?.Stream?.[0];
+  const audioStream = mediaInfo?.Part?.[0]?.Stream?.find(
+    (s: any) => s.streamType === 2
+  );
 
   return {
     id: session.ratingKey,
@@ -69,7 +72,8 @@ function mapToMovie(session: any): Movie {
     videoCodec: mediaInfo?.videoCodec,
     videoProfile: mediaInfo?.videoProfile,
     audioProfile: mediaInfo?.audioProfile,
-    audioChannels: mediaInfo?.audioChannels,
+    audioChannels: mediaInfo?.audioChannels || audioStream?.channels,
+    audioChannelLayout: audioStream?.audioChannelLayout,
     // Stream details
     bitrate: mediaInfo?.bitrate,
     height: mediaInfo?.height,
@@ -103,7 +107,7 @@ function mapToMovie(session: any): Movie {
     ratings: session.Rating,
     directors: session.Director,
     writers: session.Writer,
-    actors: session.Role?.slice(0, 10), // Limit to first 10 actors for performance
+    actors: session.Role?.slice(0, 10),
     producers: session.Producer,
     ultraBlurColors: session.UltraBlurColors,
   };
@@ -114,6 +118,9 @@ function mapToEpisode(session: any): Episode {
     session.Session?.id || `episode-${session.ratingKey}-${Date.now()}`;
   const mediaInfo = session.Media?.[0];
   const streamInfo = mediaInfo?.Part?.[0]?.Stream?.[0];
+  const audioStream = mediaInfo?.Part?.[0]?.Stream?.find(
+    (s: any) => s.streamType === 2
+  );
 
   return {
     id: session.ratingKey,
@@ -147,7 +154,8 @@ function mapToEpisode(session: any): Episode {
     videoCodec: mediaInfo?.videoCodec,
     videoProfile: mediaInfo?.videoProfile,
     audioProfile: mediaInfo?.audioProfile,
-    audioChannels: mediaInfo?.audioChannels,
+    audioChannels: mediaInfo?.audioChannels || audioStream?.channels,
+    audioChannelLayout: audioStream?.audioChannelLayout,
     // Stream details
     bitrate: mediaInfo?.bitrate,
     height: mediaInfo?.height,

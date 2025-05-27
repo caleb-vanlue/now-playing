@@ -9,6 +9,7 @@ import {
   formatDuration,
   formatQuality,
   getRatingSource,
+  formatAudioChannels,
 } from "../../utils/mediaCardUtils";
 import { BaseMediaCard, ImageState } from "./BaseMediaCard";
 import { ImageLoadingSpinner, ProgressInfo } from "./CardComponents";
@@ -210,7 +211,12 @@ export default function MovieCard({ item: movie, index = 0 }: MovieCardProps) {
             <p className="text-gray-400 text-sm">Audio Format</p>
             <p className="uppercase">
               {movie.audioCodec}{" "}
-              {movie.audioChannels ? `${movie.audioChannels}.1` : ""}
+              {movie.audioChannels
+                ? formatAudioChannels(
+                    movie.audioChannels,
+                    movie.audioChannelLayout
+                  )
+                : ""}
             </p>
           </div>
         )}

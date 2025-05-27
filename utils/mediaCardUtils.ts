@@ -90,3 +90,31 @@ export const getRatingSource = (rating: {
 
   return rating.type;
 };
+
+export const formatAudioChannels = (
+  channels: number | undefined,
+  channelLayout?: string
+): string => {
+  if (!channels) return "";
+
+  // If we have channel layout info, use that for more accurate display
+  if (channelLayout) {
+    const layoutMatch = channelLayout.match(/(\d+\.\d+)/);
+    if (layoutMatch) {
+      return layoutMatch[1];
+    }
+  }
+
+  switch (channels) {
+    case 1:
+      return "1.0"; // Mono
+    case 2:
+      return "2.0"; // Stereo
+    case 6:
+      return "5.1"; // 5.1 Surround
+    case 8:
+      return "7.1"; // 7.1 Surround
+    default:
+      return `${channels}.0`; // Default format
+  }
+};

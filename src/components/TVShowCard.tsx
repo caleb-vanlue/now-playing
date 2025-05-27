@@ -9,6 +9,7 @@ import {
   formatDuration,
   formatQuality,
   getRatingSource,
+  formatAudioChannels,
 } from "../../utils/mediaCardUtils";
 import { BaseMediaCard, ImageState } from "./BaseMediaCard";
 import { ImageLoadingSpinner, ProgressInfo } from "./CardComponents";
@@ -210,7 +211,12 @@ export default function TVShowCard({
             <p className="text-gray-400 text-sm">Audio Format</p>
             <p className="uppercase">
               {episode.audioCodec}{" "}
-              {episode.audioChannels ? `${episode.audioChannels}.1` : ""}
+              {episode.audioChannels
+                ? formatAudioChannels(
+                    episode.audioChannels,
+                    episode.audioChannelLayout
+                  )
+                : ""}
             </p>
           </div>
         )}
