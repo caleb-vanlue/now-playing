@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import { HistoryItem } from "../../types/media";
 import { getTimeAgo } from "../../utils/dateUtils";
 import { getThumbnailUrl } from "../../utils/plexApi";
-import { useInView } from "react-intersection-observer";
 
 interface HistoryTableProps {
   items: HistoryItem[];
@@ -38,20 +37,14 @@ const HistoryItemCard = memo(
     const timeAgo = getTimeAgo(viewedDate);
     const hasImageError = imageErrors[itemKey];
 
-    const [ref, inView] = useInView({
-      triggerOnce: true,
-      rootMargin: "400px 0px",
-      threshold: 0.1,
-    });
-
     const getAspectRatioClass = (type: string) => {
       switch (type) {
         case "track":
-          return "aspect-square"; // 1:1 for music
+          return "aspect-square";
         case "movie":
-          return "aspect-[2/3]"; // 2:3 for movies
+          return "aspect-[2/3]";
         case "episode":
-          return "aspect-video"; // 16:9 for TV shows
+          return "aspect-video";
         default:
           return "aspect-[2/3]";
       }
@@ -69,7 +62,6 @@ const HistoryItemCard = memo(
 
     return (
       <motion.div
-        ref={ref}
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{
@@ -85,14 +77,14 @@ const HistoryItemCard = memo(
                 item.type
               )} h-full relative rounded overflow-hidden bg-[#141414]`}
             >
-              {thumbnailUrl && !hasImageError && inView ? (
+              {thumbnailUrl && !hasImageError ? (
                 <Image
                   src={thumbnailUrl}
                   alt={item.title}
                   fill
-                  sizes="80px"
+                  sizes="100px"
                   className="object-cover"
-                  loading="eager"
+                  loading="lazy"
                   quality={60}
                   onError={() => onImageError(itemKey)}
                 />
@@ -148,14 +140,14 @@ const HistoryItemCard = memo(
                   item.type
                 )} h-full relative rounded overflow-hidden bg-[#141414]`}
               >
-                {thumbnailUrl && !hasImageError && inView ? (
+                {thumbnailUrl && !hasImageError ? (
                   <Image
                     src={thumbnailUrl}
                     alt={item.title}
                     fill
                     sizes="80px"
                     className="object-cover"
-                    loading="eager"
+                    loading="lazy"
                     quality={60}
                     onError={() => onImageError(itemKey)}
                   />
