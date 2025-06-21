@@ -1,31 +1,25 @@
-// Shared animation configurations for consistent motion design
 export const ANIMATION_CONFIG = {
-  // Spring animation for active tab indicator
   ACTIVE_TAB: {
     type: "spring" as const,
     stiffness: 300,
     damping: 30,
   },
-  
-  // Scale animation for count badges
+
   COUNT_BADGE: {
     initial: { scale: 0 },
     animate: { scale: 1 },
   },
-  
-  // Opacity animation for tab indicators
+
   TAB_INDICATOR: {
     initial: { opacity: 0 },
     animate: { opacity: 1 },
   },
-  
-  // Page transition timings
+
   PAGE_TRANSITION: {
     duration: 0.2,
     ease: "easeInOut" as const,
   },
-  
-  // Advanced page transition variants
+
   ADVANCED_PAGE_TRANSITION: {
     initial: {
       opacity: 0,
@@ -52,7 +46,6 @@ export const ANIMATION_CONFIG = {
   },
 } as const;
 
-// Debounce utility function
 export function debounce<T extends (...args: unknown[]) => unknown>(
   func: T,
   wait: number
