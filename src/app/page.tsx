@@ -52,20 +52,25 @@ function MediaPage() {
   const { history, loading: historyLoading } = useHistory({ limit: 100 });
   const [activeTab, setActiveTab] = useState<MediaType>("music");
 
-  const order = ["music", "movies", "tvshows", "history"];
+  const order = useMemo(() => ["music", "movies", "tvshows", "history"], []);
+  
+  const handleSwipeLeft = useCallback(() => {
+    setActiveTab(
+      order[
+        Math.min(order.indexOf(activeTab) + 1, order.length - 1)
+      ] as MediaType
+    );
+  }, [activeTab, order]);
+
+  const handleSwipeRight = useCallback(() => {
+    setActiveTab(
+      order[Math.max(order.indexOf(activeTab) - 1, 0)] as MediaType
+    );
+  }, [activeTab, order]);
+
   const swipeHandlers = useSwipeable({
-    onSwipedLeft: () => {
-      setActiveTab(
-        order[
-          Math.min(order.indexOf(activeTab) + 1, order.length - 1)
-        ] as MediaType
-      );
-    },
-    onSwipedRight: () => {
-      setActiveTab(
-        order[Math.max(order.indexOf(activeTab) - 1, 0)] as MediaType
-      );
-    },
+    onSwipedLeft: handleSwipeLeft,
+    onSwipedRight: handleSwipeRight,
     preventScrollOnSwipe: true,
   });
 

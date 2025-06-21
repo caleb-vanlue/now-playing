@@ -9,7 +9,7 @@ interface UserAvatarProps {
   size?: "small" | "medium";
 }
 
-export function UserAvatar({
+export const UserAvatar = React.memo(function UserAvatar({
   userId,
   userAvatar,
   avatarError,
@@ -47,7 +47,7 @@ export function UserAvatar({
       {userId.charAt(0)}
     </div>
   );
-}
+});
 
 interface UserInfoProps {
   userId: string;
@@ -57,7 +57,7 @@ interface UserInfoProps {
   timeAgo: string;
 }
 
-export function UserInfo({
+export const UserInfo = React.memo(function UserInfo({
   userId,
   userAvatar,
   avatarError,
@@ -80,4 +80,4 @@ export function UserInfo({
       <span className="text-xs text-gray-500">{timeAgo}</span>
     </div>
   );
-}
+});

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { debounce } from "../utils/animations";
 
 export function useMediaCard() {
   const [showDetails, setShowDetails] = useState<boolean>(false);
@@ -29,10 +30,12 @@ export function useMediaCard() {
         setContentMaxHeight(`calc(100% - ${headerHeight}px)`);
       };
 
-      updateContentHeight();
-      window.addEventListener("resize", updateContentHeight);
+      const debouncedUpdateContentHeight = debounce(updateContentHeight, 150);
 
-      return () => window.removeEventListener("resize", updateContentHeight);
+      updateContentHeight();
+      window.addEventListener("resize", debouncedUpdateContentHeight);
+
+      return () => window.removeEventListener("resize", debouncedUpdateContentHeight);
     }
   }, [showDetails]);
 
