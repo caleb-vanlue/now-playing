@@ -20,7 +20,7 @@ interface ImageWithFallbackProps {
   onLoad?: () => void;
 }
 
-export function ImageWithFallback({
+export const ImageWithFallback = React.memo(function ImageWithFallback({
   src,
   alt,
   aspectRatio = "portrait",
@@ -99,17 +99,17 @@ export function ImageWithFallback({
       ))}
     </div>
   );
-}
+});
 
-export function ContentRatingBadge({ rating }: { rating: string }) {
+export const ContentRatingBadge = React.memo(function ContentRatingBadge({ rating }: { rating: string }) {
   return (
     <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-md backdrop-blur-sm">
       {rating}
     </div>
   );
-}
+});
 
-export function TranscodeStatusBadge({
+export const TranscodeStatusBadge = React.memo(function TranscodeStatusBadge({
   videoDecision,
   audioDecision,
 }: {
@@ -127,9 +127,9 @@ export function TranscodeStatusBadge({
         : "Direct Play"}
     </div>
   );
-}
+});
 
-export function SeasonEpisodeBadge({
+export const SeasonEpisodeBadge = React.memo(function SeasonEpisodeBadge({
   season,
   episode,
 }: {
@@ -141,17 +141,17 @@ export function SeasonEpisodeBadge({
       {`S${season}:E${episode}`}
     </div>
   );
-}
+});
 
-export function YearBadge({ year }: { year: number }) {
+export const YearBadge = React.memo(function YearBadge({ year }: { year: number }) {
   return (
     <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-md backdrop-blur-sm">
       {year}
     </div>
   );
-}
+});
 
-export function SpotifyBadge({ url }: { url: string }) {
+export const SpotifyBadge = React.memo(function SpotifyBadge({ url }: { url: string }) {
   return (
     <motion.a
       initial={{ opacity: 0, scale: 0.8 }}
@@ -175,4 +175,4 @@ export function SpotifyBadge({ url }: { url: string }) {
       </div>
     </motion.a>
   );
-}
+});

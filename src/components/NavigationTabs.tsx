@@ -2,6 +2,7 @@ import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
+import { ANIMATION_CONFIG } from "../utils/animations";
 
 interface NavItem {
   href: string;
@@ -15,7 +16,7 @@ interface NavigationTabsProps {
   activeTab?: string;
 }
 
-export default function NavigationTabs({
+const NavigationTabs = React.memo(function NavigationTabs({
   items,
   onTabClick,
   activeTab,
@@ -39,8 +40,7 @@ export default function NavigationTabs({
               <span className="relative z-10">{item.label}</span>
               {item.count > 0 && (
                 <motion.span
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
+                  {...ANIMATION_CONFIG.COUNT_BADGE}
                   className="ml-1 text-xs bg-orange-500 px-1.5 py-0.5 rounded-full"
                 >
                   {item.count}
@@ -51,13 +51,8 @@ export default function NavigationTabs({
               <motion.div
                 className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-500"
                 layoutId="activeTab"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{
-                  type: "spring",
-                  stiffness: 300,
-                  damping: 30,
-                }}
+                {...ANIMATION_CONFIG.TAB_INDICATOR}
+                transition={ANIMATION_CONFIG.ACTIVE_TAB}
               />
             )}
           </Link>
@@ -84,8 +79,7 @@ export default function NavigationTabs({
             <span className="relative z-10">{item.label}</span>
             {item.count > 0 && (
               <motion.span
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
+                {...ANIMATION_CONFIG.COUNT_BADGE}
                 className="ml-1 text-xs bg-orange-500 px-1.5 py-0.5 rounded-full"
               >
                 {item.count}
@@ -96,17 +90,14 @@ export default function NavigationTabs({
             <motion.div
               className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-500"
               layoutId="activeTab"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{
-                type: "spring",
-                stiffness: 300,
-                damping: 30,
-              }}
+              {...ANIMATION_CONFIG.TAB_INDICATOR}
+              transition={ANIMATION_CONFIG.ACTIVE_TAB}
             />
           )}
         </button>
       ))}
     </nav>
   );
-}
+});
+
+export default NavigationTabs;
