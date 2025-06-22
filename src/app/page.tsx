@@ -115,7 +115,7 @@ function MediaPage() {
   const { setItemRef, handleKeyDown } = useGridKeyboardNavigation({
     itemCount: currentItemsCount,
     columns: gridColumns,
-    onItemSelect: (index) => {
+    onItemSelect: () => {
       // This will be handled by the card's own click handler
     },
   });
@@ -200,7 +200,7 @@ function MediaPage() {
       case "history":
         return <HistoryTable items={history} loading={historyLoading} />;
     }
-  }, [activeTab, tracks, movies, episodes, history, historyLoading]);
+  }, [activeTab, tracks, movies, episodes, history, historyLoading, setItemRef, handleKeyDown]);
 
   return (
     <MediaDashboard>

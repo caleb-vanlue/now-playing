@@ -30,9 +30,6 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
     track.viewOffset,
     track.duration
   );
-  const estimatedFinishTime = track.duration
-    ? calculateFinishTime(track.duration, track.viewOffset)
-    : new Date();
   const formattedDuration = track.duration
     ? formatDurationMMSS(track.duration)
     : "0:00";
@@ -68,7 +65,7 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
         />
       );
     },
-    [getResponsiveThumbnailUrl, spotifyUrl]
+    [spotifyUrl]
   );
 
   const renderMainContent = useCallback(
@@ -118,14 +115,19 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
   );
 
   const renderDetailContent = useCallback(
-    (track: Track) => (
-      <>
-        {track.duration && track.duration > 0 && (
-          <ProgressInfo
-            percentage={progressPercentage}
-            estimatedFinishTime={estimatedFinishTime}
-          />
-        )}
+    (track: Track) => {
+      const estimatedFinishTime = track.duration
+        ? calculateFinishTime(track.duration, track.viewOffset)
+        : new Date();
+        
+      return (
+        <>
+          {track.duration && track.duration > 0 && (
+            <ProgressInfo
+              percentage={progressPercentage}
+              estimatedFinishTime={estimatedFinishTime}
+            />
+          )}
 
         {spotifyUrl && (
           <div className="mb-4">
@@ -224,12 +226,12 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
             <p className="font-mono text-xs">{track.sessionId}</p>
           </div>
         </motion.div>
-      </>
-    ),
+        </>
+      );
+    },
     [
       spotifyUrl,
       progressPercentage,
-      estimatedFinishTime,
       formattedDuration,
     ]
   );
