@@ -94,15 +94,16 @@ const MediaDashboard = memo(({ children }: MediaDashboardProps) => {
             <span className="text-gray-600">•</span>
             <span className="flex items-center gap-1">
               {isConnected ? (
-                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                <span className="w-2 h-2 bg-green-500 rounded-full" aria-label="Connected"></span>
               ) : (
-                <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+                <span className="w-2 h-2 bg-red-500 rounded-full" aria-label="Disconnected"></span>
               )}
-              <span ref={syncTextRef}>Synced 0s ago</span>
+              <span ref={syncTextRef} aria-live="polite" aria-atomic="true">Synced 0s ago</span>
             </span>
             <button
               onClick={refreshData}
-              className="text-xs bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded transition-colors"
+              aria-label="Refresh media data"
+              className="text-xs bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#141414]"
             >
               Refresh
             </button>
@@ -112,7 +113,8 @@ const MediaDashboard = memo(({ children }: MediaDashboardProps) => {
           href="https://www.plex.tv"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center hover:opacity-80 transition-opacity duration-200 cursor-pointer"
+          aria-label="Visit Plex website"
+          className="flex items-center hover:opacity-80 transition-opacity duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-[#141414] rounded"
         >
           <span className="text-gray-400 mr-2 text-sm">Powered by</span>
           <Image
@@ -142,7 +144,7 @@ const MediaDashboard = memo(({ children }: MediaDashboardProps) => {
             <div className="flex flex-col items-center">
               <div className="relative w-16 h-16">
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-12 h-12 border-t-2 border-b-2 border-orange-500 rounded-full animate-spin"></div>
+                  <div className="w-12 h-12 border-t-2 border-b-2 border-orange-500 rounded-full animate-spin" role="status" aria-label="Loading"></div>
                 </div>
               </div>
 
@@ -169,7 +171,7 @@ const MediaDashboard = memo(({ children }: MediaDashboardProps) => {
       </div>
 
       {error && !isConnected && (
-        <div className="fixed bottom-4 right-4 bg-red-900/80 text-white p-4 rounded-lg shadow-lg max-w-md backdrop-blur-sm">
+        <div className="fixed bottom-4 right-4 bg-red-900/80 text-white p-4 rounded-lg shadow-lg max-w-md backdrop-blur-sm" role="alert" aria-live="assertive">
           <h3 className="font-bold mb-1">Connection Error</h3>
           <p className="text-sm mb-2">{error.message}</p>
           <p className="text-xs text-gray-300 mb-2">
@@ -177,7 +179,8 @@ const MediaDashboard = memo(({ children }: MediaDashboardProps) => {
           </p>
           <button
             onClick={refreshData}
-            className="text-xs bg-red-700 hover:bg-red-600 px-3 py-1 rounded transition-colors"
+            aria-label="Retry connection"
+            className="text-xs bg-red-700 hover:bg-red-600 px-3 py-1 rounded transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-red-900"
           >
             Retry Now
           </button>

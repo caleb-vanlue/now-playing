@@ -285,10 +285,13 @@ export default function HistoryTable({ items, loading }: HistoryTableProps) {
   const filterSection = (
     <div className="mb-4 flex flex-col sm:flex-row gap-3">
       <div className="relative w-full sm:w-auto">
+        <label htmlFor="user-filter" className="sr-only">Filter by user</label>
         <select
+          id="user-filter"
           value={selectedUser}
           onChange={(e) => setSelectedUser(e.target.value)}
           className={selectStyles}
+          aria-label="Filter by user"
         >
           <option value="all">All Users</option>
           {users.map((user) => (
@@ -309,10 +312,13 @@ export default function HistoryTable({ items, loading }: HistoryTableProps) {
       </div>
 
       <div className="relative w-full sm:w-auto">
+        <label htmlFor="type-filter" className="sr-only">Filter by media type</label>
         <select
+          id="type-filter"
           value={selectedType}
           onChange={(e) => setSelectedType(e.target.value)}
           className={selectStyles}
+          aria-label="Filter by media type"
         >
           <option value="all">All Types</option>
           {mediaTypes.map((type) => (
@@ -342,7 +348,8 @@ export default function HistoryTable({ items, loading }: HistoryTableProps) {
             setSelectedUser("all");
             setSelectedType("all");
           }}
-          className="text-sm text-gray-400 hover:text-orange-500 transition-colors sm:ml-auto"
+          className="text-sm text-gray-400 hover:text-orange-500 transition-colors sm:ml-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#141414] rounded px-2 py-1"
+          aria-label="Clear all filters"
         >
           Clear filters
         </button>
