@@ -12,6 +12,7 @@ import HistoryTable from "../components/HistoryTable";
 import { useMediaDataContext } from "../components/MediaDataContext";
 import { useHistory } from "../hooks/useHistory";
 import { useSwipeable } from "react-swipeable";
+import { useGridKeyboardNavigation } from "../hooks/useGridKeyboardNavigation";
 
 type MediaType = "music" | "movies" | "tvshows" | "history";
 
@@ -80,6 +81,44 @@ function MediaPage() {
     () => mediaData?.episodes || [],
     [mediaData?.episodes]
   );
+  
+  // Determine grid columns based on tab type
+  const gridColumns = useMemo(() => {
+    switch (activeTab) {
+      case "music":
+        return 4; // lg:grid-cols-4
+      case "movies":
+        return 5; // lg:grid-cols-5
+      case "tvshows":
+        return 4; // lg:grid-cols-4
+      default:
+        return 1;
+    }
+  }, [activeTab]);
+  
+  // Get current items count
+  const currentItemsCount = useMemo(() => {
+    switch (activeTab) {
+      case "music":
+        return tracks.length;
+      case "movies":
+        return movies.length;
+      case "tvshows":
+        return episodes.length;
+      case "history":
+        return history.length;
+      default:
+        return 0;
+    }
+  }, [activeTab, tracks.length, movies.length, episodes.length, history.length]);
+  
+  const { setItemRef, handleKeyDown } = useGridKeyboardNavigation({
+    itemCount: currentItemsCount,
+    columns: gridColumns,
+    onItemSelect: (index) => {
+      // This will be handled by the card's own click handler
+    },
+  });
 
   const navItems = useMemo(
     () => [
@@ -103,9 +142,17 @@ function MediaPage() {
           return <EmptyState type="music" />;
         }
         return (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" role="group" aria-label="Music tracks">
             {tracks.map((track, index) => (
-              <MusicCard key={track.id} track={track} index={index} />
+              <div
+                key={track.id}
+                ref={setItemRef(index)}
+                onKeyDown={(e) => handleKeyDown(e, index)}
+                tabIndex={index === 0 ? 0 : -1}
+                className="focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#141414] rounded-lg"
+              >
+                <MusicCard track={track} index={index} />
+              </div>
             ))}
           </div>
         );
@@ -115,9 +162,17 @@ function MediaPage() {
           return <EmptyState type="movies" />;
         }
         return (
-          <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6" role="group" aria-label="Movies">
             {movies.map((movie, index) => (
-              <MovieCard key={movie.id} item={movie} index={index} />
+              <div
+                key={movie.id}
+                ref={setItemRef(index)}
+                onKeyDown={(e) => handleKeyDown(e, index)}
+                tabIndex={index === 0 ? 0 : -1}
+                className="focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#141414] rounded-lg"
+              >
+                <MovieCard item={movie} index={index} />
+              </div>
             ))}
           </div>
         );
@@ -127,9 +182,17 @@ function MediaPage() {
           return <EmptyState type="tvshows" />;
         }
         return (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" role="group" aria-label="TV Shows">
             {episodes.map((episode, index) => (
-              <TVShowCard key={episode.id} item={episode} index={index} />
+              <div
+                key={episode.id}
+                ref={setItemRef(index)}
+                onKeyDown={(e) => handleKeyDown(e, index)}
+                tabIndex={index === 0 ? 0 : -1}
+                className="focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-[#141414] rounded-lg"
+              >
+                <TVShowCard item={episode} index={index} />
+              </div>
             ))}
           </div>
         );
@@ -141,6 +204,9 @@ function MediaPage() {
 
   return (
     <MediaDashboard>
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 bg-orange-500 text-white px-4 py-2 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2">
+        Skip to main content
+      </a>
       <div className="flex flex-col h-full overflow-hidden">
         <div className="flex-shrink-0 px-4 sm:px-6 lg:px-8 pb-2">
           <NavigationTabs
@@ -150,8 +216,12 @@ function MediaPage() {
           />
         </div>
         <div
+          id="main-content"
           className="flex-1 h-full overflow-y-auto px-4 sm:px-6 lg:px-8 pb-16"
           {...swipeHandlers}
+          role="tabpanel"
+          aria-labelledby={`#${activeTab}`}
+          tabIndex={0}
         >
           <PageTransition key={activeTab}>{renderContent}</PageTransition>
         </div>
@@ -160,7 +230,8 @@ function MediaPage() {
         href="https://github.com/caleb-vanlue/now-playing"
         target="_blank"
         rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 z-50 hover:opacity-80 transition-opacity"
+        aria-label="View project on GitHub"
+        className="fixed bottom-6 right-6 z-50 hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-[#141414] rounded"
       >
         <Image
           src="/images/logos/github-mark-white.svg"

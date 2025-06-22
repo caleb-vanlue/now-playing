@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useRef, useEffect } from "react";
+import React, { memo, useCallback, useRef, useEffect, KeyboardEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMediaCard } from "../hooks/useMediaCard";
 import { PlayingStateIndicator, ProgressBar } from "./CardComponents";
@@ -67,8 +67,10 @@ type DetailViewProps<T extends BaseMedia> = {
   renderDetailHeader: (item: T) => React.ReactNode;
   renderDetailContent: (item: T) => React.ReactNode;
   contentMaxHeight: string;
-  toggleDetails: () => void;
+  handleClose: () => void;
+  handleCloseKeyDown: (e: KeyboardEvent) => void;
   headerRef: React.RefObject<HTMLDivElement | null>;
+  closeButtonRef: React.RefObject<HTMLButtonElement | null>;
 };
 
 function DetailViewComponent<T extends BaseMedia>(props: DetailViewProps<T>) {
@@ -78,8 +80,10 @@ function DetailViewComponent<T extends BaseMedia>(props: DetailViewProps<T>) {
     renderDetailHeader,
     renderDetailContent,
     contentMaxHeight,
-    toggleDetails,
+    handleClose,
+    handleCloseKeyDown,
     headerRef,
+    closeButtonRef,
   } = props;
 
   return (
@@ -95,15 +99,21 @@ function DetailViewComponent<T extends BaseMedia>(props: DetailViewProps<T>) {
             damping: 30,
           }}
           className="absolute inset-0 z-30 overflow-hidden rounded-lg shadow-xl bg-[#141414]/95 backdrop-blur-sm hardware-accelerated"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={`detail-header-${item.id}`}
         >
           <div
             ref={headerRef}
+            id={`detail-header-${item.id}`}
             className="flex justify-between items-start p-4 border-b border-gray-800/50"
           >
             {renderDetailHeader(item)}
             <button
-              onClick={toggleDetails}
-              className="text-gray-400 hover:text-white w-8 h-8 flex items-center justify-center transition-colors"
+              ref={closeButtonRef}
+              onClick={handleClose}
+              onKeyDown={handleCloseKeyDown}
+              className="text-gray-400 hover:text-white w-8 h-8 flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#141414] rounded"
               aria-label="Close details"
             >
               ×
@@ -146,9 +156,27 @@ function BaseMediaCardComponent<T extends BaseMedia>({
     setImageLoaded,
     setAvatarError,
   } = useMediaCard();
+  
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
 
   const handleCardClick = useCallback(() => {
+    previousFocusRef.current = document.activeElement as HTMLElement;
     toggleDetails();
+  }, [toggleDetails]);
+  
+  
+  const handleCloseKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      toggleDetails();
+    }
+  }, [toggleDetails]);
+  
+  const handleClose = useCallback(() => {
+    toggleDetails();
+    if (previousFocusRef.current) {
+      previousFocusRef.current.focus();
+    }
   }, [toggleDetails]);
 
   useEffect(() => {
@@ -167,6 +195,25 @@ function BaseMediaCardComponent<T extends BaseMedia>({
       }
     };
   }, [cardRef]);
+  
+  useEffect(() => {
+    if (showDetails && closeButtonRef.current) {
+      closeButtonRef.current.focus();
+    }
+  }, [showDetails]);
+  
+  useEffect(() => {
+    if (!showDetails) return;
+    
+    const handleEscape = (e: globalThis.KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        handleClose();
+      }
+    };
+    
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [showDetails, handleClose]);
 
   const timeAgo = getTimeAgo(new Date(item.startTime));
   const imageState = { imageError, imageLoaded, setImageError, setImageLoaded };
@@ -180,7 +227,10 @@ function BaseMediaCardComponent<T extends BaseMedia>({
         transform: "translateY(0)",
       }}
     >
-      <div className="cursor-pointer" onClick={handleCardClick}>
+      <div 
+        className="cursor-pointer" 
+        onClick={handleCardClick}
+      >
         <div className="relative overflow-hidden">
           {renderThumbnail(item, imageState)}
           <PlayingStateIndicator state={item.state} />
@@ -205,8 +255,10 @@ function BaseMediaCardComponent<T extends BaseMedia>({
         renderDetailHeader={renderDetailHeader}
         renderDetailContent={renderDetailContent}
         contentMaxHeight={contentMaxHeight}
-        toggleDetails={toggleDetails}
+        handleClose={handleClose}
+        handleCloseKeyDown={handleCloseKeyDown}
         headerRef={headerRef}
+        closeButtonRef={closeButtonRef}
       />
     </div>
   );
