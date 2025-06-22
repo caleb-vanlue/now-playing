@@ -35,7 +35,14 @@ export function ProgressBar({ percentage }: { percentage: number }) {
   if (percentage <= 0) return null;
 
   return (
-    <div className="h-1 w-full bg-gray-800 relative">
+    <div 
+      className="h-1 w-full bg-gray-800 relative"
+      role="progressbar"
+      aria-valuenow={Math.round(percentage)}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-label="Playback progress"
+    >
       <div
         className="absolute top-0 left-0 h-full bg-orange-500"
         style={{ width: `${percentage}%` }}
@@ -62,13 +69,22 @@ export function ProgressInfo({
         <span>{Math.round(percentage)}% complete</span>
         <span>
           Ends at{" "}
-          {estimatedFinishTime.toLocaleTimeString([], {
-            hour: "numeric",
-            minute: "2-digit",
-          })}
+          <time dateTime={estimatedFinishTime.toISOString()}>
+            {estimatedFinishTime.toLocaleTimeString([], {
+              hour: "numeric",
+              minute: "2-digit",
+            })}
+          </time>
         </span>
       </div>
-      <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
+      <div 
+        className="w-full h-2 bg-gray-700 rounded-full overflow-hidden"
+        role="progressbar"
+        aria-valuenow={Math.round(percentage)}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label="Detailed playback progress"
+      >
         <div
           className="h-full bg-orange-500 rounded-full"
           style={{ width: `${percentage}%` }}

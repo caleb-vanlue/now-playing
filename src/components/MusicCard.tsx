@@ -10,7 +10,7 @@ import {
   formatDurationMMSS,
 } from "../../utils/mediaCardUtils";
 import { BaseMediaCard, ImageState } from "./BaseMediaCard";
-import { ImageLoadingSpinner, ProgressInfo } from "./CardComponents";
+import { ProgressInfo } from "./CardComponents";
 import { UserAvatar } from "./UserAvatar";
 import {
   YearBadge,
@@ -37,11 +37,6 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
     ? formatDurationMMSS(track.duration)
     : "0:00";
 
-  const thumbnailUrl = getResponsiveThumbnailUrl(
-    track.thumbnailFileId,
-    "music"
-  );
-  const startedAt = new Date(track.startTime);
 
   const renderThumbnail = useCallback(
     (track: Track, imageState: ImageState) => {
@@ -79,9 +74,9 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
   const renderMainContent = useCallback(
     (track: Track) => (
       <>
-        <h2 className="text-xl font-bold truncate" title={track.title}>
+        <h3 className="text-xl font-bold truncate" title={track.title}>
           {track.title}
-        </h2>
+        </h3>
         <p className="truncate" title={track.artist}>
           {track.artist}
         </p>
@@ -212,7 +207,11 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
 
           <div className="stagger-item stagger-delay-8">
             <p className="text-gray-400 text-sm">Started</p>
-            <p>{startedAt.toLocaleTimeString()}</p>
+            <p>
+              <time dateTime={new Date(track.startTime).toISOString()}>
+                {new Date(track.startTime).toLocaleTimeString()}
+              </time>
+            </p>
           </div>
 
           <div className="stagger-item stagger-delay-9">
@@ -232,7 +231,6 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
       progressPercentage,
       estimatedFinishTime,
       formattedDuration,
-      startedAt,
     ]
   );
 

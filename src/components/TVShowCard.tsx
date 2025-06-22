@@ -12,7 +12,7 @@ import {
   formatAudioChannels,
 } from "../../utils/mediaCardUtils";
 import { BaseMediaCard, ImageState } from "./BaseMediaCard";
-import { ImageLoadingSpinner, ProgressInfo } from "./CardComponents";
+import { ProgressInfo } from "./CardComponents";
 import { UserAvatar } from "./UserAvatar";
 import {
   SeasonEpisodeBadge,
@@ -39,7 +39,6 @@ export default function TVShowCard({
     episode.viewOffset
   );
   const seasonEpisode = `S${episode.season}:E${episode.episode}`;
-  const thumbnailUrl = getThumbnailUrl(episode.thumbnailFileId);
   const formattedDuration = formatDuration(episode.duration);
   const qualityFormatted = formatQuality(
     episode.videoResolution,
@@ -49,10 +48,9 @@ export default function TVShowCard({
 
   const renderThumbnail = (episode: Episode, imageState: ImageState) => {
     const thumbnailUrl = getThumbnailUrl(episode.thumbnailFileId);
-    const seasonEpisode = `S${episode.season}:E${episode.episode}`;
 
     const badges = [
-      <SeasonEpisodeBadge season={episode.season} episode={episode.episode} />,
+      <SeasonEpisodeBadge key="season-episode" season={episode.season} episode={episode.episode} />,
     ];
 
     if (episode.contentRating) {
@@ -83,9 +81,9 @@ export default function TVShowCard({
 
   const renderMainContent = (episode: Episode) => (
     <div className="flex flex-col">
-      <h2 className="text-xl font-bold truncate" title={episode.title}>
+      <h3 className="text-xl font-bold truncate" title={episode.title}>
         {episode.title}
-      </h2>
+      </h3>
       <p
         className="text-gray-400 truncate font-medium"
         title={episode.showTitle}
@@ -156,7 +154,14 @@ export default function TVShowCard({
               </span>
               <span>{Math.round(episode.transcodeProgress)}%</span>
             </div>
-            <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
+            <div 
+              className="w-full h-2 bg-gray-700 rounded-full overflow-hidden"
+              role="progressbar"
+              aria-valuenow={Math.round(episode.transcodeProgress)}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label="Transcode progress"
+            >
               <div
                 className="h-full bg-blue-500 rounded-full"
                 style={{ width: `${episode.transcodeProgress}%` }}
@@ -294,7 +299,11 @@ export default function TVShowCard({
         </div>
         <div className="stagger-item stagger-delay-15">
           <p className="text-gray-400 text-sm">Started</p>
-          <p>{startedAt.toLocaleTimeString()}</p>
+          <p>
+            <time dateTime={startedAt.toISOString()}>
+              {startedAt.toLocaleTimeString()}
+            </time>
+          </p>
         </div>
         <div className="stagger-item stagger-delay-16">
           <p className="text-gray-400 text-sm">Status</p>
