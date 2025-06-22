@@ -15,7 +15,10 @@ const DEFAULT_OPTIONS: UseMediaDataOptions = {
 };
 
 export function useMediaData(options?: UseMediaDataOptions) {
-  const config = options ? { ...DEFAULT_OPTIONS, ...options } : DEFAULT_OPTIONS;
+  const config = useMemo(() => 
+    options ? { ...DEFAULT_OPTIONS, ...options } : DEFAULT_OPTIONS,
+    [options]
+  );
 
   const [mediaData, setMediaData] = useState<MediaData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -224,6 +227,7 @@ export function useMediaData(options?: UseMediaDataOptions) {
         abortControllerRef.current.abort();
       }
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {

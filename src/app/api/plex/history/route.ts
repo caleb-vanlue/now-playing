@@ -1,5 +1,29 @@
 import { NextResponse } from "next/server";
 
+interface PlexHistoryItem {
+  historyKey: string;
+  key: string;
+  ratingKey: string;
+  librarySectionID: string;
+  parentKey?: string;
+  grandparentKey?: string;
+  title: string;
+  parentTitle?: string;
+  grandparentTitle?: string;
+  type: "movie" | "episode" | "track";
+  thumb?: string;
+  parentThumb?: string;
+  grandparentThumb?: string;
+  grandparentArt?: string;
+  index?: number;
+  parentIndex?: number;
+  originallyAvailableAt?: string;
+  viewedAt: number;
+  accountID: number;
+  deviceID: number;
+  year?: number;
+}
+
 export async function GET(request: Request) {
   const PLEX_URL = process.env.PLEX_URL;
   const PLEX_TOKEN = process.env.PLEX_TOKEN;
@@ -48,7 +72,7 @@ export async function GET(request: Request) {
       MediaContainer: {
         ...data.MediaContainer,
         Metadata:
-          data.MediaContainer?.Metadata?.map((item: any) => {
+          data.MediaContainer?.Metadata?.map((item: PlexHistoryItem) => {
             let displayTitle = item.title;
             let displaySubtitle = "";
             let thumbnailPath = "";
@@ -57,16 +81,16 @@ export async function GET(request: Request) {
               displayTitle = item.grandparentTitle || item.title;
               displaySubtitle = `S${item.parentIndex}:E${item.index} - ${item.title}`;
               thumbnailPath =
-                item.thumb || item.grandparentThumb || item.parentThumb;
+                item.thumb || item.grandparentThumb || item.parentThumb || "";
             } else if (item.type === "track") {
               displayTitle = item.title;
               displaySubtitle = item.grandparentTitle || item.parentTitle || "";
               thumbnailPath =
-                item.parentThumb || item.grandparentThumb || item.thumb;
+                item.parentThumb || item.grandparentThumb || item.thumb || "";
             } else if (item.type === "movie") {
               displayTitle = item.title;
               displaySubtitle = item.year ? `(${item.year})` : "";
-              thumbnailPath = item.thumb;
+              thumbnailPath = item.thumb || "";
             }
 
             let userName = "";

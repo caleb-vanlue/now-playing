@@ -12,7 +12,7 @@ import {
   formatAudioChannels,
 } from "../../utils/mediaCardUtils";
 import { BaseMediaCard, ImageState } from "./BaseMediaCard";
-import { ImageLoadingSpinner, ProgressInfo } from "./CardComponents";
+import { ProgressInfo } from "./CardComponents";
 import { UserAvatar } from "./UserAvatar";
 import {
   ContentRatingBadge,
@@ -34,7 +34,6 @@ export default function MovieCard({ item: movie, index = 0 }: MovieCardProps) {
     movie.duration,
     movie.viewOffset
   );
-  const thumbnailUrl = getThumbnailUrl(movie.thumbnailFileId);
   const qualityFormatted = formatQuality(
     movie.videoResolution,
     movie.audioCodec
@@ -75,9 +74,9 @@ export default function MovieCard({ item: movie, index = 0 }: MovieCardProps) {
 
   const renderMainContent = (movie: Movie) => (
     <>
-      <h2 className="text-xl font-bold truncate" title={movie.title}>
+      <h3 className="text-xl font-bold truncate" title={movie.title}>
         {movie.title}
-      </h2>
+      </h3>
       <p>{movie.year}</p>
       <div className="mt-1">
         <p className="text-gray-400 text-sm flex items-center gap-2">
@@ -152,7 +151,14 @@ export default function MovieCard({ item: movie, index = 0 }: MovieCardProps) {
               </span>
               <span>{Math.round(movie.transcodeProgress)}%</span>
             </div>
-            <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
+            <div 
+              className="w-full h-2 bg-gray-700 rounded-full overflow-hidden"
+              role="progressbar"
+              aria-valuenow={Math.round(movie.transcodeProgress)}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label="Transcode progress"
+            >
               <div
                 className="h-full bg-blue-500 rounded-full"
                 style={{ width: `${movie.transcodeProgress}%` }}
@@ -289,7 +295,11 @@ export default function MovieCard({ item: movie, index = 0 }: MovieCardProps) {
         </div>
         <div className="stagger-item stagger-delay-14">
           <p className="text-gray-400 text-sm">Started</p>
-          <p>{startedAt.toLocaleTimeString()}</p>
+          <p>
+            <time dateTime={startedAt.toISOString()}>
+              {startedAt.toLocaleTimeString()}
+            </time>
+          </p>
         </div>
         <div className="stagger-item stagger-delay-15">
           <p className="text-gray-400 text-sm">Status</p>

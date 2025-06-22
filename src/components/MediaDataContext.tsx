@@ -95,11 +95,7 @@ export function MediaDataProvider({
       getSpotifyUrl,
     }),
     [
-      mediaDataState.mediaData,
-      mediaDataState.loading,
-      mediaDataState.error,
-      mediaDataState.lastSyncTime,
-      mediaDataState.isConnected,
+      mediaDataState,
       getSpotifyUrl,
     ]
   );
