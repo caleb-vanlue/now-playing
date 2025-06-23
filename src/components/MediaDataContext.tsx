@@ -7,6 +7,7 @@ import React, {
   useMemo,
   useCallback,
   useRef,
+  useEffect,
 } from "react";
 import { useMediaData } from "../hooks/useMediaData";
 import { MediaData } from "../../types/media";
@@ -46,7 +47,7 @@ export function MediaDataProvider({
     idlePollingInterval,
   });
 
-  const pendingRequests = useRef<Record<string, Promise<string | null>>>({});
+  const pendingRequests = useRef<Record<string, { promise: Promise<string | null>; abortController: AbortController }>>({});
 
   const getSpotifyUrl = useCallback(
     async (artist: string, trackTitle: string): Promise<string | null> => {
@@ -60,13 +61,14 @@ export function MediaDataProvider({
         return cachedUrl;
       }
 
-      if (await pendingRequests.current[cacheKey]) {
-        return pendingRequests.current[cacheKey];
+      if (pendingRequests.current[cacheKey]) {
+        return pendingRequests.current[cacheKey].promise;
       }
 
+      const abortController = new AbortController();
       const requestPromise = (async () => {
         try {
-          const result = await searchSpotifyTrack(artist, trackTitle);
+          const result = await searchSpotifyTrack(artist, trackTitle, abortController.signal);
 
           if (result.found && result.spotifyUrl) {
             spotifyCache.setUrl(artist, trackTitle, result.spotifyUrl);
@@ -76,6 +78,9 @@ export function MediaDataProvider({
             return null;
           }
         } catch (error) {
+          if (abortController.signal.aborted) {
+            throw error;
+          }
           console.error("Error fetching Spotify URL:", error);
           return null;
         } finally {
@@ -83,11 +88,20 @@ export function MediaDataProvider({
         }
       })();
 
-      pendingRequests.current[cacheKey] = requestPromise;
+      pendingRequests.current[cacheKey] = { promise: requestPromise, abortController };
       return requestPromise;
     },
-    [pendingRequests]
+    []
   );
+
+  useEffect(() => {
+    return () => {
+      Object.values(pendingRequests.current).forEach(({ abortController }) => {
+        abortController.abort();
+      });
+      pendingRequests.current = {};
+    };
+  }, []);
 
   const contextValue = useMemo(
     () => ({
