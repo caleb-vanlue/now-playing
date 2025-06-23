@@ -9,6 +9,7 @@ export function useSpotifyTrack(artist: string, trackTitle: string) {
 
   const searchKeyRef = useRef<string>(`${artist}:${trackTitle}`);
   const hasSearchedRef = useRef<boolean>(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     if (!artist || !trackTitle) return;
@@ -22,23 +23,39 @@ export function useSpotifyTrack(artist: string, trackTitle: string) {
 
     if (hasSearchedRef.current) return;
 
+    abortControllerRef.current = new AbortController();
+    const abortController = abortControllerRef.current;
+
     async function lookupTrack() {
+      if (abortController.signal.aborted) return;
+
       setIsLoading(true);
       setError(null);
 
       try {
         const url = await getSpotifyUrl(artist, trackTitle);
+        
+        if (abortController.signal.aborted) return;
+        
         setSpotifyUrl(url);
       } catch (err) {
+        if (abortController.signal.aborted) return;
+        
         setError(err instanceof Error ? err : new Error("Unknown error"));
         setSpotifyUrl(null);
       } finally {
-        setIsLoading(false);
-        hasSearchedRef.current = true;
+        if (!abortController.signal.aborted) {
+          setIsLoading(false);
+          hasSearchedRef.current = true;
+        }
       }
     }
 
     lookupTrack();
+
+    return () => {
+      abortController.abort();
+    };
   }, [artist, trackTitle, getSpotifyUrl]);
 
   return { spotifyUrl, isLoading, error };

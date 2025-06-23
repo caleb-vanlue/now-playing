@@ -27,6 +27,7 @@ async function getSpotifyToken(): Promise<string> {
           Authorization: `Basic ${auth}`,
           "Content-Type": "application/x-www-form-urlencoded",
         },
+        timeout: 10000,
       }
     );
 
@@ -65,6 +66,7 @@ export async function GET(request: NextRequest) {
         headers: {
           Authorization: `Bearer ${token}`,
         },
+        timeout: 10000,
       }
     );
 
