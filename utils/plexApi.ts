@@ -100,7 +100,7 @@ function mapToMovie(session: any): Movie {
     // Platform info
     platform: session.Player?.platform,
     platformVersion: session.Player?.platformVersion,
-    device: session.Player?.device,
+    device: session.Player?.title || session.Player?.device,
     product: session.Player?.product,
     playerVersion: session.Player?.version,
     // People and metadata
@@ -180,7 +180,7 @@ function mapToEpisode(session: any): Episode {
     // Platform info
     platform: session.Player?.platform,
     platformVersion: session.Player?.platformVersion,
-    device: session.Player?.device,
+    device: session.Player?.title || session.Player?.device,
     product: session.Player?.product,
     playerVersion: session.Player?.version,
     // People and metadata
