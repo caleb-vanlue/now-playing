@@ -213,22 +213,10 @@ export default function HistoryTable({ items, loading }: HistoryTableProps) {
     };
   }, []);
 
-  const getUserNameFromAccountId = (accountId: number): string => {
-    switch (accountId) {
-      case 1:
-        return "Caleb";
-      case 324439592:
-        return "Matt";
-      default:
-        return `User ${accountId}`;
-    }
-  };
-
   const users = useMemo(() => {
     const userSet = new Set<string>();
     items.forEach((item) => {
-      const userName = getUserNameFromAccountId(item.accountID);
-      userSet.add(userName);
+      userSet.add(item.userName ?? "Secret User");
     });
     return Array.from(userSet).sort();
   }, [items]);
@@ -246,8 +234,7 @@ export default function HistoryTable({ items, loading }: HistoryTableProps) {
 
     if (selectedUser !== "all") {
       filtered = filtered.filter((item) => {
-        const userName = getUserNameFromAccountId(item.accountID);
-        return userName === selectedUser;
+        return item.userName === selectedUser;
       });
     }
 
@@ -285,7 +272,9 @@ export default function HistoryTable({ items, loading }: HistoryTableProps) {
   const filterSection = (
     <div className="mb-4 flex flex-col sm:flex-row gap-3">
       <div className="relative w-full sm:w-auto">
-        <label htmlFor="user-filter" className="sr-only">Filter by user</label>
+        <label htmlFor="user-filter" className="sr-only">
+          Filter by user
+        </label>
         <select
           id="user-filter"
           value={selectedUser}
@@ -312,7 +301,9 @@ export default function HistoryTable({ items, loading }: HistoryTableProps) {
       </div>
 
       <div className="relative w-full sm:w-auto">
-        <label htmlFor="type-filter" className="sr-only">Filter by media type</label>
+        <label htmlFor="type-filter" className="sr-only">
+          Filter by media type
+        </label>
         <select
           id="type-filter"
           value={selectedType}
@@ -381,7 +372,7 @@ export default function HistoryTable({ items, loading }: HistoryTableProps) {
             index={index}
             imageErrors={imageErrors}
             onImageError={handleImageError}
-            userName={getUserNameFromAccountId(item.accountID)}
+            userName={item.userName ?? "Secret User"}
           />
         ))}
       </div>
