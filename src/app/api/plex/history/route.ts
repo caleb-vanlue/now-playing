@@ -101,8 +101,11 @@ export async function GET(request: Request) {
               case 324439592:
                 userName = "Matt";
                 break;
+              case 567647324:
+                userName = "Kitty";
+                break;
               default:
-                userName = `User ${item.accountID}`;
+                userName = `Secret User`;
             }
 
             return {
