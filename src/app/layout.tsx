@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { MediaDataProvider } from "../components/MediaDataContext";
 
@@ -7,6 +8,12 @@ const inter = Inter({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   variable: "--font-inter",
+});
+
+const customFont = localFont({
+  src: "../../public/fonts/font.otf",
+  variable: "--font-custom",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -26,7 +33,10 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <link rel="icon" href="/favicon.ico" sizes="any" />
       <body
-        className={`${inter.variable} antialiased bg-[#141414] text-white font-sans`}
+        className={`${customFont.variable} ${inter.variable} antialiased bg-[#141414] text-white`}
+        style={{
+          fontFamily: "var(--font-custom), var(--font-inter), sans-serif",
+        }}
       >
         <MediaDataProvider>{children}</MediaDataProvider>{" "}
       </body>
