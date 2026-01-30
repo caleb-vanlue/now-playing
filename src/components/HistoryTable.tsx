@@ -74,7 +74,7 @@ const HistoryItemCard = memo(
           <div className="flex-shrink-0 w-24 h-16 flex items-center justify-center">
             <div
               className={`${getAspectRatioClass(
-                item.type
+                item.type,
               )} h-full relative rounded overflow-hidden bg-[#141414]`}
             >
               {thumbnailUrl && !hasImageError ? (
@@ -93,8 +93,8 @@ const HistoryItemCard = memo(
                   {item.type === "episode"
                     ? "📺"
                     : item.type === "movie"
-                    ? "🎬"
-                    : "🎵"}
+                      ? "🎬"
+                      : "🎵"}
                 </div>
               )}
             </div>
@@ -112,14 +112,14 @@ const HistoryItemCard = memo(
             <div className="flex items-center gap-3 mt-2">
               <span
                 className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getTypeStyles(
-                  item.type
+                  item.type,
                 )}`}
               >
                 {item.type === "episode"
                   ? "TV Show"
                   : item.type === "movie"
-                  ? "Movie"
-                  : "Music"}
+                    ? "Movie"
+                    : "Music"}
               </span>
               <span className="text-xs text-gray-400">
                 Played by {userName}
@@ -137,7 +137,7 @@ const HistoryItemCard = memo(
             <div className="flex-shrink-0 w-20 h-20 flex items-center justify-center">
               <div
                 className={`${getAspectRatioClass(
-                  item.type
+                  item.type,
                 )} h-full relative rounded overflow-hidden bg-[#141414]`}
               >
                 {thumbnailUrl && !hasImageError ? (
@@ -156,8 +156,8 @@ const HistoryItemCard = memo(
                     {item.type === "episode"
                       ? "📺"
                       : item.type === "movie"
-                      ? "🎬"
-                      : "🎵"}
+                        ? "🎬"
+                        : "🎵"}
                   </div>
                 )}
               </div>
@@ -180,14 +180,14 @@ const HistoryItemCard = memo(
             <div className="w-20 flex justify-center">
               <span
                 className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getTypeStyles(
-                  item.type
+                  item.type,
                 )}`}
               >
                 {item.type === "episode"
                   ? "TV Show"
                   : item.type === "movie"
-                  ? "Movie"
-                  : "Music"}
+                    ? "Movie"
+                    : "Music"}
               </span>
             </div>
             <div className="flex items-center">
@@ -197,7 +197,7 @@ const HistoryItemCard = memo(
         </div>
       </motion.div>
     );
-  }
+  },
 );
 
 HistoryItemCard.displayName = "HistoryItemCard";
@@ -317,8 +317,8 @@ export default function HistoryTable({ items, loading }: HistoryTableProps) {
               {type === "episode"
                 ? "TV Shows"
                 : type === "movie"
-                ? "Movies"
-                : "Music"}
+                  ? "Movies"
+                  : "Music"}
             </option>
           ))}
         </select>
@@ -376,6 +376,10 @@ export default function HistoryTable({ items, loading }: HistoryTableProps) {
           />
         ))}
       </div>
+
+      <p className="text-center text-gray-400 text-sm pt-8">
+        &copy; {new Date().getFullYear()} Caleb Van Lue. Thanks for visiting!
+      </p>
     </>
   );
 }
