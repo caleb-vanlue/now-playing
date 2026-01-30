@@ -211,7 +211,7 @@ function mapToTrack(session: any): Track {
     startTime: new Date(Date.now() - (session.viewOffset || 0)).toISOString(),
     sessionId: sessionId,
     sessionKey: session.sessionKey,
-    artist: session.artist || session.grandparentTitle || "Unknown Artist",
+    artist: session.originalTitle || session.artist || session.grandparentTitle || "Unknown Artist",
     album: session.album || session.parentTitle || "Unknown Album",
     audioCodec: session.Media?.[0]?.audioCodec || "",
     quality:
