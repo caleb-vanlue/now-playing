@@ -238,7 +238,7 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
 
   return (
     <BaseMediaCard
-      key={`${track.id}-${spotifyUrl}`}
+      key={track.id}
       item={track}
       index={index}
       renderThumbnail={renderThumbnail}

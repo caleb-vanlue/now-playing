@@ -49,8 +49,8 @@ const EmptyState = memo(({ type }: { type: MediaType }) => {
 EmptyState.displayName = "EmptyState";
 
 function MediaPage() {
-  const { mediaData } = useMediaDataContext();
-  const { history, loading: historyLoading } = useHistory({ limit: 100 });
+  const { mediaData, lastSyncTime } = useMediaDataContext();
+  const { history, loading: historyLoading } = useHistory({ limit: 100, syncTrigger: lastSyncTime });
   const [activeTab, setActiveTab] = useState<MediaType>("music");
 
   const order = useMemo(() => ["music", "movies", "tvshows", "history"], []);

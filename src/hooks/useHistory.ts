@@ -4,6 +4,7 @@ import { HistoryItem } from "../../types/media";
 interface UseHistoryOptions {
   accountId?: string;
   limit?: number;
+  syncTrigger?: Date;
 }
 
 export function useHistory(options?: UseHistoryOptions) {
@@ -11,6 +12,7 @@ export function useHistory(options?: UseHistoryOptions) {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const hasFetchedRef = useRef(false);
 
   const fetchHistory = useCallback(async () => {
     if (abortControllerRef.current) {
@@ -21,7 +23,7 @@ export function useHistory(options?: UseHistoryOptions) {
     const abortController = abortControllerRef.current;
 
     try {
-      setLoading(true);
+      if (!hasFetchedRef.current) setLoading(true);
 
       const params = new URLSearchParams();
       if (options?.accountId) params.append("accountId", options.accountId);
@@ -44,9 +46,10 @@ export function useHistory(options?: UseHistoryOptions) {
 
       setHistory(items);
       setError(null);
+      hasFetchedRef.current = true;
     } catch (err) {
       if (abortController.signal.aborted) return;
-      
+
       console.error("Error fetching history:", err);
       setError(err instanceof Error ? err : new Error("Unknown error"));
     } finally {
@@ -65,6 +68,12 @@ export function useHistory(options?: UseHistoryOptions) {
       }
     };
   }, [fetchHistory]);
+
+  // Re-fetch when syncTrigger changes (driven by sessions polling)
+  useEffect(() => {
+    if (!hasFetchedRef.current) return; // skip initial, handled above
+    fetchHistory();
+  }, [options?.syncTrigger]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const refreshHistory = useCallback(() => {
     fetchHistory();
