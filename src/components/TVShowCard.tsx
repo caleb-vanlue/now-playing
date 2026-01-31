@@ -253,32 +253,10 @@ export default function TVShowCard({
           </p>
         </div>
         <div className="stagger-item stagger-delay-9">
-          <p className="text-gray-400 text-sm">Connection</p>
-          <p>
-            {episode.location?.toUpperCase() || "Unknown"}
-            {episode.secure && " • Secure"}
-            {episode.local && " • Local"}
-          </p>
-        </div>
-        <div className="stagger-item stagger-delay-10">
-          <p className="text-gray-400 text-sm">Bandwidth</p>
-          <p>
-            {episode.bandwidth
-              ? `${(episode.bandwidth / 1000).toFixed(1)} Mbps`
-              : "N/A"}
-          </p>
-        </div>
-        <div className="stagger-item stagger-delay-11">
-          <p className="text-gray-400 text-sm">Platform</p>
-          <p>
-            {episode.platform} {episode.platformVersion}
-          </p>
-        </div>
-        <div className="stagger-item stagger-delay-12">
           <p className="text-gray-400 text-sm">Device</p>
           <p>{episode.device || episode.player}</p>
         </div>
-        <div className="stagger-item stagger-delay-13">
+        <div className="stagger-item stagger-delay-10">
           <p className="text-gray-400 text-sm">User</p>
           <div className="flex items-center">
             <UserAvatar

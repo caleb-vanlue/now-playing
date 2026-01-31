@@ -249,32 +249,10 @@ export default function MovieCard({ item: movie, index = 0 }: MovieCardProps) {
           </p>
         </div>
         <div className="stagger-item stagger-delay-8">
-          <p className="text-gray-400 text-sm">Connection</p>
-          <p>
-            {movie.location?.toUpperCase() || "Unknown"}
-            {movie.secure && " • Secure"}
-            {movie.local && " • Local"}
-          </p>
-        </div>
-        <div className="stagger-item stagger-delay-9">
-          <p className="text-gray-400 text-sm">Bandwidth</p>
-          <p>
-            {movie.bandwidth
-              ? `${(movie.bandwidth / 1000).toFixed(1)} Mbps`
-              : "N/A"}
-          </p>
-        </div>
-        <div className="stagger-item stagger-delay-10">
-          <p className="text-gray-400 text-sm">Platform</p>
-          <p>
-            {movie.platform} {movie.platformVersion}
-          </p>
-        </div>
-        <div className="stagger-item stagger-delay-11">
           <p className="text-gray-400 text-sm">Device</p>
           <p>{movie.device || movie.player}</p>
         </div>
-        <div className="stagger-item stagger-delay-12">
+        <div className="stagger-item stagger-delay-9">
           <p className="text-gray-400 text-sm">User</p>
           <div className="flex items-center">
             <UserAvatar
