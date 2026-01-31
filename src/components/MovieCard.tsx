@@ -28,15 +28,15 @@ interface MovieCardProps {
 export default function MovieCard({ item: movie, index = 0 }: MovieCardProps) {
   const progressPercentage = calculateProgress(
     movie.viewOffset,
-    movie.duration
+    movie.duration,
   );
   const estimatedFinishTime = calculateFinishTime(
     movie.duration,
-    movie.viewOffset
+    movie.viewOffset,
   );
   const qualityFormatted = formatQuality(
     movie.videoResolution,
-    movie.audioCodec
+    movie.audioCodec,
   );
   const formattedDuration = formatDuration(movie.duration);
   const startedAt = new Date(movie.startTime);
@@ -55,7 +55,7 @@ export default function MovieCard({ item: movie, index = 0 }: MovieCardProps) {
         <TranscodeStatusBadge
           videoDecision={movie.videoDecision}
           audioDecision={movie.audioDecision}
-        />
+        />,
       );
     }
 
@@ -141,17 +141,10 @@ export default function MovieCard({ item: movie, index = 0 }: MovieCardProps) {
             className="mb-4 bg-gray-800/50 rounded-lg p-3"
           >
             <div className="flex justify-between items-center mb-1 text-sm">
-              <span>
-                {movie.videoDecision === "transcode" &&
-                movie.audioDecision === "transcode"
-                  ? "Transcode Progress"
-                  : movie.videoDecision === "transcode"
-                  ? "Video Transcode Progress"
-                  : "Audio Transcode Progress"}
-              </span>
+              <span>Transcode Progress</span>
               <span>{Math.round(movie.transcodeProgress)}%</span>
             </div>
-            <div 
+            <div
               className="w-full h-2 bg-gray-700 rounded-full overflow-hidden"
               role="progressbar"
               aria-valuenow={Math.round(movie.transcodeProgress)}
@@ -220,7 +213,7 @@ export default function MovieCard({ item: movie, index = 0 }: MovieCardProps) {
               {movie.audioChannels
                 ? formatAudioChannels(
                     movie.audioChannels,
-                    movie.audioChannelLayout
+                    movie.audioChannelLayout,
                   )
                 : ""}
             </p>
@@ -238,13 +231,13 @@ export default function MovieCard({ item: movie, index = 0 }: MovieCardProps) {
             {movie.videoDecision === "copy" && movie.audioDecision === "copy"
               ? "Direct Play"
               : movie.videoDecision === "transcode" &&
-                movie.audioDecision === "transcode"
-              ? "Full Transcode"
-              : movie.videoDecision === "transcode"
-              ? "Video Transcode"
-              : movie.audioDecision === "transcode"
-              ? "Audio Transcode"
-              : "Direct Play"}
+                  movie.audioDecision === "transcode"
+                ? "Full Transcode"
+                : movie.videoDecision === "transcode"
+                  ? "Video Transcode"
+                  : movie.audioDecision === "transcode"
+                    ? "Audio Transcode"
+                    : "Direct Play"}
             {movie.transcodeHwRequested && " (HW)"}
           </p>
         </div>

@@ -32,17 +32,17 @@ export default function TVShowCard({
 }: TVShowCardProps) {
   const progressPercentage = calculateProgress(
     episode.viewOffset,
-    episode.duration
+    episode.duration,
   );
   const estimatedFinishTime = calculateFinishTime(
     episode.duration,
-    episode.viewOffset
+    episode.viewOffset,
   );
   const seasonEpisode = `S${episode.season}:E${episode.episode}`;
   const formattedDuration = formatDuration(episode.duration);
   const qualityFormatted = formatQuality(
     episode.videoResolution,
-    episode.audioCodec
+    episode.audioCodec,
   );
   const startedAt = new Date(episode.startTime);
 
@@ -50,7 +50,11 @@ export default function TVShowCard({
     const thumbnailUrl = getThumbnailUrl(episode.thumbnailFileId);
 
     const badges = [
-      <SeasonEpisodeBadge key="season-episode" season={episode.season} episode={episode.episode} />,
+      <SeasonEpisodeBadge
+        key="season-episode"
+        season={episode.season}
+        episode={episode.episode}
+      />,
     ];
 
     if (episode.contentRating) {
@@ -62,7 +66,7 @@ export default function TVShowCard({
         <TranscodeStatusBadge
           videoDecision={episode.videoDecision}
           audioDecision={episode.audioDecision}
-        />
+        />,
       );
     }
 
@@ -144,17 +148,10 @@ export default function TVShowCard({
             className="mb-4 bg-gray-800/50 rounded-lg p-3"
           >
             <div className="flex justify-between items-center mb-1 text-sm">
-              <span>
-                {episode.videoDecision === "transcode" &&
-                episode.audioDecision === "transcode"
-                  ? "Transcode Progress"
-                  : episode.videoDecision === "transcode"
-                  ? "Video Transcode Progress"
-                  : "Audio Transcode Progress"}
-              </span>
+              <span>Transcode Progress</span>
               <span>{Math.round(episode.transcodeProgress)}%</span>
             </div>
-            <div 
+            <div
               className="w-full h-2 bg-gray-700 rounded-full overflow-hidden"
               role="progressbar"
               aria-valuenow={Math.round(episode.transcodeProgress)}
@@ -219,7 +216,7 @@ export default function TVShowCard({
               {episode.audioChannels
                 ? formatAudioChannels(
                     episode.audioChannels,
-                    episode.audioChannelLayout
+                    episode.audioChannelLayout,
                   )
                 : ""}
             </p>
@@ -242,13 +239,13 @@ export default function TVShowCard({
             episode.audioDecision === "copy"
               ? "Direct Play"
               : episode.videoDecision === "transcode" &&
-                episode.audioDecision === "transcode"
-              ? "Full Transcode"
-              : episode.videoDecision === "transcode"
-              ? "Video Transcode"
-              : episode.audioDecision === "transcode"
-              ? "Audio Transcode"
-              : "Direct Play"}
+                  episode.audioDecision === "transcode"
+                ? "Full Transcode"
+                : episode.videoDecision === "transcode"
+                  ? "Video Transcode"
+                  : episode.audioDecision === "transcode"
+                    ? "Audio Transcode"
+                    : "Direct Play"}
             {episode.transcodeHwRequested && " (HW)"}
           </p>
         </div>
