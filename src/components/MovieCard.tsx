@@ -323,7 +323,7 @@ export default function MovieCard({ item: movie, index = 0 }: MovieCardProps) {
         >
           <p className="text-gray-400 text-sm mb-2">Cast</p>
           <div className="grid grid-cols-1 gap-2">
-            {movie.actors.slice(0, 6).map((actor, i) => (
+            {movie.actors.slice(0, 10).map((actor, i) => (
               <div key={i} className="flex items-center gap-2 min-w-0">
                 {actor.thumb ? (
                   <Image

@@ -331,7 +331,7 @@ export default function TVShowCard({
         >
           <p className="text-gray-400 text-sm mb-2">Cast</p>
           <div className="grid grid-cols-2 gap-3">
-            {episode.actors.slice(0, 6).map((actor, i) => (
+            {episode.actors.slice(0, 10).map((actor, i) => (
               <div key={i} className="flex items-center gap-3">
                 {actor.thumb ? (
                   <Image
