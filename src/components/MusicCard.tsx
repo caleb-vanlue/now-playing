@@ -221,10 +221,6 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
             <p className="capitalize">{track.state}</p>
           </div>
 
-          <div className="stagger-item stagger-delay-10 col-span-2">
-            <p className="text-gray-400 text-sm">Session ID</p>
-            <p className="font-mono text-xs">{track.sessionId}</p>
-          </div>
         </motion.div>
         </>
       );

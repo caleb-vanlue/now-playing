@@ -46,14 +46,10 @@ export const formatQuality = (
   videoResolution?: string,
   audioCodec?: string
 ): string => {
-  const parts = [];
   if (videoResolution) {
-    parts.push(videoResolution.toUpperCase());
+    return videoResolution.toUpperCase();
   }
-  if (audioCodec) {
-    parts.push(audioCodec.toUpperCase());
-  }
-  return parts.join(" • ");
+  return "";
 };
 
 export const calculateProgress = (

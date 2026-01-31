@@ -279,12 +279,6 @@ export default function TVShowCard({
           <p>{episode.device || episode.player}</p>
         </div>
         <div className="stagger-item stagger-delay-13">
-          <p className="text-gray-400 text-sm">Player Version</p>
-          <p className="text-xs truncate">
-            {episode.playerVersion || episode.product}
-          </p>
-        </div>
-        <div className="stagger-item stagger-delay-14">
           <p className="text-gray-400 text-sm">User</p>
           <div className="flex items-center">
             <UserAvatar
@@ -308,10 +302,6 @@ export default function TVShowCard({
         <div className="stagger-item stagger-delay-16">
           <p className="text-gray-400 text-sm">Status</p>
           <p className="capitalize">{episode.state}</p>
-        </div>
-        <div className="stagger-item stagger-delay-17 col-span-2">
-          <p className="text-gray-400 text-sm">Session ID</p>
-          <p className="font-mono text-xs">{episode.sessionId}</p>
         </div>
       </motion.div>
 

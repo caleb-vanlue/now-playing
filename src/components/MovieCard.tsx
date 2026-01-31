@@ -275,12 +275,6 @@ export default function MovieCard({ item: movie, index = 0 }: MovieCardProps) {
           <p>{movie.device || movie.player}</p>
         </div>
         <div className="stagger-item stagger-delay-12">
-          <p className="text-gray-400 text-sm">Player Version</p>
-          <p className="text-xs truncate">
-            {movie.playerVersion || movie.product}
-          </p>
-        </div>
-        <div className="stagger-item stagger-delay-13">
           <p className="text-gray-400 text-sm">User</p>
           <div className="flex items-center">
             <UserAvatar
@@ -304,10 +298,6 @@ export default function MovieCard({ item: movie, index = 0 }: MovieCardProps) {
         <div className="stagger-item stagger-delay-15">
           <p className="text-gray-400 text-sm">Status</p>
           <p className="capitalize">{movie.state}</p>
-        </div>
-        <div className="stagger-item stagger-delay-16 col-span-2">
-          <p className="text-gray-400 text-sm">Session ID</p>
-          <p className="font-mono text-xs">{movie.sessionId}</p>
         </div>
       </motion.div>
 
