@@ -15,7 +15,7 @@ A sleek, real-time dashboard to monitor and display media currently streaming on
 - **Responsive Design**: Optimized viewing experience on mobile and desktop devices with swipe navigation
 - **Adaptive Polling**: Smart polling that adjusts frequency based on media playback state and user activity
 - **Connection Management**: Automatic reconnection and status monitoring for reliable operation
-- **Spotify Integration**: Direct links to music tracks on Spotify
+- **Spotify Integration**: Direct links to music tracks on Spotify (requires Premium subscription as of 02/06/2026)
 - **Animated UI**: Smooth transitions and loading states using Framer Motion
 - **Docker Deployment**: Simple deployment with containerization
 
@@ -119,7 +119,7 @@ _Mobile Views_
 4. Use this value as your `PLEX_TOKEN`
 
 ### Setting Up Spotify Integration
-
+NOTE: As of Feb. 6, 2026, this feature requires a Premium account. 
 1. Create a Spotify Developer account at [https://developer.spotify.com/](https://developer.spotify.com/)
 2. Create a new application in the Spotify Developer Dashboard
 3. Note the Client ID and Client Secret
