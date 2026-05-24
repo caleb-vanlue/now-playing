@@ -31,7 +31,7 @@ export async function GET(request: Request) {
   if (!PLEX_URL || !PLEX_TOKEN) {
     return NextResponse.json(
       { error: "Plex configuration missing" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 
@@ -58,7 +58,7 @@ export async function GET(request: Request) {
           Accept: "application/json",
           "X-Plex-Client-Identifier": "Plex-Dashboard",
         },
-      }
+      },
     );
 
     if (!response.ok) {
@@ -104,6 +104,9 @@ export async function GET(request: Request) {
               case 567647324:
                 userName = "Kitty";
                 break;
+              case 462685111:
+                userName = "Tyler";
+                break;
               default:
                 userName = `Secret User`;
             }
@@ -124,7 +127,7 @@ export async function GET(request: Request) {
     console.error("Error fetching Plex history:", error);
     return NextResponse.json(
       { error: "Failed to fetch Plex history" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
