@@ -2,7 +2,7 @@ import React, { useCallback } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { Track } from "../../types/media";
-import { getResponsiveThumbnailUrl } from "../../utils/plexApi";
+import { getResponsiveThumbnailUrl } from "../../utils/api";
 import { useSpotifyTrack } from "../hooks/useSpotifyTrack";
 import {
   calculateProgress,
@@ -37,10 +37,7 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
 
   const renderThumbnail = useCallback(
     (track: Track, imageState: ImageState) => {
-      const thumbnailUrl = getResponsiveThumbnailUrl(
-        track.thumbnailFileId,
-        "music"
-      );
+      const thumbnailUrl = getResponsiveThumbnailUrl(track, "music");
 
       const badges = [];
 

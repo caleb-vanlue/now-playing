@@ -2,7 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { Episode } from "../../types/media";
-import { getThumbnailUrl } from "../../utils/plexApi";
+import { getResponsiveThumbnailUrl } from "../../utils/api";
 import {
   calculateProgress,
   calculateFinishTime,
@@ -47,7 +47,7 @@ export default function TVShowCard({
   const startedAt = new Date(episode.startTime);
 
   const renderThumbnail = (episode: Episode, imageState: ImageState) => {
-    const thumbnailUrl = getThumbnailUrl(episode.thumbnailFileId);
+    const thumbnailUrl = getResponsiveThumbnailUrl(episode, "tv");
 
     const badges = [
       <SeasonEpisodeBadge
@@ -251,7 +251,7 @@ export default function TVShowCard({
         </div>
         <div className="stagger-item stagger-delay-9">
           <p className="text-gray-400 text-sm">Device</p>
-          <p>{episode.device || episode.player}</p>
+          <p>{episode.player}</p>
         </div>
         <div className="stagger-item stagger-delay-10">
           <p className="text-gray-400 text-sm">User</p>

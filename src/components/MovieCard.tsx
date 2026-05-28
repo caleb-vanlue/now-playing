@@ -2,7 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { Movie } from "../../types/media";
-import { getThumbnailUrl } from "../../utils/api";
+import { getResponsiveThumbnailUrl } from "../../utils/api";
 import {
   calculateProgress,
   calculateFinishTime,
@@ -42,7 +42,7 @@ export default function MovieCard({ item: movie, index = 0 }: MovieCardProps) {
   const startedAt = new Date(movie.startTime);
 
   const renderThumbnail = (movie: Movie, imageState: ImageState) => {
-    const thumbnailUrl = getThumbnailUrl(movie.thumbnailFileId);
+    const thumbnailUrl = getResponsiveThumbnailUrl(movie, "movie");
 
     const badges = [];
 
@@ -243,7 +243,7 @@ export default function MovieCard({ item: movie, index = 0 }: MovieCardProps) {
         </div>
         <div className="stagger-item stagger-delay-8">
           <p className="text-gray-400 text-sm">Device</p>
-          <p>{movie.device || movie.player}</p>
+          <p>{movie.player}</p>
         </div>
         <div className="stagger-item stagger-delay-9">
           <p className="text-gray-400 text-sm">User</p>

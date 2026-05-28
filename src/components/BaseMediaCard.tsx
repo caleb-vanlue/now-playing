@@ -1,5 +1,6 @@
 import React, { memo, useCallback, useRef, useEffect, KeyboardEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { SiPlex, SiJellyfin } from "react-icons/si";
 import { useMediaCard } from "../hooks/useMediaCard";
 import { PlayingStateIndicator, ProgressBar } from "./CardComponents";
 import { UserInfo } from "./UserAvatar";
@@ -45,9 +46,21 @@ function CardContentComponent<T extends BaseMedia>(props: CardContentProps<T>) {
     onAvatarError,
   } = props;
 
+  const sourceIcon =
+    item.source === "plex" ? (
+      <SiPlex size={18} className="text-gray-500 shrink-0" title="Plex" />
+    ) : (
+      <SiJellyfin size={18} className="text-gray-500 shrink-0" title="Jellyfin" />
+    );
+
   return (
-    <div className="p-4">
-      {renderMainContent(item)}
+    <div className="p-4 relative">
+      <div className="absolute top-4 right-4">
+        {sourceIcon}
+      </div>
+      <div className="pr-8">
+        {renderMainContent(item)}
+      </div>
       <UserInfo
         userId={userId}
         userAvatar={userAvatar}
@@ -227,8 +240,8 @@ function BaseMediaCardComponent<T extends BaseMedia>({
         transform: "translateY(0)",
       }}
     >
-      <div 
-        className="cursor-pointer" 
+      <div
+        className="cursor-pointer"
         onClick={handleCardClick}
       >
         <div className="relative overflow-hidden">

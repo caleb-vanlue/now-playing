@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef, useMemo, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Image from "next/image";
+import { SiPlex, SiJellyfin } from "react-icons/si";
 import { useMediaDataContext } from "./MediaDataContext";
 
 interface MediaDashboardProps {
@@ -109,23 +109,27 @@ const MediaDashboard = memo(({ children }: MediaDashboardProps) => {
             </button>
           </div>
         </div>
-        <a
-          href="https://www.plex.tv"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Visit Plex website"
-          className="flex items-center hover:opacity-80 transition-opacity duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-[#141414] rounded"
-        >
-          <span className="text-gray-400 mr-2 text-sm">Powered by</span>
-          <Image
-            src="/images/plex.png"
-            alt="Plex"
-            width={70}
-            height={28}
-            className="inline-block"
-            priority
-          />
-        </a>
+        <div className="flex items-center gap-3">
+          <a
+            href="https://www.plex.tv"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Plex"
+            className="text-gray-500 hover:text-gray-300 transition-colors"
+          >
+            <SiPlex size={32} />
+          </a>
+          <span className="text-gray-700 text-sm">|</span>
+          <a
+            href="https://jellyfin.org"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Jellyfin"
+            className="text-gray-500 hover:text-gray-300 transition-colors"
+          >
+            <SiJellyfin size={26} />
+          </a>
+        </div>
       </div>
     ),
     [counts.totalCount, isConnected, refreshData]

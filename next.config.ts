@@ -8,6 +8,9 @@ const nextConfig: NextConfig = {
         pathname: "/api/plex/thumbnail**",
       },
       {
+        pathname: "/api/jellyfin/thumbnail**",
+      },
+      {
         pathname: "/images/**",
       },
     ],

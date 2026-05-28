@@ -10,18 +10,11 @@ export interface Person {
   tag: string;
   role?: string;
   thumb?: string;
-  count?: string;
-}
-
-export interface UltraBlurColor {
-  bottomLeft: string;
-  bottomRight: string;
-  topLeft: string;
-  topRight: string;
 }
 
 export interface BaseMedia {
   id: string;
+  source: "plex" | "jellyfin";
   title: string;
   userId: string;
   userAvatar?: string;
@@ -30,20 +23,12 @@ export interface BaseMedia {
   player: string;
   startTime: string;
   sessionId: string;
-  sessionKey?: string;
   viewOffset?: number;
-  // Session info
-  bandwidth?: number;
-  location?: string;
-  secure?: boolean;
-  local?: boolean;
-  relayed?: boolean;
-  // Platform info
-  platform?: string;
-  platformVersion?: string;
-  device?: string;
-  product?: string;
-  playerVersion?: string;
+  // Transcode info (available from both services)
+  videoDecision?: string;
+  audioDecision?: string;
+  transcodeProgress?: number;
+  transcodeHwRequested?: boolean;
 }
 
 export interface Track extends BaseMedia {
@@ -58,48 +43,27 @@ export interface Track extends BaseMedia {
 export interface Movie extends BaseMedia {
   year: number;
   director?: string;
-  studio: string;
+  studio?: string;
   duration: number;
   summary: string;
   videoResolution?: string;
   audioCodec?: string;
   contentRating?: string;
-  // Additional details
   genre?: string[];
-  country?: string[];
   rating?: number;
-  audienceRating?: number;
-  ratingImage?: string;
-  audienceRatingImage?: string;
   tagline?: string;
-  originallyAvailableAt?: string;
   // Media details
-  container?: string;
   videoCodec?: string;
   videoProfile?: string;
-  audioProfile?: string;
   audioChannels?: number;
   audioChannelLayout?: string;
   // Stream details
   bitrate?: number;
-  height?: number;
-  width?: number;
-  frameRate?: string;
-  chromaSubsampling?: string;
-  colorPrimaries?: string;
-  // Transcode info
-  transcodeDecision?: string;
-  videoDecision?: string;
-  audioDecision?: string;
-  transcodeProgress?: number;
-  transcodeHwRequested?: boolean;
   // People and metadata
   ratings?: Rating[];
   directors?: Person[];
   writers?: Person[];
   actors?: Person[];
-  producers?: Person[];
-  ultraBlurColors?: UltraBlurColor[];
 }
 
 export interface Episode extends BaseMedia {
@@ -111,35 +75,20 @@ export interface Episode extends BaseMedia {
   videoResolution?: string;
   audioCodec?: string;
   contentRating?: string;
-  // Additional details
   genre?: string[];
   rating?: number;
-  audienceRating?: number;
   // Media details
-  container?: string;
   videoCodec?: string;
   videoProfile?: string;
-  audioProfile?: string;
   audioChannels?: number;
   audioChannelLayout?: string;
   // Stream details
   bitrate?: number;
-  height?: number;
-  width?: number;
-  frameRate?: string;
-  // Transcode info
-  transcodeDecision?: string;
-  videoDecision?: string;
-  audioDecision?: string;
-  transcodeProgress?: number;
-  transcodeHwRequested?: boolean;
   // People and metadata
   ratings?: Rating[];
   directors?: Person[];
   writers?: Person[];
   actors?: Person[];
-  producers?: Person[];
-  ultraBlurColors?: UltraBlurColor[];
 }
 
 export interface MediaData {
@@ -149,31 +98,16 @@ export interface MediaData {
 }
 
 export interface HistoryItem {
-  historyKey: string;
-  key: string;
-  ratingKey: string;
-  librarySectionID: string;
-  parentKey?: string;
-  grandparentKey?: string;
-  title: string;
-  parentTitle?: string;
-  grandparentTitle?: string;
+  id: string;
+  source: "plex" | "jellyfin";
   type: "movie" | "episode" | "track";
+  displayTitle: string;
+  displaySubtitle: string;
   thumb?: string;
-  parentThumb?: string;
-  grandparentThumb?: string;
-  grandparentArt?: string;
-  index?: number;
-  parentIndex?: number;
-  originallyAvailableAt?: string;
-  viewedAt: number;
-  accountID: number;
-  deviceID: number;
-  displayTitle?: string;
-  displaySubtitle?: string;
-  userName?: string;
+  viewedAt: number; // unix seconds
+  userName: string;
 }
+
 export interface HistoryData {
   items: HistoryItem[];
-  size: number;
 }

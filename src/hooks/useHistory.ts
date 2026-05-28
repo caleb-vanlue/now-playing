@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { HistoryItem } from "../../types/media";
+import { fetchHistory } from "../../utils/api";
 
 interface UseHistoryOptions {
-  accountId?: string;
   limit?: number;
   syncTrigger?: Date;
 }
@@ -14,75 +14,50 @@ export function useHistory(options?: UseHistoryOptions) {
   const abortControllerRef = useRef<AbortController | null>(null);
   const hasFetchedRef = useRef(false);
 
-  const fetchHistory = useCallback(async () => {
+  const doFetch = useCallback(async () => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
 
     abortControllerRef.current = new AbortController();
-    const abortController = abortControllerRef.current;
+    const { signal } = abortControllerRef.current;
 
     try {
       if (!hasFetchedRef.current) setLoading(true);
 
-      const params = new URLSearchParams();
-      if (options?.accountId) params.append("accountId", options.accountId);
-      if (options?.limit) params.append("limit", options.limit.toString());
+      const data = await fetchHistory(signal, options?.limit ?? 100);
 
-      const response = await fetch(`/api/plex/history?${params}`, {
-        signal: abortController.signal,
-      });
+      if (signal.aborted) return;
 
-      if (abortController.signal.aborted) return;
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch history: ${response.status}`);
-      }
-
-      const data = await response.json();
-      const items = data.MediaContainer?.Metadata || [];
-
-      if (abortController.signal.aborted) return;
-
-      setHistory(items);
+      setHistory(data.items);
       setError(null);
       hasFetchedRef.current = true;
     } catch (err) {
-      if (abortController.signal.aborted) return;
-
+      if (signal.aborted) return;
       console.error("Error fetching history:", err);
       setError(err instanceof Error ? err : new Error("Unknown error"));
     } finally {
-      if (!abortController.signal.aborted) {
+      if (!signal.aborted) {
         setLoading(false);
       }
     }
-  }, [options?.accountId, options?.limit]);
+  }, [options?.limit]);
 
   useEffect(() => {
-    fetchHistory();
-
-    return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-    };
-  }, [fetchHistory]);
+    doFetch();
+    return () => abortControllerRef.current?.abort();
+  }, [doFetch]);
 
   // Re-fetch when syncTrigger changes (driven by sessions polling)
   useEffect(() => {
-    if (!hasFetchedRef.current) return; // skip initial, handled above
-    fetchHistory();
+    if (!hasFetchedRef.current) return;
+    doFetch();
   }, [options?.syncTrigger]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const refreshHistory = useCallback(() => {
-    fetchHistory();
-  }, [fetchHistory]);
 
   return {
     history,
     loading,
     error,
-    refreshHistory,
+    refreshHistory: doFetch,
   };
 }

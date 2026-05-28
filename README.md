@@ -1,23 +1,21 @@
-# Now Playing: A Plex Dashboard
+# Now Playing
 
-A sleek, real-time dashboard to monitor and display media currently streaming on your Plex server. This application provides a modern interface showing what's playing right now across music, movies, and TV shows, along with viewing history.
+A sleek, real-time dashboard for monitoring media playback across your self-hosted streaming servers. Supports **Plex** and **Jellyfin** — configure one or both, and sessions and history are merged automatically into a single view.
 
 ![Dashboard Screenshot](screenshots/dashboard.png)
 
 ## Features
 
-- **Real-time Monitoring**: See what's currently playing on your Plex server with automatic updates
-- **Multi-format Support**: Tracks movies, TV shows, and music streams
-- **Viewing History**: Browse through past watch activity with filtering by user and media type
-- **Detailed Media Cards**: Rich information including progress, quality, user data, and more
-- **Media Details**: In-depth information on each media item with expandable details view
-- **Transcode Progress**: Live monitoring of transcoding status and progress
-- **Responsive Design**: Optimized viewing experience on mobile and desktop devices with swipe navigation
-- **Adaptive Polling**: Smart polling that adjusts frequency based on media playback state and user activity
-- **Connection Management**: Automatic reconnection and status monitoring for reliable operation
-- **Spotify Integration**: Direct links to music tracks on Spotify (requires Premium subscription as of 02/06/2026)
-- **Animated UI**: Smooth transitions and loading states using Framer Motion
-- **Docker Deployment**: Simple deployment with containerization
+- **Multi-service support**: Works with Plex and Jellyfin simultaneously — sessions and history are pooled and sorted together
+- **Real-time monitoring**: See what's currently playing with automatic adaptive polling
+- **Multi-format support**: Tracks movies, TV shows, and music streams
+- **Viewing history**: Browse past watch activity with filtering by user and media type
+- **Rich media cards**: Progress, quality, transcode status, cast, genres, ratings, and more — expandable detail view per card
+- **Responsive design**: Optimized for mobile and desktop with swipe navigation
+- **Adaptive polling**: Adjusts update frequency based on playback state and user activity
+- **Spotify integration**: Direct links to music tracks on Spotify (requires Premium as of Feb 2026)
+- **Animated UI**: Smooth transitions and loading states via Framer Motion
+- **Docker deployment**: Simple containerized deployment
 
 ## Screenshots
 
@@ -42,15 +40,16 @@ _Mobile Views_
 - **Animations**: Framer Motion
 - **State Management**: React Context API
 - **Gesture Support**: react-swipeable
+- **Icons**: react-icons (Simple Icons)
 - **Containerization**: Docker
-- **APIs**: Plex API, Spotify API
+- **APIs**: Plex API, Jellyfin API, Spotify API
 
 ## Prerequisites
 
 - Node.js 20+
 - Docker and Docker Compose (for containerized deployment)
-- Plex server with a valid token
-- Spotify Developer credentials (for music integration)
+- A running Plex and/or Jellyfin server
+- Spotify Developer credentials (optional, for music integration)
 
 ## Setup and Installation
 
@@ -69,15 +68,13 @@ _Mobile Views_
    npm install
    ```
 
-3. Create a `.env` file in the root directory with the following variables:
+3. Copy the example env file and fill in your values:
 
+   ```bash
+   cp .env.example .env
    ```
-   PLEX_URL=your_plex_server_url
-   PLEX_TOKEN=your_plex_token
-   FETCH_TIMEOUT=8000
-   SPOTIFY_CLIENT_ID=your_spotify_client_id
-   SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
-   ```
+
+   See [Configuration](#configuration) below for details on each variable.
 
 4. Run the development server:
 
@@ -91,58 +88,74 @@ _Mobile Views_
 
 1. Ensure Docker and Docker Compose are installed.
 
-2. Build and run the container:
+2. Copy and configure your environment:
+
+   ```bash
+   cp .env.example .env
+   # edit .env with your values
+   ```
+
+3. Build and run:
 
    ```bash
    docker-compose up -d
    ```
 
-3. Access the dashboard at [http://localhost:3003](http://localhost:3003).
+4. Access the dashboard at [http://localhost:3003](http://localhost:3003).
 
 ## Configuration
 
+Copy `.env.example` to `.env`. At least one of Plex or Jellyfin must be configured — both can be active at the same time.
+
 ### Environment Variables
 
-| Variable                | Description                         | Default    |
-| ----------------------- | ----------------------------------- | ---------- |
-| `PLEX_URL`              | URL of your Plex server             | (Required) |
-| `PLEX_TOKEN`            | Authentication token for Plex API   | (Required) |
-| `FETCH_TIMEOUT`         | Timeout for API requests (ms)       | 8000       |
-| `SPOTIFY_CLIENT_ID`     | Spotify Developer API Client ID     | (Optional) |
-| `SPOTIFY_CLIENT_SECRET` | Spotify Developer API Client Secret | (Optional) |
+| Variable                  | Description                                      | Required          |
+| ------------------------- | ------------------------------------------------ | ----------------- |
+| `PLEX_URL`                | Full URL of your Plex server (with port)         | If using Plex     |
+| `PLEX_TOKEN`              | Plex authentication token                        | If using Plex     |
+| `JELLYFIN_URL`            | Full URL of your Jellyfin server (with port)     | If using Jellyfin |
+| `JELLYFIN_API_KEY`        | Jellyfin API key (admin privileges required)     | If using Jellyfin |
+| `SPOTIFY_CLIENT_ID`       | Spotify Developer app Client ID                  | Optional          |
+| `SPOTIFY_CLIENT_SECRET`   | Spotify Developer app Client Secret              | Optional          |
+| `NEXT_PUBLIC_FETCH_TIMEOUT` | Upstream API request timeout in ms             | Optional (8000)   |
 
 ### Obtaining a Plex Token
 
-1. Log in to your Plex account on the web
-2. Navigate to any media item and inspect the network requests
-3. Look for an `X-Plex-Token` parameter in the requests
-4. Use this value as your `PLEX_TOKEN`
+1. Open Plex Web and navigate to any media item
+2. Click ⋮ → "Get Info" → "View XML"
+3. Copy the `X-Plex-Token` value from the URL
+
+Full instructions: [support.plex.tv/articles/204059436](https://support.plex.tv/articles/204059436)
+
+### Obtaining a Jellyfin API Key
+
+1. Open the Jellyfin admin dashboard
+2. Go to **Administration → API Keys → +**
+3. Give it a name (e.g. "Now Playing") and save
+4. The key needs admin-level access to list all users' playback history
 
 ### Setting Up Spotify Integration
-NOTE: As of Feb. 6, 2026, this feature requires a Premium account. 
-1. Create a Spotify Developer account at [https://developer.spotify.com/](https://developer.spotify.com/)
-2. Create a new application in the Spotify Developer Dashboard
-3. Note the Client ID and Client Secret
-4. Add these values to your environment variables
+
+> **Note:** As of Feb 2026 this feature requires a Spotify Premium account.
+
+1. Create an app at [developer.spotify.com/dashboard](https://developer.spotify.com/dashboard)
+2. Copy the Client ID and Client Secret into your `.env`
 
 ## API Endpoints
 
-The dashboard automatically communicates with your Plex server. If you need direct access to the API, the following endpoints are available:
-
-- `/api/plex/sessions` - Get currently playing sessions
-- `/api/plex/history` - Get viewing history
-- `/api/plex/thumbnail` - Get media thumbnails
-- `/api/spotify/search` - Search for tracks on Spotify
-
-## Performance Optimizations
-
-- **Adaptive Polling**: Polling frequency adjusts based on playback state and user activity
-- **Lazy Loading**: Images and components load only when needed
-- **Optimized Rendering**: React memo and hooks optimize rendering performance
-- **Responsive Assets**: Images are served at appropriate sizes for different devices
+| Endpoint                    | Description                          |
+| --------------------------- | ------------------------------------ |
+| `/api/plex/sessions`        | Active Plex sessions                 |
+| `/api/plex/history`         | Plex viewing history                 |
+| `/api/plex/thumbnail`       | Proxied Plex media thumbnails        |
+| `/api/jellyfin/sessions`    | Active Jellyfin sessions (enriched with item detail) |
+| `/api/jellyfin/history`     | Jellyfin playback history (all users) |
+| `/api/jellyfin/thumbnail`   | Proxied Jellyfin media thumbnails    |
+| `/api/spotify/search`       | Spotify track search                 |
 
 ## Acknowledgments
 
-- Plex for their amazing media server
-- Spotify for their music API
-- All the open-source libraries used in this project
+- [Plex](https://www.plex.tv) for their media server platform
+- [Jellyfin](https://jellyfin.org) for the open-source media server
+- [Spotify](https://developer.spotify.com) for their music API
+- All the open-source libraries that make this possible

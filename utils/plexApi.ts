@@ -30,86 +30,49 @@ function mapToMovie(session: any): Movie {
   const sessionId =
     session.Session?.id || `movie-${session.ratingKey}-${Date.now()}`;
   const mediaInfo = session.Media?.[0];
-  const streamInfo = mediaInfo?.Part?.[0]?.Stream?.[0];
   const audioStream = mediaInfo?.Part?.[0]?.Stream?.find(
     (s: any) => s.streamType === 2
   );
 
+  const videoDecision = session.TranscodeSession?.videoDecision || "copy";
+  const audioDecision = session.TranscodeSession?.audioDecision || "copy";
+
   return {
+    source: "plex",
     id: session.ratingKey,
     title: session.title,
     thumbnailFileId: session.thumb,
     state: mapPlexState(session.Player?.state),
-    userId:
-      session.User?.title == "Irrelativity17"
-        ? "Caleb"
-        : session.User?.title || "Unknown User",
-    userAvatar: session.User?.thumb || null,
+    userId: session.User?.title || "Unknown User",
+    userAvatar: session.User?.thumb || undefined,
     player: session.Player?.title || session.Player?.product || "Video Player",
     startTime: new Date(Date.now() - (session.viewOffset || 0)).toISOString(),
-    sessionId: sessionId,
-    sessionKey: session.sessionKey,
+    sessionId,
     year: session.year || 0,
-    director: session.Director?.[0]?.tag || session.director || "Unknown",
-    studio: session.studio || "Unknown Studio",
+    director: session.Director?.[0]?.tag || undefined,
+    studio: session.studio || undefined,
     duration: session.duration || mediaInfo?.duration || 0,
     summary: session.summary || "",
     videoResolution: mediaInfo?.videoResolution || "",
     audioCodec: mediaInfo?.audioCodec || "",
     contentRating: session.contentRating || "",
     viewOffset: session.viewOffset || 0,
-    // Additional details
     genre: session.Genre?.map((g: any) => g.tag) || [],
-    country: session.Country?.map((c: any) => c.tag) || [],
     rating: session.rating,
-    audienceRating: session.audienceRating,
-    ratingImage: session.ratingImage,
-    audienceRatingImage: session.audienceRatingImage,
     tagline: session.tagline,
-    originallyAvailableAt: session.originallyAvailableAt,
-    // Media details
-    container: mediaInfo?.container,
     videoCodec: mediaInfo?.videoCodec,
     videoProfile: mediaInfo?.videoProfile,
-    audioProfile: mediaInfo?.audioProfile,
     audioChannels: mediaInfo?.audioChannels || audioStream?.channels,
     audioChannelLayout: audioStream?.audioChannelLayout,
-    // Stream details
     bitrate: mediaInfo?.bitrate,
-    height: mediaInfo?.height,
-    width: mediaInfo?.width,
-    frameRate: mediaInfo?.videoFrameRate,
-    chromaSubsampling: streamInfo?.chromaSubsampling,
-    colorPrimaries: streamInfo?.colorPrimaries,
-    // Transcode info
-    transcodeDecision:
-      session.TranscodeSession?.videoDecision === "transcode" ||
-      session.TranscodeSession?.audioDecision === "transcode"
-        ? "transcode"
-        : "direct",
-    videoDecision: session.TranscodeSession?.videoDecision || "direct",
-    audioDecision: session.TranscodeSession?.audioDecision || "direct",
+    videoDecision,
+    audioDecision,
     transcodeProgress: session.TranscodeSession?.progress,
     transcodeHwRequested: session.TranscodeSession?.transcodeHwRequested,
-    // Session info
-    bandwidth: session.Session?.bandwidth,
-    location: session.Session?.location,
-    secure: session.Player?.secure,
-    local: session.Player?.local,
-    relayed: session.Player?.relayed,
-    // Platform info
-    platform: session.Player?.platform,
-    platformVersion: session.Player?.platformVersion,
-    device: session.Player?.title || session.Player?.device,
-    product: session.Player?.product,
-    playerVersion: session.Player?.version,
-    // People and metadata
     ratings: session.Rating,
     directors: session.Director,
     writers: session.Writer,
     actors: session.Role?.slice(0, 10),
-    producers: session.Producer,
-    ultraBlurColors: session.UltraBlurColors,
   };
 }
 
@@ -117,25 +80,24 @@ function mapToEpisode(session: any): Episode {
   const sessionId =
     session.Session?.id || `episode-${session.ratingKey}-${Date.now()}`;
   const mediaInfo = session.Media?.[0];
-  const streamInfo = mediaInfo?.Part?.[0]?.Stream?.[0];
   const audioStream = mediaInfo?.Part?.[0]?.Stream?.find(
     (s: any) => s.streamType === 2
   );
 
+  const videoDecision = session.TranscodeSession?.videoDecision || "copy";
+  const audioDecision = session.TranscodeSession?.audioDecision || "copy";
+
   return {
+    source: "plex",
     id: session.ratingKey,
     title: session.title,
     thumbnailFileId: session.thumb,
     state: mapPlexState(session.Player?.state),
-    userId:
-      session.User?.title == "Irrelativity17"
-        ? "Caleb"
-        : session.User?.title || "Unknown User",
-    userAvatar: session.User?.thumb || null,
+    userId: session.User?.title || "Unknown User",
+    userAvatar: session.User?.thumb || undefined,
     player: session.Player?.title || session.Player?.product || "Video Player",
     startTime: new Date(Date.now() - (session.viewOffset || 0)).toISOString(),
-    sessionId: sessionId,
-    sessionKey: session.sessionKey,
+    sessionId,
     showTitle: session.grandparentTitle || "Unknown Show",
     season: session.parentIndex || 0,
     episode: session.index || 0,
@@ -145,51 +107,21 @@ function mapToEpisode(session: any): Episode {
     audioCodec: mediaInfo?.audioCodec || "",
     contentRating: session.contentRating || "",
     viewOffset: session.viewOffset || 0,
-    // Additional details
     genre: session.Genre?.map((g: any) => g.tag) || [],
     rating: session.rating,
-    audienceRating: session.audienceRating,
-    // Media details
-    container: mediaInfo?.container,
     videoCodec: mediaInfo?.videoCodec,
     videoProfile: mediaInfo?.videoProfile,
-    audioProfile: mediaInfo?.audioProfile,
     audioChannels: mediaInfo?.audioChannels || audioStream?.channels,
     audioChannelLayout: audioStream?.audioChannelLayout,
-    // Stream details
     bitrate: mediaInfo?.bitrate,
-    height: mediaInfo?.height,
-    width: mediaInfo?.width,
-    frameRate: mediaInfo?.videoFrameRate,
-    // Transcode info
-    transcodeDecision:
-      session.TranscodeSession?.videoDecision === "transcode" ||
-      session.TranscodeSession?.audioDecision === "transcode"
-        ? "transcode"
-        : "direct",
-    videoDecision: session.TranscodeSession?.videoDecision || "direct",
-    audioDecision: session.TranscodeSession?.audioDecision || "direct",
+    videoDecision,
+    audioDecision,
     transcodeProgress: session.TranscodeSession?.progress,
     transcodeHwRequested: session.TranscodeSession?.transcodeHwRequested,
-    // Session info
-    bandwidth: session.Session?.bandwidth,
-    location: session.Session?.location,
-    secure: session.Player?.secure,
-    local: session.Player?.local,
-    relayed: session.Player?.relayed,
-    // Platform info
-    platform: session.Player?.platform,
-    platformVersion: session.Player?.platformVersion,
-    device: session.Player?.title || session.Player?.device,
-    product: session.Player?.product,
-    playerVersion: session.Player?.version,
-    // People and metadata
     ratings: session.Rating,
     directors: session.Director,
     writers: session.Writer,
     actors: session.Role?.slice(0, 10),
-    producers: session.Producer,
-    ultraBlurColors: session.UltraBlurColors,
   };
 }
 
@@ -198,20 +130,21 @@ function mapToTrack(session: any): Track {
     session.Session?.id || `track-${session.ratingKey}-${Date.now()}`;
 
   return {
+    source: "plex",
     id: session.ratingKey,
     title: session.title,
     thumbnailFileId: session.thumb,
     state: mapPlexState(session.Player?.state),
-    userId:
-      session.User?.title == "Irrelativity17"
-        ? "Caleb"
-        : session.User?.title || "Unknown User",
-    userAvatar: session.User?.thumb || null,
+    userId: session.User?.title || "Unknown User",
+    userAvatar: session.User?.thumb || undefined,
     player: session.Player?.title || session.Player?.product || "Music Player",
     startTime: new Date(Date.now() - (session.viewOffset || 0)).toISOString(),
-    sessionId: sessionId,
-    sessionKey: session.sessionKey,
-    artist: session.originalTitle || session.artist || session.grandparentTitle || "Unknown Artist",
+    sessionId,
+    artist:
+      session.originalTitle ||
+      session.artist ||
+      session.grandparentTitle ||
+      "Unknown Artist",
     album: session.album || session.parentTitle || "Unknown Album",
     audioCodec: session.Media?.[0]?.audioCodec || "",
     quality:
@@ -221,7 +154,7 @@ function mapToTrack(session: any): Track {
             session.Media?.[0].Part?.[0]?.Stream?.[0]?.samplingRate / 1000
           } kHz / ${session.Media?.[0].Part?.[0]?.Stream?.[0]?.bitDepth} bit`
         : `${session.Media?.[0].Part?.[0]?.Stream?.[0]?.bitrate} kbps`) || "",
-    year: session.year || null,
+    year: session.year || undefined,
     viewOffset: session.viewOffset || 0,
     duration: session.duration || session.Media?.[0]?.duration || 0,
   };
@@ -264,11 +197,7 @@ export async function fetchPlexData(signal?: AbortSignal): Promise<MediaData> {
       }
     });
 
-    return {
-      tracks,
-      movies,
-      episodes,
-    };
+    return { tracks, movies, episodes };
   } catch (error) {
     if (error instanceof Error) {
       if (error.name === "AbortError") {
