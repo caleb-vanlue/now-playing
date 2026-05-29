@@ -81,9 +81,8 @@ const HistoryItemCard = memo(
         }}
         className="bg-[#1c1c1c] rounded-lg p-4 hover:bg-[#252525] transition-colors hardware-accelerated card-transition"
       >
-        {/* Desktop layout */}
-        <div className="hidden sm:flex items-center gap-4">
-          <div className="flex-shrink-0 w-24 h-16 flex items-center justify-center">
+        <div className="flex items-center gap-3">
+          <div className="flex-shrink-0 w-20 h-14 flex items-center justify-center">
             <div
               className={`${getAspectRatioClass(item.type)} h-full relative rounded overflow-hidden bg-[#141414]`}
             >
@@ -100,7 +99,7 @@ const HistoryItemCard = memo(
                 {item.displaySubtitle}
               </p>
             )}
-            <div className="flex items-center gap-3 mt-2">
+            <div className="flex items-center gap-2 mt-1.5 flex-wrap">
               <span
                 className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getTypeStyles(item.type)}`}
               >
@@ -117,49 +116,9 @@ const HistoryItemCard = memo(
           </div>
 
           <div className="flex-shrink-0">
-            <span className="text-sm text-gray-400">{timeAgo}</span>
-          </div>
-        </div>
-
-        {/* Mobile layout */}
-        <div className="flex sm:hidden flex-col gap-3">
-          <div className="flex items-start gap-3">
-            <div className="flex-shrink-0 w-20 h-20 flex items-center justify-center">
-              <div
-                className={`${getAspectRatioClass(item.type)} h-full relative rounded overflow-hidden bg-[#141414]`}
-              >
-                {thumbnail("80px")}
-              </div>
-            </div>
-
-            <div className="flex-1 min-w-0">
-              <h3 className="font-medium text-white leading-tight">
-                {item.displayTitle}
-              </h3>
-              {item.displaySubtitle && (
-                <p className="text-sm text-gray-400 mt-0.5">
-                  {item.displaySubtitle}
-                </p>
-              )}
-              <p className="text-xs text-gray-400 mt-1">
-                Played by {item.userName}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div className="w-20 flex justify-center">
-              <span
-                className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getTypeStyles(item.type)}`}
-              >
-                {item.type === "episode"
-                  ? "TV Show"
-                  : item.type === "movie"
-                    ? "Movie"
-                    : "Music"}
-              </span>
-            </div>
-            <span className="text-sm text-gray-400">{timeAgo}</span>
+            <span className="text-sm text-gray-400 whitespace-nowrap">
+              {timeAgo}
+            </span>
           </div>
         </div>
       </motion.div>
