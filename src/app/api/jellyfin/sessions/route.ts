@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { applyUsernameMap } from "../../../../../utils/usernameMap";
 
 interface JellyfinPerson {
   Id: string;
@@ -75,13 +76,14 @@ async function fetchItemDetail(
   jellyfinUrl: string,
   apiKey: string,
   userId: string,
-  itemId: string
+  itemId: string,
 ): Promise<JellyfinItemDetail> {
   try {
-    const fields = "People,Genres,Studios,Overview,ProductionYear,OfficialRating,CommunityRating,Taglines";
+    const fields =
+      "People,Genres,Studios,Overview,ProductionYear,OfficialRating,CommunityRating,Taglines";
     const res = await fetch(
       `${jellyfinUrl}/Users/${userId}/Items/${itemId}?fields=${fields}`,
-      { headers: { Authorization: jellyfinAuthHeader(apiKey) } }
+      { headers: { Authorization: jellyfinAuthHeader(apiKey) } },
     );
     if (!res.ok) return {};
     return res.json();
@@ -97,7 +99,7 @@ export async function GET() {
   if (!JELLYFIN_URL || !JELLYFIN_API_KEY) {
     return NextResponse.json(
       { error: "Jellyfin configuration missing" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 
@@ -114,7 +116,9 @@ export async function GET() {
     }
 
     const sessions: JellyfinSession[] = await res.json();
-    const activeSessions = sessions.filter((s) => s.IsActive && s.NowPlayingItem);
+    const activeSessions = sessions.filter(
+      (s) => s.IsActive && s.NowPlayingItem,
+    );
 
     const enriched = await Promise.all(
       activeSessions.map(async (session) => {
@@ -123,10 +127,13 @@ export async function GET() {
           JELLYFIN_URL,
           JELLYFIN_API_KEY,
           session.UserId,
-          itemId
+          itemId,
         );
-        return { session, detail };
-      })
+        return {
+          session: { ...session, UserName: applyUsernameMap(session.UserName) },
+          detail,
+        };
+      }),
     );
 
     return NextResponse.json({ sessions: enriched });
@@ -134,7 +141,7 @@ export async function GET() {
     console.error("Error fetching from Jellyfin:", error);
     return NextResponse.json(
       { error: "Failed to fetch Jellyfin sessions" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

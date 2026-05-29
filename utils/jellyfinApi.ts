@@ -1,5 +1,4 @@
 import { MediaData, Track, Movie, Episode, Person } from "../types/media";
-import { applyUsernameMap } from "./usernameMap";
 
 const FETCH_TIMEOUT = parseInt(process.env.NEXT_PUBLIC_FETCH_TIMEOUT || "8000");
 
@@ -161,7 +160,7 @@ function mapToMovie(session: JellyfinSession, detail: JellyfinItemDetail): Movie
     title: item.Name,
     thumbnailFileId: item.Id,
     state: mapJellyfinState(play.IsPaused),
-    userId: applyUsernameMap(session.UserName ?? "Unknown User"),
+    userId: session.UserName ?? "Unknown User",
     userAvatar: jellyfinUserAvatarUrl(session.UserId),
     player: session.DeviceName ?? session.Client ?? "Video Player",
     startTime: new Date(Date.now() - ticksToMs(play.PositionTicks)).toISOString(),
@@ -205,7 +204,7 @@ function mapToEpisode(
     title: item.Name,
     thumbnailFileId: item.Id,
     state: mapJellyfinState(play.IsPaused),
-    userId: applyUsernameMap(session.UserName ?? "Unknown User"),
+    userId: session.UserName ?? "Unknown User",
     userAvatar: jellyfinUserAvatarUrl(session.UserId),
     player: session.DeviceName ?? session.Client ?? "Video Player",
     startTime: new Date(Date.now() - ticksToMs(play.PositionTicks)).toISOString(),
@@ -255,7 +254,7 @@ function mapToTrack(session: JellyfinSession, detail: JellyfinItemDetail): Track
     title: item.Name,
     thumbnailFileId: item.Id,
     state: mapJellyfinState(play.IsPaused),
-    userId: applyUsernameMap(session.UserName ?? "Unknown User"),
+    userId: session.UserName ?? "Unknown User",
     userAvatar: jellyfinUserAvatarUrl(session.UserId),
     player: session.DeviceName ?? session.Client ?? "Music Player",
     startTime: new Date(Date.now() - ticksToMs(play.PositionTicks)).toISOString(),

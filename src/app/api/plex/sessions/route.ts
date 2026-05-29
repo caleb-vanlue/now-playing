@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { applyUsernameMap } from "../../../../../utils/usernameMap";
 
 export async function GET() {
   const PLEX_URL = process.env.PLEX_URL;
@@ -27,6 +28,12 @@ export async function GET() {
     }
 
     const data = await response.json();
+    const sessions: any[] = data?.MediaContainer?.Metadata || [];
+    sessions.forEach((session) => {
+      if (session.User?.title) {
+        session.User.title = applyUsernameMap(session.User.title);
+      }
+    });
     return NextResponse.json(data);
   } catch (error) {
     console.error("Error fetching from Plex:", error);

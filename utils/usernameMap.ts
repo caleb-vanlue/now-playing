@@ -1,8 +1,5 @@
 // USERNAME_MAP format: "OriginalName:DisplayName,OtherName:OtherDisplay"
-// Supports both NEXT_PUBLIC_ (client) and server-side access
-const raw =
-  (typeof process !== "undefined" && process.env.NEXT_PUBLIC_USERNAME_MAP) ||
-  "";
+const raw = process.env.USERNAME_MAP || "";
 
 const usernameMap: Map<string, string> = new Map();
 
