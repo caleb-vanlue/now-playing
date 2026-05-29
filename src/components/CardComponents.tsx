@@ -44,7 +44,7 @@ export function ProgressBar({ percentage }: { percentage: number }) {
       aria-label="Playback progress"
     >
       <div
-        className="absolute top-0 left-0 h-full bg-cyan-500"
+        className="absolute top-0 left-0 h-full bg-[var(--accent)]"
         style={{ width: `${percentage}%` }}
       ></div>
     </div>
@@ -86,7 +86,7 @@ export function ProgressInfo({
         aria-label="Detailed playback progress"
       >
         <div
-          className="h-full bg-cyan-500 rounded-full"
+          className="h-full bg-[var(--accent)] rounded-full"
           style={{ width: `${percentage}%` }}
         ></div>
       </div>
@@ -97,7 +97,7 @@ export function ProgressInfo({
 export function ImageLoadingSpinner() {
   return (
     <div className="absolute inset-0 flex items-center justify-center bg-gray-800">
-      <div className="w-6 h-6 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
+      <div className="w-6 h-6 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin"></div>
     </div>
   );
 }

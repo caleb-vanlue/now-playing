@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import localFont from "next/font/local";
+import Script from "next/script";
 import "./globals.css";
 import { MediaDataProvider } from "../components/MediaDataContext";
+import { ThemeProvider } from "../contexts/ThemeContext";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -30,15 +32,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
-      <link rel="icon" href="/favicon.ico" sizes="any" />
+    <html lang="en" className="dark" suppressHydrationWarning>
+      <head>
+        <Script src="/theme-init.js" strategy="beforeInteractive" />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+      </head>
       <body
-        className={`${customFont.variable} ${inter.variable} antialiased bg-[#0d1117] text-white`}
+        className={`${customFont.variable} ${inter.variable} antialiased text-white`}
         style={{
           fontFamily: "var(--font-custom), var(--font-inter), sans-serif",
         }}
       >
-        <MediaDataProvider>{children}</MediaDataProvider>{" "}
+        <ThemeProvider>
+          <MediaDataProvider>{children}</MediaDataProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

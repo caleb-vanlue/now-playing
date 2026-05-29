@@ -43,14 +43,8 @@ const HistoryItemCard = memo(
       }
     };
 
-    const getTypeStyles = (type: string) => {
-      return (
-        {
-          episode: "bg-cyan-500/30 text-cyan-300",
-          movie: "bg-cyan-600/30 text-cyan-200",
-          track: "bg-cyan-700/30 text-cyan-100",
-        }[type] || "bg-cyan-500/30 text-cyan-300"
-      );
+    const getTypeStyles = (_type: string) => {
+      return "bg-[var(--accent)]/20 text-[var(--accent-light)]";
     };
 
     const thumbnail = (sizes: string) =>
@@ -79,12 +73,12 @@ const HistoryItemCard = memo(
           delay: Math.min(index, 10) * 0.02,
           duration: 0.3,
         }}
-        className="bg-[#161b22] rounded-lg p-4 hover:bg-[#1f2733] transition-colors hardware-accelerated card-transition"
+        className="bg-[var(--card-background)] rounded-lg p-4 hover:bg-[var(--card-background-hover)] transition-colors hardware-accelerated card-transition"
       >
         <div className="flex items-center gap-3">
           <div className="flex-shrink-0 w-20 h-14 flex items-center justify-center">
             <div
-              className={`${getAspectRatioClass(item.type)} h-full relative rounded overflow-hidden bg-[#0d1117]`}
+              className={`${getAspectRatioClass(item.type)} h-full relative rounded overflow-hidden bg-[var(--background)]`}
             >
               {thumbnail("100px")}
             </div>
@@ -165,7 +159,7 @@ export default function HistoryTable({ items, loading }: HistoryTableProps) {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="w-6 h-6 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-6 h-6 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -180,7 +174,7 @@ export default function HistoryTable({ items, loading }: HistoryTableProps) {
   }
 
   const selectStyles =
-    "w-full appearance-none bg-[#161b22] text-white border border-gray-800 rounded-md pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all duration-200 cursor-pointer hover:bg-[#1f2733]";
+    "w-full appearance-none bg-[var(--card-background)] text-white border border-gray-800 rounded-md pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-[var(--accent)] transition-all duration-200 cursor-pointer hover:bg-[var(--card-background-hover)]";
 
   const chevron = (
     <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
@@ -231,7 +225,7 @@ export default function HistoryTable({ items, loading }: HistoryTableProps) {
       {(selectedUser !== "all" || selectedType !== "all") && (
         <button
           onClick={() => { setSelectedUser("all"); setSelectedType("all"); }}
-          className="text-sm text-gray-400 hover:text-cyan-500 transition-colors sm:ml-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d1117] rounded px-2 py-1"
+          className="text-sm text-gray-400 hover:text-[var(--accent)] transition-colors sm:ml-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] rounded px-2 py-1"
           aria-label="Clear all filters"
         >
           Clear filters

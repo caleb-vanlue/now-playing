@@ -149,7 +149,7 @@ function MediaPage() {
                 ref={setItemRef(index)}
                 onKeyDown={(e) => handleKeyDown(e, index)}
                 tabIndex={index === 0 ? 0 : -1}
-                className="focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d1117] rounded-lg"
+                className="focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] rounded-lg"
               >
                 <MusicCard track={track} index={index} />
               </div>
@@ -169,7 +169,7 @@ function MediaPage() {
                 ref={setItemRef(index)}
                 onKeyDown={(e) => handleKeyDown(e, index)}
                 tabIndex={index === 0 ? 0 : -1}
-                className="focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d1117] rounded-lg"
+                className="focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] rounded-lg"
               >
                 <MovieCard item={movie} index={index} />
               </div>
@@ -189,7 +189,7 @@ function MediaPage() {
                 ref={setItemRef(index)}
                 onKeyDown={(e) => handleKeyDown(e, index)}
                 tabIndex={index === 0 ? 0 : -1}
-                className="focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-[#0d1117] rounded-lg"
+                className="focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:ring-offset-2 focus:ring-offset-[var(--background)] rounded-lg"
               >
                 <TVShowCard item={episode} index={index} />
               </div>
@@ -204,7 +204,7 @@ function MediaPage() {
 
   return (
     <MediaDashboard>
-      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 bg-cyan-500 text-white px-4 py-2 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 bg-[var(--accent)] text-white px-4 py-2 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2">
         Skip to main content
       </a>
       <div className="flex flex-col h-full overflow-hidden">
@@ -231,7 +231,7 @@ function MediaPage() {
         target="_blank"
         rel="noopener noreferrer"
         aria-label="View project on GitHub"
-        className="fixed bottom-6 right-6 z-50 hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-[#0d1117] rounded"
+        className="fixed bottom-6 right-6 z-50 hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:ring-offset-2 focus:ring-offset-[var(--background)] rounded"
       >
         <Image
           src="/images/logos/github-mark-white.svg"

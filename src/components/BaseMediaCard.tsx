@@ -111,7 +111,7 @@ function DetailViewComponent<T extends BaseMedia>(props: DetailViewProps<T>) {
             stiffness: 300,
             damping: 30,
           }}
-          className="absolute inset-0 z-30 overflow-hidden rounded-lg shadow-xl bg-[#0d1117]/95 backdrop-blur-sm hardware-accelerated"
+          className="absolute inset-0 z-30 overflow-hidden rounded-lg shadow-xl theme-bg-header backdrop-blur-sm hardware-accelerated"
           role="dialog"
           aria-modal="true"
           aria-labelledby={`detail-header-${item.id}`}
@@ -126,7 +126,7 @@ function DetailViewComponent<T extends BaseMedia>(props: DetailViewProps<T>) {
               ref={closeButtonRef}
               onClick={handleClose}
               onKeyDown={handleCloseKeyDown}
-              className="text-gray-400 hover:text-white w-8 h-8 flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d1117] rounded"
+              className="text-gray-400 hover:text-white w-8 h-8 flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] rounded"
               aria-label="Close details"
             >
               ×
@@ -234,7 +234,7 @@ function BaseMediaCardComponent<T extends BaseMedia>({
   return (
     <div
       ref={cardRef}
-      className={`bg-[#161b22] rounded-lg overflow-hidden shadow-md relative card-transition ${className}`}
+      className={`bg-[var(--card-background)] rounded-lg overflow-hidden shadow-md relative card-transition ${className}`}
       style={{
         opacity: 1,
         transform: "translateY(0)",

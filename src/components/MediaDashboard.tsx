@@ -4,6 +4,7 @@ import React, { useEffect, useState, useRef, useMemo, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SiPlex, SiJellyfin } from "react-icons/si";
 import { useMediaDataContext } from "./MediaDataContext";
+import { useTheme } from "../contexts/ThemeContext";
 
 interface MediaDashboardProps {
   children: React.ReactNode;
@@ -12,6 +13,7 @@ interface MediaDashboardProps {
 const MediaDashboard = memo(({ children }: MediaDashboardProps) => {
   const { mediaData, loading, error, lastSyncTime, isConnected, refreshData } =
     useMediaDataContext();
+  const { theme, setTheme } = useTheme();
 
   const syncTextRef = useRef<HTMLSpanElement>(null);
   const [showLoading, setShowLoading] = useState(loading && !mediaData);
@@ -103,36 +105,53 @@ const MediaDashboard = memo(({ children }: MediaDashboardProps) => {
             <button
               onClick={refreshData}
               aria-label="Refresh media data"
-              className="text-xs bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d1117]"
+              className="text-xs bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
             >
               Refresh
             </button>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <a
-            href="https://www.plex.tv"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Plex"
-            className="text-gray-500 hover:text-gray-300 transition-colors"
+        <div className="flex flex-row md:flex-col items-center gap-4 md:gap-1.5">
+          <div className="flex items-center gap-3">
+            <a
+              href="https://www.plex.tv"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Plex"
+              className="text-gray-500 hover:text-gray-300 transition-colors"
+            >
+              <SiPlex size={32} />
+            </a>
+            <span className="text-gray-700 text-sm">|</span>
+            <a
+              href="https://jellyfin.org"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Jellyfin"
+              className="text-gray-500 hover:text-gray-300 transition-colors"
+            >
+              <SiJellyfin size={26} />
+            </a>
+          </div>
+          <button
+            role="switch"
+            aria-checked={theme === "jellyfin"}
+            aria-label={`Theme: ${theme === "plex" ? "Plex" : "Jellyfin"}. Click to switch.`}
+            onClick={() => setTheme(theme === "plex" ? "jellyfin" : "plex")}
+            className={`relative w-14 h-6 rounded-full transition-colors duration-300 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] ${
+              theme === "jellyfin" ? "bg-[#06b6d4]" : "bg-[#ff6b00]"
+            }`}
           >
-            <SiPlex size={32} />
-          </a>
-          <span className="text-gray-700 text-sm">|</span>
-          <a
-            href="https://jellyfin.org"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Jellyfin"
-            className="text-gray-500 hover:text-gray-300 transition-colors"
-          >
-            <SiJellyfin size={26} />
-          </a>
+            <div
+              className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-300 ${
+                theme === "jellyfin" ? "translate-x-8" : "translate-x-0"
+              }`}
+            />
+          </button>
         </div>
       </div>
     ),
-    [counts.totalCount, isConnected, refreshData]
+    [counts.totalCount, isConnected, refreshData, theme, setTheme]
   );
 
   return (
@@ -143,12 +162,12 @@ const MediaDashboard = memo(({ children }: MediaDashboardProps) => {
             initial={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5 }}
-            className="fixed inset-0 bg-[#0d1117] z-50 flex items-center justify-center"
+            className="fixed inset-0 theme-bg z-50 flex items-center justify-center"
           >
             <div className="flex flex-col items-center">
               <div className="relative w-16 h-16">
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-12 h-12 border-t-2 border-b-2 border-cyan-500 rounded-full animate-spin" role="status" aria-label="Loading"></div>
+                  <div className="w-12 h-12 border-t-2 border-b-2 border-[var(--accent)] rounded-full animate-spin" role="status" aria-label="Loading"></div>
                 </div>
               </div>
 
@@ -166,7 +185,7 @@ const MediaDashboard = memo(({ children }: MediaDashboardProps) => {
       <div className="fixed inset-0 flex flex-col bg-animated-gradient text-white overflow-hidden">
         <header
           ref={headerRef}
-          className="flex-shrink-0 z-20 bg-[#0d1117]/95 backdrop-blur-md px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-2 border-b border-gray-800/30 shadow-lg"
+          className="flex-shrink-0 z-20 theme-bg-header backdrop-blur-md px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-2 border-b border-gray-800/30 shadow-lg"
         >
           {headerContent}
         </header>
