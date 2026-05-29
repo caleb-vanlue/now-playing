@@ -48,9 +48,9 @@ function CardContentComponent<T extends BaseMedia>(props: CardContentProps<T>) {
 
   const sourceIcon =
     item.source === "plex" ? (
-      <SiPlex size={18} className="text-gray-500 shrink-0" title="Plex" />
+      <SiPlex size={28} className="text-gray-500 shrink-0" title="Plex" />
     ) : (
-      <SiJellyfin size={18} className="text-gray-500 shrink-0" title="Jellyfin" />
+      <SiJellyfin size={22} className="text-gray-500 shrink-0" title="Jellyfin" />
     );
 
   return (
