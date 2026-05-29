@@ -15,6 +15,7 @@ interface JellyfinHistoryItem {
   IndexNumber?: number;
   ParentIndexNumber?: number;
   ProductionYear?: number;
+  RunTimeTicks?: number;
   ImageTags?: { Primary?: string };
   UserData?: {
     LastPlayedDate?: string;
@@ -58,7 +59,7 @@ export async function GET(request: Request) {
       users.map(async (user) => {
         try {
           const res = await fetch(
-            `${JELLYFIN_URL}/Users/${user.Id}/Items?Filters=IsPlayed&SortBy=DatePlayed&SortOrder=Descending&Limit=${limit}&IncludeItemTypes=Movie,Episode,Audio&Recursive=true&Fields=Overview,ProductionYear,UserData,ImageTags`,
+            `${JELLYFIN_URL}/Users/${user.Id}/Items?Filters=IsPlayed&SortBy=DatePlayed&SortOrder=Descending&Limit=${limit}&IncludeItemTypes=Movie,Episode,Audio&Recursive=true&Fields=Overview,ProductionYear,UserData,ImageTags,RunTimeTicks`,
             { headers }
           );
           if (!res.ok) return [];
@@ -93,9 +94,13 @@ export async function GET(request: Request) {
 
     const historyItems: HistoryItem[] = topItems.map(({ item, userName }) => {
       const lastPlayedDate = item.UserData?.LastPlayedDate;
-      const viewedAt = lastPlayedDate
+      const startedAt = lastPlayedDate
         ? Math.floor(new Date(lastPlayedDate).getTime() / 1000)
         : 0;
+      const runtimeSeconds = item.RunTimeTicks
+        ? Math.floor(item.RunTimeTicks / 10_000_000)
+        : 0;
+      const viewedAt = startedAt > 0 ? startedAt + runtimeSeconds : 0;
 
       const jellyfinType = item.Type;
       let type: "movie" | "episode" | "track";
