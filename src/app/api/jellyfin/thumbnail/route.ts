@@ -6,6 +6,7 @@ export async function GET(request: NextRequest) {
   const imageType = searchParams.get("imageType") || "Primary";
   const quality = searchParams.get("quality") || "medium";
   const width = searchParams.get("width");
+  const type = searchParams.get("type") || "item"; // "item" or "user"
 
   if (!itemId) {
     return NextResponse.json({ error: "itemId required" }, { status: 400 });
@@ -37,7 +38,10 @@ export async function GET(request: NextRequest) {
     format: "webp",
   });
 
-  const imageUrl = `${JELLYFIN_URL}/Items/${itemId}/Images/${imageType}?${params.toString()}`;
+  const imageUrl =
+    type === "user"
+      ? `${JELLYFIN_URL}/Users/${itemId}/Images/${imageType}?${params.toString()}`
+      : `${JELLYFIN_URL}/Items/${itemId}/Images/${imageType}?${params.toString()}`;
 
   try {
     const response = await fetch(imageUrl, {

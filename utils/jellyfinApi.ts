@@ -1,4 +1,5 @@
 import { MediaData, Track, Movie, Episode, Person } from "../types/media";
+import { applyUsernameMap } from "./usernameMap";
 
 const FETCH_TIMEOUT = parseInt(process.env.NEXT_PUBLIC_FETCH_TIMEOUT || "8000");
 
@@ -63,6 +64,7 @@ interface JellyfinTranscodingInfo {
 
 interface JellyfinSession {
   Id: string;
+  UserId?: string;
   UserName?: string;
   DeviceName?: string;
   Client?: string;
@@ -139,6 +141,11 @@ function extractStreams(streams: JellyfinMediaStream[] | undefined) {
   };
 }
 
+function jellyfinUserAvatarUrl(userId: string | undefined): string | undefined {
+  if (!userId) return undefined;
+  return `/api/jellyfin/thumbnail?itemId=${userId}&imageType=Primary&type=user&quality=low&width=80`;
+}
+
 function mapToMovie(session: JellyfinSession, detail: JellyfinItemDetail): Movie {
   const item = session.NowPlayingItem;
   const play = session.PlayState ?? {};
@@ -154,8 +161,8 @@ function mapToMovie(session: JellyfinSession, detail: JellyfinItemDetail): Movie
     title: item.Name,
     thumbnailFileId: item.Id,
     state: mapJellyfinState(play.IsPaused),
-    userId: session.UserName ?? "Unknown User",
-    userAvatar: undefined,
+    userId: applyUsernameMap(session.UserName ?? "Unknown User"),
+    userAvatar: jellyfinUserAvatarUrl(session.UserId),
     player: session.DeviceName ?? session.Client ?? "Video Player",
     startTime: new Date(Date.now() - ticksToMs(play.PositionTicks)).toISOString(),
     sessionId: session.Id,
@@ -198,8 +205,8 @@ function mapToEpisode(
     title: item.Name,
     thumbnailFileId: item.Id,
     state: mapJellyfinState(play.IsPaused),
-    userId: session.UserName ?? "Unknown User",
-    userAvatar: undefined,
+    userId: applyUsernameMap(session.UserName ?? "Unknown User"),
+    userAvatar: jellyfinUserAvatarUrl(session.UserId),
     player: session.DeviceName ?? session.Client ?? "Video Player",
     startTime: new Date(Date.now() - ticksToMs(play.PositionTicks)).toISOString(),
     sessionId: session.Id,
@@ -248,8 +255,8 @@ function mapToTrack(session: JellyfinSession, detail: JellyfinItemDetail): Track
     title: item.Name,
     thumbnailFileId: item.Id,
     state: mapJellyfinState(play.IsPaused),
-    userId: session.UserName ?? "Unknown User",
-    userAvatar: undefined,
+    userId: applyUsernameMap(session.UserName ?? "Unknown User"),
+    userAvatar: jellyfinUserAvatarUrl(session.UserId),
     player: session.DeviceName ?? session.Client ?? "Music Player",
     startTime: new Date(Date.now() - ticksToMs(play.PositionTicks)).toISOString(),
     sessionId: session.Id,

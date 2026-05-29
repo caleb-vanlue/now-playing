@@ -1,4 +1,5 @@
 import { MediaData, Track, Movie, Episode } from "../types/media";
+import { applyUsernameMap } from "./usernameMap";
 
 const FETCH_TIMEOUT = parseInt(process.env.NEXT_PUBLIC_FETCH_TIMEOUT || "8000");
 
@@ -43,7 +44,7 @@ function mapToMovie(session: any): Movie {
     title: session.title,
     thumbnailFileId: session.thumb,
     state: mapPlexState(session.Player?.state),
-    userId: session.User?.title || "Unknown User",
+    userId: applyUsernameMap(session.User?.title || "Unknown User"),
     userAvatar: session.User?.thumb || undefined,
     player: session.Player?.title || session.Player?.product || "Video Player",
     startTime: new Date(Date.now() - (session.viewOffset || 0)).toISOString(),
@@ -93,7 +94,7 @@ function mapToEpisode(session: any): Episode {
     title: session.title,
     thumbnailFileId: session.thumb,
     state: mapPlexState(session.Player?.state),
-    userId: session.User?.title || "Unknown User",
+    userId: applyUsernameMap(session.User?.title || "Unknown User"),
     userAvatar: session.User?.thumb || undefined,
     player: session.Player?.title || session.Player?.product || "Video Player",
     startTime: new Date(Date.now() - (session.viewOffset || 0)).toISOString(),
@@ -135,7 +136,7 @@ function mapToTrack(session: any): Track {
     title: session.title,
     thumbnailFileId: session.thumb,
     state: mapPlexState(session.Player?.state),
-    userId: session.User?.title || "Unknown User",
+    userId: applyUsernameMap(session.User?.title || "Unknown User"),
     userAvatar: session.User?.thumb || undefined,
     player: session.Player?.title || session.Player?.product || "Music Player",
     startTime: new Date(Date.now() - (session.viewOffset || 0)).toISOString(),

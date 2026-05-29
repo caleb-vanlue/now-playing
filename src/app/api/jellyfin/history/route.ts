@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { HistoryItem } from "../../../../../types/media";
+import { applyUsernameMap } from "../../../../../utils/usernameMap";
 
 interface JellyfinUser {
   Id: string;
@@ -64,7 +65,7 @@ export async function GET(request: Request) {
           const data = await res.json();
           return (data.Items || []).map((item: JellyfinHistoryItem) => ({
             item,
-            userName: user.Name,
+            userName: applyUsernameMap(user.Name),
           }));
         } catch {
           return [];

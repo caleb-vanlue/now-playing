@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { HistoryItem } from "../../../../../types/media";
+import { applyUsernameMap } from "../../../../../utils/usernameMap";
 
 interface PlexHistoryItem {
   ratingKey: string;
@@ -106,7 +107,7 @@ export async function GET(request: Request) {
         displaySubtitle,
         thumb: thumbUrl,
         viewedAt: item.viewedAt,
-        userName: accountMap.get(item.accountID) || "Unknown User",
+        userName: applyUsernameMap(accountMap.get(item.accountID) || "Unknown User"),
       };
     });
 
