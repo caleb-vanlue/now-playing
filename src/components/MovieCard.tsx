@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { Movie } from "../../types/media";
@@ -25,7 +25,7 @@ interface MovieCardProps {
   index?: number;
 }
 
-export default function MovieCard({ item: movie, index = 0 }: MovieCardProps) {
+function MovieCard({ item: movie, index = 0 }: MovieCardProps) {
   const progressPercentage = calculateProgress(
     movie.viewOffset,
     movie.duration,
@@ -395,3 +395,5 @@ export default function MovieCard({ item: movie, index = 0 }: MovieCardProps) {
     />
   );
 }
+
+export default memo(MovieCard);

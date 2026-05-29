@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { memo, useCallback } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { Track } from "../../types/media";
@@ -23,7 +23,7 @@ interface MusicCardProps {
   index?: number;
 }
 
-export default function MusicCard({ track, index = 0 }: MusicCardProps) {
+function MusicCard({ track, index = 0 }: MusicCardProps) {
   const { spotifyUrl } = useSpotifyTrack(track.artist, track.title);
 
   const progressPercentage = calculateProgress(
@@ -242,3 +242,5 @@ export default function MusicCard({ track, index = 0 }: MusicCardProps) {
     />
   );
 }
+
+export default memo(MusicCard);

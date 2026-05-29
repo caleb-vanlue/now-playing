@@ -109,7 +109,12 @@ export function MediaDataProvider({
       getSpotifyUrl,
     }),
     [
-      mediaDataState,
+      mediaDataState.mediaData,
+      mediaDataState.loading,
+      mediaDataState.error,
+      mediaDataState.lastSyncTime,
+      mediaDataState.isConnected,
+      mediaDataState.refreshData,
       getSpotifyUrl,
     ]
   );

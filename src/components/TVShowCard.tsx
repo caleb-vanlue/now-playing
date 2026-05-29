@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { Episode } from "../../types/media";
@@ -26,7 +26,7 @@ interface TVShowCardProps {
   index?: number;
 }
 
-export default function TVShowCard({
+function TVShowCard({
   item: episode,
   index = 0,
 }: TVShowCardProps) {
@@ -404,3 +404,5 @@ export default function TVShowCard({
     />
   );
 }
+
+export default memo(TVShowCard);
