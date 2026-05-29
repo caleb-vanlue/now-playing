@@ -103,7 +103,7 @@ const MediaDashboard = memo(({ children }: MediaDashboardProps) => {
             <button
               onClick={refreshData}
               aria-label="Refresh media data"
-              className="text-xs bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#141414]"
+              className="text-xs bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d1117]"
             >
               Refresh
             </button>
@@ -143,12 +143,12 @@ const MediaDashboard = memo(({ children }: MediaDashboardProps) => {
             initial={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5 }}
-            className="fixed inset-0 bg-[#141414] z-50 flex items-center justify-center"
+            className="fixed inset-0 bg-[#0d1117] z-50 flex items-center justify-center"
           >
             <div className="flex flex-col items-center">
               <div className="relative w-16 h-16">
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-12 h-12 border-t-2 border-b-2 border-orange-500 rounded-full animate-spin" role="status" aria-label="Loading"></div>
+                  <div className="w-12 h-12 border-t-2 border-b-2 border-cyan-500 rounded-full animate-spin" role="status" aria-label="Loading"></div>
                 </div>
               </div>
 
@@ -166,7 +166,7 @@ const MediaDashboard = memo(({ children }: MediaDashboardProps) => {
       <div className="fixed inset-0 flex flex-col bg-animated-gradient text-white overflow-hidden">
         <header
           ref={headerRef}
-          className="flex-shrink-0 z-20 bg-[#141414]/95 backdrop-blur-md px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-2 border-b border-gray-800/30 shadow-lg"
+          className="flex-shrink-0 z-20 bg-[#0d1117]/95 backdrop-blur-md px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-2 border-b border-gray-800/30 shadow-lg"
         >
           {headerContent}
         </header>

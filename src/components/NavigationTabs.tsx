@@ -66,7 +66,7 @@ const NavigationTabs = React.memo(function NavigationTabs({
   if (!onTabClick) {
     return (
       <nav
-        className="relative flex space-x-8 border-b border-gray-800/50 bg-[#141414]/80 backdrop-blur-sm -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8"
+        className="relative flex space-x-8 border-b border-gray-800/50 bg-[#0d1117]/80 backdrop-blur-sm -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8"
         aria-label="Main navigation"
       >
         <div
@@ -89,7 +89,7 @@ const NavigationTabs = React.memo(function NavigationTabs({
                 aria-current={isActive ? "page" : undefined}
                 tabIndex={isActive ? 0 : -1}
                 onKeyDown={(e) => handleKeyDown(e, index, true)}
-                className={`relative py-3 px-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#141414] rounded ${
+                className={`relative py-3 px-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d1117] rounded ${
                   isActive ? "text-white" : "text-gray-400 hover:text-white"
                 }`}
               >
@@ -98,7 +98,7 @@ const NavigationTabs = React.memo(function NavigationTabs({
                   {item.count > 0 && (
                     <motion.span
                       {...ANIMATION_CONFIG.COUNT_BADGE}
-                      className="ml-1 text-xs bg-orange-500 px-1.5 py-0.5 rounded-full"
+                      className="ml-1 text-xs bg-cyan-500 px-1.5 py-0.5 rounded-full"
                       aria-label={`${item.count} active`}
                     >
                       {item.count}
@@ -107,7 +107,7 @@ const NavigationTabs = React.memo(function NavigationTabs({
                 </div>
                 {isActive && (
                   <motion.div
-                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-500"
+                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-cyan-500"
                     layoutId="activeTab"
                     {...ANIMATION_CONFIG.TAB_INDICATOR}
                     transition={ANIMATION_CONFIG.ACTIVE_TAB}
@@ -125,7 +125,7 @@ const NavigationTabs = React.memo(function NavigationTabs({
 
   return (
     <nav
-      className="relative flex justify-center sm:justify-start space-x-8 border-b border-gray-800/50 bg-[#141414]/80 backdrop-blur-sm -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8"
+      className="relative flex justify-center sm:justify-start space-x-8 border-b border-gray-800/50 bg-[#0d1117]/80 backdrop-blur-sm -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8"
       aria-label="Media type navigation"
     >
       <div role="tablist" ref={tabListRef} className="flex space-x-8">
@@ -143,7 +143,7 @@ const NavigationTabs = React.memo(function NavigationTabs({
               tabIndex={isActive ? 0 : -1}
               onClick={() => onTabClick(item.href)}
               onKeyDown={(e) => handleKeyDown(e, index)}
-              className={`relative py-3 px-1 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-[#141414] rounded ${
+              className={`relative py-3 px-1 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-[#0d1117] rounded ${
                 isActive ? "text-white" : "text-gray-400 hover:text-white"
               }`}
             >
@@ -152,7 +152,7 @@ const NavigationTabs = React.memo(function NavigationTabs({
                 {item.count > 0 && (
                   <motion.span
                     {...ANIMATION_CONFIG.COUNT_BADGE}
-                    className="ml-1 text-xs bg-orange-500 px-1.5 py-0.5 rounded-full"
+                    className="ml-1 text-xs bg-cyan-500 px-1.5 py-0.5 rounded-full"
                     aria-label={`${item.count} active`}
                   >
                     {item.count}
@@ -161,7 +161,7 @@ const NavigationTabs = React.memo(function NavigationTabs({
               </div>
               {isActive && (
                 <motion.div
-                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-500"
+                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-cyan-500"
                   layoutId="activeTab"
                   {...ANIMATION_CONFIG.TAB_INDICATOR}
                   transition={ANIMATION_CONFIG.ACTIVE_TAB}

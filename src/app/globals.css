@@ -26,21 +26,21 @@
 }
 
 :root {
-  --background: #141414;
+  --background: #0d1117;
   --foreground: #ffffff;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --card-background: #1c1c1c;
-  --card-background-hover: #252525;
-  --accent: #ff6b00;
-  --accent-light: #ff8a3d;
+  --card-background: #161b22;
+  --card-background-hover: #1f2733;
+  --accent: #06b6d4;
+  --accent-light: #22d3ee;
   --nav-inactive: #808080;
   --font-sans: var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont,
     "Segoe UI", Roboto, sans-serif;
 }
 
 body {
-  background: #141414;
+  background: #0d1117;
   color: var(--foreground);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
@@ -49,7 +49,7 @@ body {
 }
 
 .bg-animated-gradient {
-  background: linear-gradient(135deg, #141414 0%, #181818 100%);
+  background: linear-gradient(135deg, #0d1117 0%, #111820 100%);
 }
 
 .card-transition {

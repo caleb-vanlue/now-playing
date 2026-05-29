@@ -33,7 +33,7 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <link rel="icon" href="/favicon.ico" sizes="any" />
       <body
-        className={`${customFont.variable} ${inter.variable} antialiased bg-[#141414] text-white`}
+        className={`${customFont.variable} ${inter.variable} antialiased bg-[#0d1117] text-white`}
         style={{
           fontFamily: "var(--font-custom), var(--font-inter), sans-serif",
         }}
