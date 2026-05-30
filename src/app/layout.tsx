@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import localFont from "next/font/local";
-import Script from "next/script";
 import "./globals.css";
 import { MediaDataProvider } from "../components/MediaDataContext";
 import { ThemeProvider } from "../contexts/ThemeContext";
@@ -26,6 +25,8 @@ export const metadata: Metadata = {
   },
 };
 
+const themeInitScript = `(function(){try{var t=localStorage.getItem("now-playing-theme"),bg=t==="plex"?"#141414":"#0d1117";document.documentElement.style.background=bg;var m=document.createElement("meta");m.name="theme-color";m.content=bg;document.head.appendChild(m);if(t==="plex")document.documentElement.setAttribute("data-theme","plex")}catch(e){}})()`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -34,7 +35,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <head>
-        <Script src="/theme-init.js" strategy="beforeInteractive" />
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         <link rel="icon" href="/favicon.ico" sizes="any" />
       </head>
       <body
