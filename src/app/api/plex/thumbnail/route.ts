@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
+const SAFE_PATH_RE = /^\/[a-zA-Z0-9/_\-.]+$/;
+const ALLOWED_QUALITIES = new Set(["low", "medium", "high"]);
+
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const path = searchParams.get("path");
@@ -8,6 +11,19 @@ export async function GET(request: NextRequest) {
 
   if (!path) {
     return NextResponse.json({ error: "Path required" }, { status: 400 });
+  }
+
+  if (!SAFE_PATH_RE.test(path) || path.includes("..")) {
+    return NextResponse.json({ error: "Invalid path" }, { status: 400 });
+  }
+
+  if (!ALLOWED_QUALITIES.has(quality)) {
+    return NextResponse.json({ error: "Invalid quality" }, { status: 400 });
+  }
+
+  const parsedWidth = width ? parseInt(width, 10) : null;
+  if (parsedWidth !== null && (isNaN(parsedWidth) || parsedWidth < 1 || parsedWidth > 3840)) {
+    return NextResponse.json({ error: "Invalid width" }, { status: 400 });
   }
 
   const PLEX_URL = process.env.PLEX_URL;

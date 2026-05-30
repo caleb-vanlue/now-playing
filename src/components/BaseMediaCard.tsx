@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useRef, useEffect, KeyboardEvent } from "react";
+import React, { memo, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SiPlex, SiJellyfin } from "react-icons/si";
 import { useMediaCard } from "../hooks/useMediaCard";
@@ -81,7 +81,6 @@ type DetailViewProps<T extends BaseMedia> = {
   renderDetailContent: (item: T) => React.ReactNode;
   contentMaxHeight: string;
   handleClose: () => void;
-  handleCloseKeyDown: (e: KeyboardEvent) => void;
   headerRef: React.RefObject<HTMLDivElement | null>;
   closeButtonRef: React.RefObject<HTMLButtonElement | null>;
 };
@@ -94,7 +93,6 @@ function DetailViewComponent<T extends BaseMedia>(props: DetailViewProps<T>) {
     renderDetailContent,
     contentMaxHeight,
     handleClose,
-    handleCloseKeyDown,
     headerRef,
     closeButtonRef,
   } = props;
@@ -125,7 +123,6 @@ function DetailViewComponent<T extends BaseMedia>(props: DetailViewProps<T>) {
             <button
               ref={closeButtonRef}
               onClick={handleClose}
-              onKeyDown={handleCloseKeyDown}
               className="text-gray-400 hover:text-white w-8 h-8 flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] rounded"
               aria-label="Close details"
             >
@@ -177,55 +174,27 @@ function BaseMediaCardComponent<T extends BaseMedia>({
     previousFocusRef.current = document.activeElement as HTMLElement;
     toggleDetails();
   }, [toggleDetails]);
-  
-  
-  const handleCloseKeyDown = useCallback((e: KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      toggleDetails();
-    }
-  }, [toggleDetails]);
-  
+
   const handleClose = useCallback(() => {
     toggleDetails();
-    if (previousFocusRef.current) {
-      previousFocusRef.current.focus();
-    }
+    previousFocusRef.current?.focus();
   }, [toggleDetails]);
 
-  useEffect(() => {
-    const currentRef = cardRef.current;
-    if (!currentRef) return;
-
-    const touchStart = () => {};
-
-    currentRef.addEventListener("touchstart", touchStart, {
-      passive: true,
-    } as EventListenerOptions);
-
-    return () => {
-      if (currentRef) {
-        currentRef.removeEventListener("touchstart", touchStart);
-      }
-    };
-  }, [cardRef]);
-  
   useEffect(() => {
     if (showDetails && closeButtonRef.current) {
       closeButtonRef.current.focus();
     }
   }, [showDetails]);
-  
+
   useEffect(() => {
     if (!showDetails) return;
-    
+
     const handleEscape = (e: globalThis.KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        handleClose();
-      }
+      if (e.key === "Escape") handleClose();
     };
-    
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
+
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
   }, [showDetails, handleClose]);
 
   const timeAgo = getTimeAgo(new Date(item.startTime));
@@ -269,7 +238,6 @@ function BaseMediaCardComponent<T extends BaseMedia>({
         renderDetailContent={renderDetailContent}
         contentMaxHeight={contentMaxHeight}
         handleClose={handleClose}
-        handleCloseKeyDown={handleCloseKeyDown}
         headerRef={headerRef}
         closeButtonRef={closeButtonRef}
       />

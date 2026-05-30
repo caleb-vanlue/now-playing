@@ -1,6 +1,5 @@
 import { MediaData, Track, Movie, Episode, Person } from "../types/media";
-
-const FETCH_TIMEOUT = parseInt(process.env.NEXT_PUBLIC_FETCH_TIMEOUT || "8000");
+import { fetchWithTimeout } from "./plexApi";
 
 interface JellyfinPerson {
   Id: string;
@@ -272,17 +271,11 @@ function mapToTrack(session: JellyfinSession, detail: JellyfinItemDetail): Track
 export async function fetchJellyfinData(
   signal?: AbortSignal
 ): Promise<MediaData> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
-  const fetchSignal = signal ?? controller.signal;
-
   try {
-    const response = await fetch("/api/jellyfin/sessions", {
+    const response = await fetchWithTimeout("/api/jellyfin/sessions", {
       headers: { Accept: "application/json" },
-      signal: fetchSignal,
+      signal,
     });
-
-    clearTimeout(timeoutId);
 
     if (!response.ok) {
       const text = await response.text();
@@ -315,7 +308,6 @@ export async function fetchJellyfinData(
 
     return { tracks, movies, episodes };
   } catch (error) {
-    clearTimeout(timeoutId);
     if (error instanceof Error && error.name === "AbortError") {
       throw new Error(
         "Request timed out. The Jellyfin server may be unresponsive."

@@ -9,10 +9,12 @@ interface UseMediaDataOptions {
 }
 
 const DEFAULT_OPTIONS: UseMediaDataOptions = {
-  activePollingInterval: 30000, // 30 seconds
-  pausedPollingInterval: 120000, // 2 minutes
-  idlePollingInterval: 300000, // 5 minutes
+  activePollingInterval: 30000,
+  pausedPollingInterval: 120000,
+  idlePollingInterval: 300000,
 };
+
+const INACTIVITY_THRESHOLD_MS = 10 * 60 * 1000;
 
 export function useMediaData(options?: UseMediaDataOptions) {
   const config = useMemo(() => 
@@ -54,8 +56,8 @@ export function useMediaData(options?: UseMediaDataOptions) {
   const getPollingInterval = useCallback(
     (data: MediaData | null): number => {
       const userInactiveTime = Date.now() - lastUserActivityRef.current;
-      if (userInactiveTime > 10 * 60 * 1000) {
-        return Math.min(config.idlePollingInterval! * 2, 600000); // Max 10 minutes
+      if (userInactiveTime > INACTIVITY_THRESHOLD_MS) {
+        return Math.min(config.idlePollingInterval! * 2, 600000);
       }
 
       if (!data) return config.idlePollingInterval!;
@@ -84,34 +86,24 @@ export function useMediaData(options?: UseMediaDataOptions) {
     }
 
     const prevData = prevMediaDataRef.current;
-    const tracksChanged =
-      prevData.tracks.length !== newData.tracks.length ||
-      JSON.stringify(
-        newData.tracks.map((t) => t.id + t.state + t.viewOffset)
-      ) !==
-        JSON.stringify(
-          prevData.tracks.map((t) => t.id + t.state + t.viewOffset)
-        );
 
-    const moviesChanged =
-      prevData.movies.length !== newData.movies.length ||
-      JSON.stringify(
-        newData.movies.map((m) => m.id + m.state + m.viewOffset)
-      ) !==
-        JSON.stringify(
-          prevData.movies.map((m) => m.id + m.state + m.viewOffset)
-        );
+    const sessionChanged = <T extends { id: string; state: string; viewOffset?: number }>(
+      prev: T[],
+      next: T[]
+    ) =>
+      prev.length !== next.length ||
+      next.some(
+        (item, i) =>
+          item.id !== prev[i].id ||
+          item.state !== prev[i].state ||
+          item.viewOffset !== prev[i].viewOffset
+      );
 
-    const episodesChanged =
-      prevData.episodes.length !== newData.episodes.length ||
-      JSON.stringify(
-        newData.episodes.map((e) => e.id + e.state + e.viewOffset)
-      ) !==
-        JSON.stringify(
-          prevData.episodes.map((e) => e.id + e.state + e.viewOffset)
-        );
-
-    if (!tracksChanged && !moviesChanged && !episodesChanged) {
+    if (
+      !sessionChanged(prevData.tracks, newData.tracks) &&
+      !sessionChanged(prevData.movies, newData.movies) &&
+      !sessionChanged(prevData.episodes, newData.episodes)
+    ) {
       return prevData;
     }
 

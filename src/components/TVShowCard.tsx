@@ -13,7 +13,7 @@ import {
 } from "../../utils/mediaCardUtils";
 import { BaseMediaCard, ImageState } from "./BaseMediaCard";
 import { ProgressInfo } from "./CardComponents";
-import { UserAvatar } from "./UserAvatar";
+import { SelfContainedUserAvatar } from "./UserAvatar";
 import {
   SeasonEpisodeBadge,
   ContentRatingBadge,
@@ -256,11 +256,9 @@ function TVShowCard({
         <div className="stagger-item stagger-delay-10">
           <p className="text-gray-400 text-sm">User</p>
           <div className="flex items-center">
-            <UserAvatar
+            <SelfContainedUserAvatar
               userId={episode.userId}
               userAvatar={episode.userAvatar}
-              avatarError={false}
-              onAvatarError={() => {}}
               size="medium"
             />
             <span className="ml-2">{episode.userId}</span>

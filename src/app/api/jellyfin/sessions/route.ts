@@ -85,9 +85,13 @@ async function fetchItemDetail(
       `${jellyfinUrl}/Users/${userId}/Items/${itemId}?fields=${fields}`,
       { headers: { Authorization: jellyfinAuthHeader(apiKey) } },
     );
-    if (!res.ok) return {};
+    if (!res.ok) {
+      console.warn(`Jellyfin detail fetch failed for item ${itemId}: ${res.status}`);
+      return {};
+    }
     return res.json();
-  } catch {
+  } catch (err) {
+    console.warn(`Jellyfin detail fetch error for item ${itemId}:`, err);
     return {};
   }
 }
@@ -117,20 +121,27 @@ export async function GET() {
 
     const sessions: JellyfinSession[] = await res.json();
     const activeSessions = sessions.filter(
-      (s) => s.IsActive && s.NowPlayingItem,
+      (s): s is JellyfinSession & { NowPlayingItem: NonNullable<JellyfinSession["NowPlayingItem"]> } =>
+        s.IsActive && s.NowPlayingItem != null,
     );
 
     const enriched = await Promise.all(
       activeSessions.map(async (session) => {
-        const itemId = session.NowPlayingItem!.Id;
         const detail = await fetchItemDetail(
           JELLYFIN_URL,
           JELLYFIN_API_KEY,
           session.UserId,
-          itemId,
+          session.NowPlayingItem.Id,
         );
+        const { RemoteEndPoint: _remoteEndPoint, ...safeSession } = session as typeof session & { RemoteEndPoint?: unknown };
+        const nowPlayingItem = safeSession.NowPlayingItem as Record<string, unknown> | undefined;
+        if (nowPlayingItem) {
+          delete nowPlayingItem.Path;
+          delete nowPlayingItem.MediaSources;
+        }
+
         return {
-          session: { ...session, UserName: applyUsernameMap(session.UserName) },
+          session: { ...safeSession, UserName: applyUsernameMap(session.UserName) },
           detail,
         };
       }),

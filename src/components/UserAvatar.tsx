@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 
 interface UserAvatarProps {
@@ -48,6 +48,23 @@ export const UserAvatar = React.memo(function UserAvatar({
     </div>
   );
 });
+
+export function SelfContainedUserAvatar({
+  userId,
+  userAvatar,
+  size,
+}: Pick<UserAvatarProps, "userId" | "userAvatar" | "size">) {
+  const [avatarError, setAvatarError] = useState(false);
+  return (
+    <UserAvatar
+      userId={userId}
+      userAvatar={userAvatar}
+      avatarError={avatarError}
+      onAvatarError={() => setAvatarError(true)}
+      size={size}
+    />
+  );
+}
 
 interface UserInfoProps {
   userId: string;

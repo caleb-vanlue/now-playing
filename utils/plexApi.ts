@@ -4,16 +4,18 @@ const FETCH_TIMEOUT = parseInt(process.env.NEXT_PUBLIC_FETCH_TIMEOUT || "8000");
 
 export async function fetchWithTimeout(
   url: string,
-  options: RequestInit = {},
+  options: RequestInit & { signal?: AbortSignal } = {},
   timeout = FETCH_TIMEOUT
 ): Promise<Response> {
   const controller = new AbortController();
-  const { signal } = controller;
-
   const timeoutId = setTimeout(() => controller.abort(), timeout);
 
+  if (options.signal) {
+    options.signal.addEventListener("abort", () => controller.abort(), { once: true });
+  }
+
   try {
-    const response = await fetch(url, { ...options, signal });
+    const response = await fetch(url, { ...options, signal: controller.signal });
     clearTimeout(timeoutId);
     return response;
   } catch (error) {
@@ -22,53 +24,150 @@ export async function fetchWithTimeout(
   }
 }
 
+// ── Plex API shape types ──────────────────────────────────────────────────────
+
+interface PlexTag {
+  tag: string;
+}
+
+interface PlexRating {
+  image?: string;
+  type: string;
+  value: string;
+  count?: string;
+}
+
+interface PlexStream {
+  streamType: number;
+  bitDepth?: number;
+  samplingRate?: number;
+  bitrate?: number;
+  channels?: number;
+  audioChannelLayout?: string;
+}
+
+interface PlexPart {
+  Stream?: PlexStream[];
+}
+
+interface PlexMedia {
+  duration?: number;
+  videoResolution?: string;
+  audioCodec?: string;
+  videoCodec?: string;
+  videoProfile?: string;
+  audioChannels?: number;
+  bitrate?: number;
+  Part?: PlexPart[];
+}
+
+interface PlexTranscodeSession {
+  videoDecision?: string;
+  audioDecision?: string;
+  progress?: number;
+  transcodeHwRequested?: boolean;
+}
+
+interface PlexSession {
+  ratingKey: string;
+  title: string;
+  thumb?: string;
+  type: string;
+  year?: number;
+  duration?: number;
+  summary?: string;
+  contentRating?: string;
+  studio?: string;
+  tagline?: string;
+  rating?: number;
+  audienceRating?: number;
+  viewOffset?: number;
+  Session?: { id?: string };
+  User?: { title?: string; thumb?: string };
+  Player?: { state?: string; title?: string; product?: string };
+  TranscodeSession?: PlexTranscodeSession;
+  Media?: PlexMedia[];
+  Genre?: PlexTag[];
+  Director?: PlexTag[];
+  Writer?: PlexTag[];
+  Role?: PlexTag[];
+  Rating?: PlexRating[];
+}
+
+interface PlexEpisodeSession extends PlexSession {
+  grandparentTitle?: string;
+  parentIndex?: number;
+  index?: number;
+}
+
+interface PlexTrackSession extends PlexSession {
+  originalTitle?: string;
+  artist?: string;
+  grandparentTitle?: string;
+  album?: string;
+  parentTitle?: string;
+}
+
+// ── Shared mapping helpers ────────────────────────────────────────────────────
+
 function mapPlexState(plexState: string | undefined): "playing" | "paused" {
   return plexState === "playing" ? "playing" : "paused";
 }
 
-function mapToMovie(session: any): Movie {
-  const sessionId =
-    session.Session?.id || `movie-${session.ratingKey}-${Date.now()}`;
+function extractPlexStreams(session: PlexSession) {
   const mediaInfo = session.Media?.[0];
   const audioStream = mediaInfo?.Part?.[0]?.Stream?.find(
-    (s: any) => s.streamType === 2
+    (s) => s.streamType === 2
   );
-
-  const videoDecision = session.TranscodeSession?.videoDecision || "copy";
-  const audioDecision = session.TranscodeSession?.audioDecision || "copy";
-
   return {
-    source: "plex",
+    duration: session.duration || mediaInfo?.duration || 0,
+    videoResolution: mediaInfo?.videoResolution || "",
+    audioCodec: mediaInfo?.audioCodec || "",
+    videoCodec: mediaInfo?.videoCodec,
+    videoProfile: mediaInfo?.videoProfile,
+    audioChannels: mediaInfo?.audioChannels || audioStream?.channels,
+    audioChannelLayout: audioStream?.audioChannelLayout,
+    bitrate: mediaInfo?.bitrate,
+  };
+}
+
+function mapPlexBaseFields(session: PlexSession, defaultPlayer: string) {
+  const sessionId =
+    session.Session?.id || `${session.type}-${session.ratingKey}-${Date.now()}`;
+  return {
+    source: "plex" as const,
     id: session.ratingKey,
     title: session.title,
     thumbnailFileId: session.thumb,
     state: mapPlexState(session.Player?.state),
     userId: session.User?.title || "Unknown User",
     userAvatar: session.User?.thumb || undefined,
-    player: session.Player?.title || session.Player?.product || "Video Player",
+    player: session.Player?.title || session.Player?.product || defaultPlayer,
     startTime: new Date(Date.now() - (session.viewOffset || 0)).toISOString(),
     sessionId,
-    year: session.year || 0,
-    director: session.Director?.[0]?.tag || undefined,
-    studio: session.studio || undefined,
-    duration: session.duration || mediaInfo?.duration || 0,
-    summary: session.summary || "",
-    videoResolution: mediaInfo?.videoResolution || "",
-    audioCodec: mediaInfo?.audioCodec || "",
-    contentRating: session.contentRating || "",
     viewOffset: session.viewOffset || 0,
-    genre: session.Genre?.map((g: any) => g.tag) || [],
-    rating: session.rating ?? session.audienceRating,
-    tagline: session.tagline,
-    videoCodec: mediaInfo?.videoCodec,
-    videoProfile: mediaInfo?.videoProfile,
-    audioChannels: mediaInfo?.audioChannels || audioStream?.channels,
-    audioChannelLayout: audioStream?.audioChannelLayout,
-    bitrate: mediaInfo?.bitrate,
-    videoDecision,
-    audioDecision,
+    videoDecision: session.TranscodeSession?.videoDecision || "copy",
+    audioDecision: session.TranscodeSession?.audioDecision || "copy",
     transcodeProgress: session.TranscodeSession?.progress,
     transcodeHwRequested: session.TranscodeSession?.transcodeHwRequested,
+  };
+}
+
+// ── Mappers ───────────────────────────────────────────────────────────────────
+
+function mapToMovie(session: PlexSession): Movie {
+  const streams = extractPlexStreams(session);
+  return {
+    ...mapPlexBaseFields(session, "Video Player"),
+    ...streams,
+    year: session.year || 0,
+    director: session.Director?.[0]?.tag,
+    studio: session.studio,
+    summary: session.summary || "",
+    contentRating: session.contentRating || "",
+    genre: session.Genre?.map((g) => g.tag) || [],
+    rating: session.rating ?? session.audienceRating,
+    tagline: session.tagline,
     ratings: session.Rating,
     directors: session.Director,
     writers: session.Writer,
@@ -76,48 +175,18 @@ function mapToMovie(session: any): Movie {
   };
 }
 
-function mapToEpisode(session: any): Episode {
-  const sessionId =
-    session.Session?.id || `episode-${session.ratingKey}-${Date.now()}`;
-  const mediaInfo = session.Media?.[0];
-  const audioStream = mediaInfo?.Part?.[0]?.Stream?.find(
-    (s: any) => s.streamType === 2
-  );
-
-  const videoDecision = session.TranscodeSession?.videoDecision || "copy";
-  const audioDecision = session.TranscodeSession?.audioDecision || "copy";
-
+function mapToEpisode(session: PlexEpisodeSession): Episode {
+  const streams = extractPlexStreams(session);
   return {
-    source: "plex",
-    id: session.ratingKey,
-    title: session.title,
-    thumbnailFileId: session.thumb,
-    state: mapPlexState(session.Player?.state),
-    userId: session.User?.title || "Unknown User",
-    userAvatar: session.User?.thumb || undefined,
-    player: session.Player?.title || session.Player?.product || "Video Player",
-    startTime: new Date(Date.now() - (session.viewOffset || 0)).toISOString(),
-    sessionId,
+    ...mapPlexBaseFields(session, "Video Player"),
+    ...streams,
     showTitle: session.grandparentTitle || "Unknown Show",
     season: session.parentIndex || 0,
     episode: session.index || 0,
-    duration: session.duration || mediaInfo?.duration || 0,
     summary: session.summary || "",
-    videoResolution: mediaInfo?.videoResolution || "",
-    audioCodec: mediaInfo?.audioCodec || "",
     contentRating: session.contentRating || "",
-    viewOffset: session.viewOffset || 0,
-    genre: session.Genre?.map((g: any) => g.tag) || [],
+    genre: session.Genre?.map((g) => g.tag) || [],
     rating: session.rating ?? session.audienceRating,
-    videoCodec: mediaInfo?.videoCodec,
-    videoProfile: mediaInfo?.videoProfile,
-    audioChannels: mediaInfo?.audioChannels || audioStream?.channels,
-    audioChannelLayout: audioStream?.audioChannelLayout,
-    bitrate: mediaInfo?.bitrate,
-    videoDecision,
-    audioDecision,
-    transcodeProgress: session.TranscodeSession?.progress,
-    transcodeHwRequested: session.TranscodeSession?.transcodeHwRequested,
     ratings: session.Rating,
     directors: session.Director,
     writers: session.Writer,
@@ -125,49 +194,39 @@ function mapToEpisode(session: any): Episode {
   };
 }
 
-function mapToTrack(session: any): Track {
-  const sessionId =
-    session.Session?.id || `track-${session.ratingKey}-${Date.now()}`;
+function mapToTrack(session: PlexTrackSession): Track {
+  const mediaInfo = session.Media?.[0];
+  const stream = mediaInfo?.Part?.[0]?.Stream?.[0];
+  const quality =
+    stream?.bitDepth && stream?.samplingRate
+      ? `${stream.samplingRate / 1000} kHz / ${stream.bitDepth} bit`
+      : stream?.bitrate
+        ? `${stream.bitrate} kbps`
+        : "";
 
   return {
-    source: "plex",
-    id: session.ratingKey,
-    title: session.title,
-    thumbnailFileId: session.thumb,
-    state: mapPlexState(session.Player?.state),
-    userId: session.User?.title || "Unknown User",
-    userAvatar: session.User?.thumb || undefined,
-    player: session.Player?.title || session.Player?.product || "Music Player",
-    startTime: new Date(Date.now() - (session.viewOffset || 0)).toISOString(),
-    sessionId,
+    ...mapPlexBaseFields(session, "Music Player"),
     artist:
       session.originalTitle ||
       session.artist ||
       session.grandparentTitle ||
       "Unknown Artist",
     album: session.album || session.parentTitle || "Unknown Album",
-    audioCodec: session.Media?.[0]?.audioCodec || "",
-    quality:
-      (session.Media?.[0].Part?.[0]?.Stream?.[0]?.bitDepth &&
-      session.Media?.[0].Part?.[0]?.Stream?.[0]?.samplingRate
-        ? `${
-            session.Media?.[0].Part?.[0]?.Stream?.[0]?.samplingRate / 1000
-          } kHz / ${session.Media?.[0].Part?.[0]?.Stream?.[0]?.bitDepth} bit`
-        : `${session.Media?.[0].Part?.[0]?.Stream?.[0]?.bitrate} kbps`) || "",
-    year: session.year || undefined,
-    viewOffset: session.viewOffset || 0,
-    duration: session.duration || session.Media?.[0]?.duration || 0,
+    audioCodec: mediaInfo?.audioCodec || "",
+    quality,
+    year: session.year,
+    duration: session.duration || mediaInfo?.duration || 0,
   };
 }
 
+// ── Public API ────────────────────────────────────────────────────────────────
+
 export async function fetchPlexData(signal?: AbortSignal): Promise<MediaData> {
   try {
-    const response = await fetchWithTimeout(`/api/plex/sessions`, {
-      headers: {
-        Accept: "application/json",
-      },
-      signal,
-    });
+    const response = await fetchWithTimeout(
+      `/api/plex/sessions`,
+      { headers: { Accept: "application/json" }, signal },
+    );
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -177,25 +236,25 @@ export async function fetchPlexData(signal?: AbortSignal): Promise<MediaData> {
     }
 
     const data = await response.json();
-    const sessions = data.MediaContainer?.Metadata || [];
+    const sessions: PlexSession[] = data.MediaContainer?.Metadata || [];
 
     const tracks: Track[] = [];
     const movies: Movie[] = [];
     const episodes: Episode[] = [];
 
-    sessions.forEach((session: any) => {
+    for (const session of sessions) {
       try {
         if (session.type === "track") {
-          tracks.push(mapToTrack(session));
+          tracks.push(mapToTrack(session as PlexTrackSession));
         } else if (session.type === "movie") {
           movies.push(mapToMovie(session));
         } else if (session.type === "episode") {
-          episodes.push(mapToEpisode(session));
+          episodes.push(mapToEpisode(session as PlexEpisodeSession));
         }
       } catch (err) {
-        console.error(`Error mapping ${session.type}:`, err);
+        console.error(`Error mapping Plex ${session.type}:`, err);
       }
-    });
+    }
 
     return { tracks, movies, episodes };
   } catch (error) {

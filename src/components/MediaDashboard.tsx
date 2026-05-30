@@ -17,7 +17,6 @@ const MediaDashboard = memo(({ children }: MediaDashboardProps) => {
 
   const syncTextRef = useRef<HTMLSpanElement>(null);
   const [showLoading, setShowLoading] = useState(loading && !mediaData);
-  const [, setHeaderHeight] = useState<number>(0);
   const headerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -60,21 +59,6 @@ const MediaDashboard = memo(({ children }: MediaDashboardProps) => {
       return () => clearTimeout(timer);
     }
   }, [loading, mediaData]);
-
-  useEffect(() => {
-    if (headerRef.current) {
-      setHeaderHeight(headerRef.current.offsetHeight);
-    }
-
-    const handleResize = () => {
-      if (headerRef.current) {
-        setHeaderHeight(headerRef.current.offsetHeight);
-      }
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
 
   const headerContent = useMemo(
     () => (

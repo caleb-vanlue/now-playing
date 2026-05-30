@@ -1,15 +1,41 @@
 import { NextRequest, NextResponse } from "next/server";
 
+const SAFE_ID_RE = /^[a-zA-Z0-9_-]{1,64}$/;
+const ALLOWED_IMAGE_TYPES = new Set(["Primary", "Art", "Backdrop", "Banner", "Logo", "Thumb"]);
+const ALLOWED_QUALITIES = new Set(["low", "medium", "high"]);
+const ALLOWED_TYPES = new Set(["item", "user"]);
+
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const itemId = searchParams.get("itemId");
   const imageType = searchParams.get("imageType") || "Primary";
   const quality = searchParams.get("quality") || "medium";
   const width = searchParams.get("width");
-  const type = searchParams.get("type") || "item"; // "item" or "user"
+  const type = searchParams.get("type") || "item";
 
   if (!itemId) {
     return NextResponse.json({ error: "itemId required" }, { status: 400 });
+  }
+
+  if (!SAFE_ID_RE.test(itemId)) {
+    return NextResponse.json({ error: "Invalid itemId" }, { status: 400 });
+  }
+
+  if (!ALLOWED_IMAGE_TYPES.has(imageType)) {
+    return NextResponse.json({ error: "Invalid imageType" }, { status: 400 });
+  }
+
+  if (!ALLOWED_QUALITIES.has(quality)) {
+    return NextResponse.json({ error: "Invalid quality" }, { status: 400 });
+  }
+
+  if (!ALLOWED_TYPES.has(type)) {
+    return NextResponse.json({ error: "Invalid type" }, { status: 400 });
+  }
+
+  const parsedWidth = width ? parseInt(width, 10) : null;
+  if (parsedWidth !== null && (isNaN(parsedWidth) || parsedWidth < 1 || parsedWidth > 3840)) {
+    return NextResponse.json({ error: "Invalid width" }, { status: 400 });
   }
 
   const JELLYFIN_URL = process.env.JELLYFIN_URL;

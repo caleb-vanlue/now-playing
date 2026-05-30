@@ -13,7 +13,7 @@ import {
 } from "../../utils/mediaCardUtils";
 import { BaseMediaCard, ImageState } from "./BaseMediaCard";
 import { ProgressInfo } from "./CardComponents";
-import { UserAvatar } from "./UserAvatar";
+import { SelfContainedUserAvatar } from "./UserAvatar";
 import {
   ContentRatingBadge,
   TranscodeStatusBadge,
@@ -248,11 +248,9 @@ function MovieCard({ item: movie, index = 0 }: MovieCardProps) {
         <div className="stagger-item stagger-delay-9">
           <p className="text-gray-400 text-sm">User</p>
           <div className="flex items-center">
-            <UserAvatar
+            <SelfContainedUserAvatar
               userId={movie.userId}
               userAvatar={movie.userAvatar}
-              avatarError={false}
-              onAvatarError={() => {}}
               size="medium"
             />
             <span className="ml-2">{movie.userId}</span>
