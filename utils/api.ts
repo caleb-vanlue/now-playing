@@ -1,11 +1,30 @@
-import { MediaData, HistoryData, BaseMedia } from "../types/media";
+import { MediaData, HistoryData, HistoryItem, BaseMedia } from "../types/media";
 import { fetchPlexData, getThumbnailUrl as getPlexThumbnailUrl } from "./plexApi";
 import { fetchJellyfinData, jellyfinThumbnailUrl } from "./jellyfinApi";
 
+interface ServiceConfig {
+  plex: boolean;
+  jellyfin: boolean;
+}
+
+let configCache: ServiceConfig | null = null;
+
+async function getServiceConfig(): Promise<ServiceConfig> {
+  if (configCache) return configCache;
+  try {
+    const res = await fetch("/api/config");
+    configCache = res.ok ? await res.json() : { plex: true, jellyfin: true };
+  } catch {
+    configCache = { plex: true, jellyfin: true };
+  }
+  return configCache!;
+}
+
 export async function fetchMediaData(signal?: AbortSignal): Promise<MediaData> {
+  const config = await getServiceConfig();
   const results = await Promise.allSettled([
-    fetchPlexData(signal),
-    fetchJellyfinData(signal),
+    config.plex ? fetchPlexData(signal) : Promise.resolve({ tracks: [], movies: [], episodes: [] }),
+    config.jellyfin ? fetchJellyfinData(signal) : Promise.resolve({ tracks: [], movies: [], episodes: [] }),
   ]);
 
   return results.reduce(
@@ -25,16 +44,25 @@ export async function fetchHistory(
   signal?: AbortSignal,
   limit = 100
 ): Promise<HistoryData> {
-  const results = await Promise.allSettled([
-    fetch(`/api/plex/history?limit=${limit}`, { signal }).then((r) =>
-      r.ok ? r.json() : Promise.reject(new Error(`Plex history: ${r.status}`))
-    ),
-    fetch(`/api/jellyfin/history?limit=${limit}`, { signal }).then((r) =>
-      r.ok
-        ? r.json()
-        : Promise.reject(new Error(`Jellyfin history: ${r.status}`))
-    ),
-  ]);
+  const config = await getServiceConfig();
+  const fetches: Promise<{ items: HistoryItem[] }>[] = [];
+  if (config.plex) {
+    fetches.push(
+      fetch(`/api/plex/history?limit=${limit}`, { signal }).then((r) =>
+        r.ok ? r.json() : Promise.reject(new Error(`Plex history: ${r.status}`))
+      )
+    );
+  }
+  if (config.jellyfin) {
+    fetches.push(
+      fetch(`/api/jellyfin/history?limit=${limit}`, { signal }).then((r) =>
+        r.ok
+          ? r.json()
+          : Promise.reject(new Error(`Jellyfin history: ${r.status}`))
+      )
+    );
+  }
+  const results = await Promise.allSettled(fetches);
 
   const allItems = results.flatMap((result) => {
     if (result.status === "fulfilled") {
