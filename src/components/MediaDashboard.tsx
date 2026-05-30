@@ -111,42 +111,27 @@ const MediaDashboard = memo(({ children }: MediaDashboardProps) => {
             </button>
           </div>
         </div>
-        <div className="flex flex-row md:flex-col items-center gap-4 md:gap-1.5">
-          <div className="flex items-center gap-3">
-            <a
-              href="https://www.plex.tv"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Plex"
-              className="text-gray-500 hover:text-gray-300 transition-colors"
-            >
-              <SiPlex size={32} />
-            </a>
-            <span className="text-gray-700 text-sm">|</span>
-            <a
-              href="https://jellyfin.org"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Jellyfin"
-              className="text-gray-500 hover:text-gray-300 transition-colors"
-            >
-              <SiJellyfin size={26} />
-            </a>
-          </div>
+        <div className="flex items-center gap-3">
           <button
-            role="switch"
-            aria-checked={theme === "jellyfin"}
-            aria-label={`Theme: ${theme === "plex" ? "Plex" : "Jellyfin"}. Click to switch.`}
-            onClick={() => setTheme(theme === "plex" ? "jellyfin" : "plex")}
-            className={`relative w-14 h-6 rounded-full transition-colors duration-300 focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] ${
-              theme === "jellyfin" ? "bg-[#06b6d4]" : "bg-[#ff6b00]"
+            onClick={() => setTheme("plex")}
+            aria-label="Switch to Plex theme"
+            aria-pressed={theme === "plex"}
+            className={`transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] rounded ${
+              theme === "plex" ? "text-[#ff6b00]" : "text-gray-500 hover:text-gray-300"
             }`}
           >
-            <div
-              className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-300 ${
-                theme === "jellyfin" ? "translate-x-8" : "translate-x-0"
-              }`}
-            />
+            <SiPlex size={32} />
+          </button>
+          <span className="text-gray-700 text-sm">|</span>
+          <button
+            onClick={() => setTheme("jellyfin")}
+            aria-label="Switch to Jellyfin theme"
+            aria-pressed={theme === "jellyfin"}
+            className={`transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] rounded ${
+              theme === "jellyfin" ? "text-[#06b6d4]" : "text-gray-500 hover:text-gray-300"
+            }`}
+          >
+            <SiJellyfin size={26} />
           </button>
         </div>
       </div>

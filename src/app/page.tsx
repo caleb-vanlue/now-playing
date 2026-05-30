@@ -13,6 +13,7 @@ import { useMediaDataContext } from "../components/MediaDataContext";
 import { useHistory } from "../hooks/useHistory";
 import { useSwipeable } from "react-swipeable";
 import { useGridKeyboardNavigation } from "../hooks/useGridKeyboardNavigation";
+import { SiPlex, SiJellyfin } from "react-icons/si";
 
 type MediaType = "music" | "movies" | "tvshows" | "history";
 
@@ -49,6 +50,7 @@ const EmptyState = memo(({ type }: { type: MediaType }) => {
 EmptyState.displayName = "EmptyState";
 
 function MediaPage() {
+  const [serviceLinksOpen, setServiceLinksOpen] = useState(false);
   const { mediaData, lastSyncTime } = useMediaDataContext();
   const { history, loading: historyLoading } = useHistory({ limit: 100, syncTrigger: lastSyncTime });
   const [activeTab, setActiveTab] = useState<MediaType>("music");
@@ -226,22 +228,48 @@ function MediaPage() {
           <PageTransition key={activeTab}>{renderContent}</PageTransition>
         </div>
       </div>
-      <a
-        href="https://github.com/caleb-vanlue/now-playing"
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="View project on GitHub"
-        className="fixed bottom-6 right-6 z-50 hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:ring-offset-2 focus:ring-offset-[var(--background)] rounded"
+      <div
+        className={`fixed bottom-6 right-6 z-50 flex items-center transition-all duration-200 ${serviceLinksOpen ? "gap-3" : "gap-1.5"}`}
+        onMouseEnter={() => setServiceLinksOpen(true)}
+        onMouseLeave={() => setServiceLinksOpen(false)}
       >
-        <Image
-          src="/images/logos/github-mark-white.svg"
-          alt="GitHub"
-          width={48}
-          height={48}
-          className="w-12 h-12"
-          priority={false}
-        />
-      </a>
+        <a
+          href="https://www.plex.tv"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Visit Plex website"
+          onClick={(e) => { if (!serviceLinksOpen) { e.preventDefault(); setServiceLinksOpen(true); } }}
+          className={`transition-colors duration-200 ${serviceLinksOpen ? "text-[#ff6b00] hover:opacity-80" : "text-gray-500"}`}
+        >
+          <div className={`transition-all duration-200 ${serviceLinksOpen ? "w-7 h-7" : "w-4 h-4"}`}>
+            <SiPlex style={{ width: "100%", height: "100%", display: "block" }} />
+          </div>
+        </a>
+        <a
+          href="https://github.com/caleb-vanlue/now-playing"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="View project on GitHub"
+          onClick={(e) => { if (!serviceLinksOpen) { e.preventDefault(); setServiceLinksOpen(true); } }}
+          className={`transition-opacity duration-200 ${serviceLinksOpen ? "opacity-100 hover:opacity-80" : "opacity-50"}`}
+        >
+          <div className={`transition-all duration-200 ${serviceLinksOpen ? "w-9 h-9" : "w-4 h-4"}`}>
+            <Image src="/images/logos/github-mark-white.svg" alt="GitHub" width={36} height={36} className="w-full h-full" />
+          </div>
+        </a>
+        <a
+          href="https://jellyfin.org"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Visit Jellyfin website"
+          onClick={(e) => { if (!serviceLinksOpen) { e.preventDefault(); setServiceLinksOpen(true); } }}
+          className={`transition-colors duration-200 ${serviceLinksOpen ? "text-[#06b6d4] hover:opacity-80" : "text-gray-500"}`}
+        >
+          <div className={`transition-all duration-200 ${serviceLinksOpen ? "w-[22px] h-[22px]" : "w-4 h-4"}`}>
+            <SiJellyfin style={{ width: "100%", height: "100%", display: "block" }} />
+          </div>
+        </a>
+      </div>
     </MediaDashboard>
   );
 }
