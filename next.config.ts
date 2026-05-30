@@ -67,11 +67,6 @@ const nextConfig: NextConfig = {
         hostname: "meta.plex.tv",
         pathname: "/**",
       },
-      {
-        protocol: "https",
-        hostname: "artworks.thetvdb.com",
-        pathname: "/**",
-      },
     ],
   },
 };

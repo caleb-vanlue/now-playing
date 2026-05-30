@@ -4,6 +4,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { MediaDataProvider } from "../components/MediaDataContext";
 import { ThemeProvider } from "../contexts/ThemeContext";
+import ServiceWorkerRegistrar from "../components/ServiceWorkerRegistrar";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -19,7 +20,13 @@ const customFont = localFont({
 
 export const metadata: Metadata = {
   title: "Now Playing",
-  description: "A dashboard for your media library",
+  description: "Real-time dashboard for your media streams",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Now Playing",
+  },
 };
 
 const themeInitScript = `(function(){try{var t=localStorage.getItem("now-playing-theme"),bg=t==="plex"?"#141414":"#0d1117";document.documentElement.style.background=bg;var m=document.createElement("meta");m.name="theme-color";m.content=bg;document.head.appendChild(m);if(t==="plex")document.documentElement.setAttribute("data-theme","plex")}catch(e){}})()`;
@@ -40,6 +47,7 @@ export default function RootLayout({
           fontFamily: "var(--font-custom), var(--font-inter), sans-serif",
         }}
       >
+        <ServiceWorkerRegistrar />
         <ThemeProvider>
           <MediaDataProvider>{children}</MediaDataProvider>
         </ThemeProvider>
