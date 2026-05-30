@@ -20,9 +20,6 @@ const customFont = localFont({
 export const metadata: Metadata = {
   title: "Now Playing",
   description: "A dashboard for your media library",
-  icons: {
-    icon: "/favicon-32x32.png",
-  },
 };
 
 const themeInitScript = `(function(){try{var t=localStorage.getItem("now-playing-theme"),bg=t==="plex"?"#141414":"#0d1117";document.documentElement.style.background=bg;var m=document.createElement("meta");m.name="theme-color";m.content=bg;document.head.appendChild(m);if(t==="plex")document.documentElement.setAttribute("data-theme","plex")}catch(e){}})()`;
@@ -36,7 +33,6 @@ export default function RootLayout({
     <html lang="en" className="dark" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
-        <link rel="icon" href="/favicon.ico" sizes="any" />
       </head>
       <body
         className={`${customFont.variable} ${inter.variable} antialiased text-white`}
