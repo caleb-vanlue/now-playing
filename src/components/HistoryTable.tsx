@@ -76,7 +76,7 @@ const HistoryItemCard = memo(
         }}
         className="relative bg-[var(--card-background)] rounded-lg p-4 hover:bg-[var(--card-background-hover)] transition-colors hardware-accelerated card-transition"
       >
-        <div className="absolute top-3 right-3">
+        <div className="absolute top-4 right-4">
           <SourceIcon source={item.source} size={20} />
         </div>
         <div className="flex gap-3">
