@@ -94,7 +94,7 @@ function TVShowCard({
       >
         {episode.showTitle}
       </p>
-      <div className="mt-2">
+      <div className="mt-1">
         <p className="text-gray-400 text-sm flex items-center gap-2">
           <span>{formattedDuration}</span>
           {qualityFormatted && (
