@@ -11,34 +11,12 @@ interface MediaDashboardProps {
 }
 
 const MediaDashboard = memo(({ children }: MediaDashboardProps) => {
-  const { mediaData, loading, error, lastSyncTime, isConnected, refreshData } =
+  const { mediaData, loading, error, isConnected, refreshData } =
     useMediaDataContext();
   const { theme, setTheme } = useTheme();
 
-  const syncTextRef = useRef<HTMLSpanElement>(null);
   const [showLoading, setShowLoading] = useState(loading && !mediaData);
   const headerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const updateSyncText = () => {
-      if (!syncTextRef.current) return;
-
-      const timeSinceSync = Math.floor(
-        (Date.now() - lastSyncTime.getTime()) / 1000
-      );
-      const syncText =
-        timeSinceSync < 60
-          ? `${timeSinceSync}s ago`
-          : `${Math.floor(timeSinceSync / 60)}m ago`;
-
-      syncTextRef.current.textContent = `Synced ${syncText}`;
-    };
-
-    updateSyncText();
-    const timer = setInterval(updateSyncText, 5000);
-
-    return () => clearInterval(timer);
-  }, [lastSyncTime]);
 
   const counts = useMemo(() => {
     const musicCount = mediaData?.tracks?.length || 0;
@@ -80,19 +58,20 @@ const MediaDashboard = memo(({ children }: MediaDashboardProps) => {
             <span className="text-gray-600">•</span>
             <span className="flex items-center gap-1">
               {isConnected ? (
-                <span className="w-2 h-2 bg-green-500 rounded-full" aria-label="Connected"></span>
+                <span
+                  className="w-2 h-2 bg-green-500 rounded-full"
+                  aria-label="Connected"
+                ></span>
               ) : (
-                <span className="w-2 h-2 bg-red-500 rounded-full" aria-label="Disconnected"></span>
+                <span
+                  className="w-2 h-2 bg-red-500 rounded-full"
+                  aria-label="Disconnected"
+                ></span>
               )}
-              <span ref={syncTextRef} aria-live="polite" aria-atomic="true">Synced 0s ago</span>
+              <span aria-live="polite" aria-atomic="true">
+                {isConnected ? "Connected" : "Disconnected"}
+              </span>
             </span>
-            <button
-              onClick={refreshData}
-              aria-label="Refresh media data"
-              className="text-xs bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
-            >
-              Refresh
-            </button>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -101,7 +80,9 @@ const MediaDashboard = memo(({ children }: MediaDashboardProps) => {
             aria-label="Switch to Plex theme"
             aria-pressed={theme === "plex"}
             className={`transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] rounded ${
-              theme === "plex" ? "text-[#ff6b00]" : "text-gray-500 hover:text-gray-300"
+              theme === "plex"
+                ? "text-[#ff6b00]"
+                : "text-gray-500 hover:text-gray-300"
             }`}
           >
             <SiPlex size={32} />
@@ -112,7 +93,9 @@ const MediaDashboard = memo(({ children }: MediaDashboardProps) => {
             aria-label="Switch to Jellyfin theme"
             aria-pressed={theme === "jellyfin"}
             className={`transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] rounded ${
-              theme === "jellyfin" ? "text-[#06b6d4]" : "text-gray-500 hover:text-gray-300"
+              theme === "jellyfin"
+                ? "text-[#06b6d4]"
+                : "text-gray-500 hover:text-gray-300"
             }`}
           >
             <SiJellyfin size={26} />
@@ -120,7 +103,7 @@ const MediaDashboard = memo(({ children }: MediaDashboardProps) => {
         </div>
       </div>
     ),
-    [counts.totalCount, isConnected, refreshData, theme, setTheme]
+    [counts.totalCount, isConnected, theme, setTheme],
   );
 
   return (
@@ -136,7 +119,11 @@ const MediaDashboard = memo(({ children }: MediaDashboardProps) => {
             <div className="flex flex-col items-center">
               <div className="relative w-16 h-16">
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-12 h-12 border-t-2 border-b-2 border-[var(--accent)] rounded-full animate-spin" role="status" aria-label="Loading"></div>
+                  <div
+                    className="w-12 h-12 border-t-2 border-b-2 border-[var(--accent)] rounded-full animate-spin"
+                    role="status"
+                    aria-label="Loading"
+                  ></div>
                 </div>
               </div>
 
@@ -163,7 +150,11 @@ const MediaDashboard = memo(({ children }: MediaDashboardProps) => {
       </div>
 
       {error && !isConnected && (
-        <div className="fixed bottom-4 right-4 bg-red-900/80 text-white p-4 rounded-lg shadow-lg max-w-md backdrop-blur-sm" role="alert" aria-live="assertive">
+        <div
+          className="fixed bottom-4 right-4 bg-red-900/80 text-white p-4 rounded-lg shadow-lg max-w-md backdrop-blur-sm"
+          role="alert"
+          aria-live="assertive"
+        >
           <h3 className="font-bold mb-1">Connection Error</h3>
           <p className="text-sm mb-2">{error.message}</p>
           <p className="text-xs text-gray-300 mb-2">
