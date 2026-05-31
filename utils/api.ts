@@ -27,7 +27,7 @@ export async function fetchMediaData(signal?: AbortSignal): Promise<MediaData> {
     config.jellyfin ? fetchJellyfinData(signal) : Promise.resolve({ tracks: [], movies: [], episodes: [] }),
   ]);
 
-  return results.reduce(
+  const merged = results.reduce(
     (acc, result) => {
       if (result.status === "fulfilled") {
         acc.tracks.push(...result.value.tracks);
@@ -38,6 +38,15 @@ export async function fetchMediaData(signal?: AbortSignal): Promise<MediaData> {
     },
     { tracks: [], movies: [], episodes: [] } as MediaData
   );
+
+  const byStartTime = (a: BaseMedia, b: BaseMedia) =>
+    new Date(a.startTime).getTime() - new Date(b.startTime).getTime();
+
+  merged.tracks.sort(byStartTime);
+  merged.movies.sort(byStartTime);
+  merged.episodes.sort(byStartTime);
+
+  return merged;
 }
 
 export async function fetchHistory(
