@@ -89,7 +89,7 @@ const HistoryItemCard = memo(
               </div>
             </div>
             <span
-              className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getTypeStyles(item.type)}`}
+              className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ${getTypeStyles(item.type)}`}
             >
               {item.type === "episode"
                 ? "TV Show"
