@@ -23,13 +23,21 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
+function safeCache(cache, request, response) {
+  if (response.ok && response.type !== "opaque") {
+    cache.put(request, response);
+  }
+}
+
 self.addEventListener("fetch", (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
   // Always hit the network for API routes — data must be live
   if (url.pathname.startsWith("/api/")) {
-    event.respondWith(fetch(request));
+    event.respondWith(
+      fetch(request).catch(() => new Response(null, { status: 503 }))
+    );
     return;
   }
 
@@ -38,11 +46,13 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       fetch(request)
         .then((res) => {
-          const clone = res.clone();
-          caches.open(CACHE).then((cache) => cache.put(request, clone));
+          if (res.ok) {
+            const clone = res.clone();
+            caches.open(CACHE).then((cache) => safeCache(cache, request, clone));
+          }
           return res;
         })
-        .catch(() => caches.match(request))
+        .catch(() => caches.match(request).then((cached) => cached ?? Response.error()))
     );
     return;
   }
@@ -52,9 +62,9 @@ self.addEventListener("fetch", (event) => {
     caches.match(request).then(
       (cached) => cached ?? fetch(request).then((res) => {
         const clone = res.clone();
-        caches.open(CACHE).then((cache) => cache.put(request, clone));
+        caches.open(CACHE).then((cache) => safeCache(cache, request, clone));
         return res;
-      })
+      }).catch(() => Response.error())
     )
   );
 });
