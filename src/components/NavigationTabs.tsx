@@ -143,7 +143,7 @@ const NavigationTabs = React.memo(function NavigationTabs({
               tabIndex={isActive ? 0 : -1}
               onClick={() => onTabClick(item.href)}
               onKeyDown={(e) => handleKeyDown(e, index)}
-              className={`relative py-3 px-1 focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:ring-offset-2 focus:ring-offset-[var(--background)] rounded ${
+              className={`relative py-3 px-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] rounded ${
                 isActive ? "text-white" : "text-gray-400 hover:text-white"
               }`}
             >

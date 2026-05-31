@@ -185,7 +185,7 @@ export default function HistoryTable({ items, loading }: HistoryTableProps) {
   }
 
   const selectStyles =
-    "w-full appearance-none bg-[var(--card-background)] text-white border border-gray-800 rounded-md pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-[var(--accent)] transition-all duration-200 cursor-pointer hover:bg-[var(--card-background-hover)]";
+    "w-full appearance-none bg-[var(--card-background)] text-white border border-gray-800 rounded-md pl-3 pr-8 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:border-[var(--accent)] transition-all duration-200 cursor-pointer hover:bg-[var(--card-background-hover)]";
 
   const chevron = (
     <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">

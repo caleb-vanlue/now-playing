@@ -14,6 +14,7 @@ import { useHistory } from "../hooks/useHistory";
 import { useSwipeable } from "react-swipeable";
 import { useGridKeyboardNavigation } from "../hooks/useGridKeyboardNavigation";
 import { SiPlex, SiJellyfin } from "react-icons/si";
+import { HiDotsHorizontal } from "react-icons/hi";
 
 type MediaType = "music" | "movies" | "tvshows" | "history";
 
@@ -191,7 +192,7 @@ function MediaPage() {
                 ref={setItemRef(index)}
                 onKeyDown={(e) => handleKeyDown(e, index)}
                 tabIndex={index === 0 ? 0 : -1}
-                className="focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:ring-offset-2 focus:ring-offset-[var(--background)] rounded-lg"
+                className="focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] rounded-lg"
               >
                 <TVShowCard item={episode} index={index} />
               </div>
@@ -229,45 +230,42 @@ function MediaPage() {
         </div>
       </div>
       <div
-        className={`fixed bottom-6 right-6 z-50 flex items-center transition-all duration-200 ${serviceLinksOpen ? "gap-3" : "gap-1.5"}`}
+        className={`fixed bottom-6 right-6 z-50 flex items-center transition-all duration-300 rounded-full backdrop-blur-md [mask-image:radial-gradient(ellipse_at_center,black_62%,transparent_90%)] ${serviceLinksOpen ? "gap-3 px-8 py-4 bg-[var(--background)]/85 opacity-100" : "px-5 py-3 bg-[var(--background)]/65 opacity-50 hover:opacity-100"}`}
         onMouseEnter={() => setServiceLinksOpen(true)}
         onMouseLeave={() => setServiceLinksOpen(false)}
       >
+        {/* Ellipsis — collapsed trigger */}
+        <div className={`transition-all duration-200 flex items-center justify-center overflow-hidden ${serviceLinksOpen ? "w-0 opacity-0 pointer-events-none" : "w-5 h-5 opacity-100"}`}>
+          <HiDotsHorizontal className="w-5 h-5 text-gray-400 shrink-0" />
+        </div>
+
+        {/* Service links — expanded state */}
         <a
           href="https://www.plex.tv"
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Visit Plex website"
-          onClick={(e) => { if (!serviceLinksOpen) { e.preventDefault(); setServiceLinksOpen(true); } }}
-          className={`transition-colors duration-200 ${serviceLinksOpen ? "text-[#ff6b00] hover:opacity-80" : "text-gray-500"}`}
+          className={`transition-all duration-200 text-[#ff6b00] hover:opacity-80 overflow-hidden shrink-0 ${serviceLinksOpen ? "w-7 h-7 opacity-100" : "w-0 h-0 opacity-0 pointer-events-none"}`}
         >
-          <div className={`transition-all duration-200 ${serviceLinksOpen ? "w-7 h-7" : "w-4 h-4"}`}>
-            <SiPlex style={{ width: "100%", height: "100%", display: "block" }} />
-          </div>
+          <SiPlex style={{ width: "100%", height: "100%", display: "block" }} />
         </a>
         <a
           href="https://github.com/caleb-vanlue/now-playing"
           target="_blank"
           rel="noopener noreferrer"
           aria-label="View project on GitHub"
-          onClick={(e) => { if (!serviceLinksOpen) { e.preventDefault(); setServiceLinksOpen(true); } }}
-          className={`transition-opacity duration-200 ${serviceLinksOpen ? "opacity-100 hover:opacity-80" : "opacity-50"}`}
+          className={`transition-all duration-200 hover:opacity-80 overflow-hidden shrink-0 ${serviceLinksOpen ? "w-9 h-9 opacity-100" : "w-0 h-0 opacity-0 pointer-events-none"}`}
         >
-          <div className={`transition-all duration-200 ${serviceLinksOpen ? "w-9 h-9" : "w-4 h-4"}`}>
-            <Image src="/images/logos/github-mark-white.svg" alt="GitHub" width={36} height={36} className="w-full h-full" />
-          </div>
+          <Image src="/images/logos/github-mark-white.svg" alt="GitHub" width={36} height={36} className="w-full h-full" />
         </a>
         <a
           href="https://jellyfin.org"
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Visit Jellyfin website"
-          onClick={(e) => { if (!serviceLinksOpen) { e.preventDefault(); setServiceLinksOpen(true); } }}
-          className={`transition-colors duration-200 ${serviceLinksOpen ? "text-[#06b6d4] hover:opacity-80" : "text-gray-500"}`}
+          className={`transition-all duration-200 text-[#06b6d4] hover:opacity-80 overflow-hidden shrink-0 ${serviceLinksOpen ? "w-[22px] h-[22px] opacity-100" : "w-0 h-0 opacity-0 pointer-events-none"}`}
         >
-          <div className={`transition-all duration-200 ${serviceLinksOpen ? "w-[22px] h-[22px]" : "w-4 h-4"}`}>
-            <SiJellyfin style={{ width: "100%", height: "100%", display: "block" }} />
-          </div>
+          <SiJellyfin style={{ width: "100%", height: "100%", display: "block" }} />
         </a>
       </div>
     </MediaDashboard>
