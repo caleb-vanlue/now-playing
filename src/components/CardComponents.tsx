@@ -32,11 +32,22 @@ export function PlayingStateIndicator({
   );
 }
 
-export function ProgressBar({ percentage }: { percentage: number }) {
+export function ProgressBar({
+  percentage,
+  transcodeProgress,
+}: {
+  percentage: number;
+  transcodeProgress?: number;
+}) {
   if (percentage <= 0) return null;
 
+  const bufferEnd =
+    transcodeProgress !== undefined
+      ? percentage + (transcodeProgress / 100) * (100 - percentage)
+      : undefined;
+
   return (
-    <div 
+    <div
       className="h-1 w-full bg-gray-800 relative"
       role="progressbar"
       aria-valuenow={Math.round(percentage)}
@@ -44,10 +55,16 @@ export function ProgressBar({ percentage }: { percentage: number }) {
       aria-valuemax={100}
       aria-label="Playback progress"
     >
+      {bufferEnd !== undefined && (
+        <div
+          className="absolute top-0 h-full bg-[var(--accent)]/30"
+          style={{ left: `${percentage}%`, width: `${bufferEnd - percentage}%` }}
+        />
+      )}
       <div
         className="absolute top-0 left-0 h-full bg-[var(--accent)]"
         style={{ width: `${percentage}%` }}
-      ></div>
+      />
     </div>
   );
 }
@@ -55,10 +72,17 @@ export function ProgressBar({ percentage }: { percentage: number }) {
 export function ProgressInfo({
   percentage,
   estimatedFinishTime,
+  transcodeProgress,
 }: {
   percentage: number;
   estimatedFinishTime: Date;
+  transcodeProgress?: number;
 }) {
+  const bufferEnd =
+    transcodeProgress !== undefined
+      ? percentage + (transcodeProgress / 100) * (100 - percentage)
+      : undefined;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -67,8 +91,8 @@ export function ProgressInfo({
       className="mb-4 bg-gray-800/50 rounded-lg p-3"
     >
       <div className="flex justify-between items-center mb-1 text-sm">
-        <span>{Math.round(percentage)}% complete</span>
-        <span>
+        <span className="whitespace-nowrap">{Math.round(percentage)}% complete</span>
+        <span className="whitespace-nowrap shrink-0 ml-3">
           Ends at{" "}
           <time dateTime={estimatedFinishTime.toISOString()}>
             {estimatedFinishTime.toLocaleTimeString([], {
@@ -78,18 +102,34 @@ export function ProgressInfo({
           </time>
         </span>
       </div>
-      <div 
-        className="w-full h-2 bg-gray-700 rounded-full overflow-hidden"
+      {transcodeProgress !== undefined && (
+        <div className="text-xs text-gray-500 text-center mb-1">transcoding</div>
+      )}
+      <div
+        className="relative w-full h-2 bg-gray-700 rounded-full overflow-hidden"
         role="progressbar"
         aria-valuenow={Math.round(percentage)}
         aria-valuemin={0}
         aria-valuemax={100}
-        aria-label="Detailed playback progress"
+        aria-label={
+          bufferEnd !== undefined
+            ? `Playback ${Math.round(percentage)}% complete, transcoded to ${Math.round(bufferEnd)}%`
+            : "Detailed playback progress"
+        }
       >
+        {bufferEnd !== undefined && (
+          <div
+            className="absolute top-0 h-full bg-[var(--accent)]/30"
+            style={{
+              left: `${percentage}%`,
+              width: `${bufferEnd - percentage}%`,
+            }}
+          />
+        )}
         <div
-          className="h-full bg-[var(--accent)] rounded-full"
+          className="absolute top-0 left-0 h-full bg-[var(--accent)]"
           style={{ width: `${percentage}%` }}
-        ></div>
+        />
       </div>
     </motion.div>
   );

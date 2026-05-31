@@ -129,36 +129,13 @@ function MovieCard({ item: movie, index = 0 }: MovieCardProps) {
       <ProgressInfo
         percentage={progressPercentage}
         estimatedFinishTime={estimatedFinishTime}
+        transcodeProgress={
+          movie.transcodeProgress !== undefined &&
+          (movie.videoDecision === "transcode" || movie.audioDecision === "transcode")
+            ? movie.transcodeProgress
+            : undefined
+        }
       />
-
-      {movie.transcodeProgress !== undefined &&
-        (movie.videoDecision === "transcode" ||
-          movie.audioDecision === "transcode") && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-            className="mb-4 bg-gray-800/50 rounded-lg p-3"
-          >
-            <div className="flex justify-between items-center mb-1 text-sm">
-              <span>Transcode Progress</span>
-              <span>{Math.round(movie.transcodeProgress)}%</span>
-            </div>
-            <div
-              className="w-full h-2 bg-gray-700 rounded-full overflow-hidden"
-              role="progressbar"
-              aria-valuenow={Math.round(movie.transcodeProgress)}
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-label="Transcode progress"
-            >
-              <div
-                className="h-full bg-blue-500 rounded-full"
-                style={{ width: `${movie.transcodeProgress}%` }}
-              ></div>
-            </div>
-          </motion.div>
-        )}
 
       {movie.summary && (
         <motion.div
@@ -381,6 +358,10 @@ function MovieCard({ item: movie, index = 0 }: MovieCardProps) {
     </>
   );
 
+  const isTranscoding =
+    movie.transcodeProgress !== undefined &&
+    (movie.videoDecision === "transcode" || movie.audioDecision === "transcode");
+
   return (
     <BaseMediaCard
       item={movie}
@@ -390,6 +371,7 @@ function MovieCard({ item: movie, index = 0 }: MovieCardProps) {
       renderDetailHeader={renderDetailHeader}
       renderDetailContent={renderDetailContent}
       progressPercentage={progressPercentage}
+      transcodeProgress={isTranscoding ? movie.transcodeProgress : undefined}
     />
   );
 }

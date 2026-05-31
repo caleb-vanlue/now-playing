@@ -21,6 +21,7 @@ interface BaseMediaCardProps<T extends BaseMedia> {
   renderDetailHeader: (item: T) => React.ReactNode;
   renderDetailContent: (item: T) => React.ReactNode;
   progressPercentage: number;
+  transcodeProgress?: number;
   className?: string;
 }
 
@@ -143,6 +144,7 @@ function BaseMediaCardComponent<T extends BaseMedia>({
   renderDetailHeader,
   renderDetailContent,
   progressPercentage,
+  transcodeProgress,
   className = "",
 }: BaseMediaCardProps<T>) {
   const {
@@ -210,7 +212,7 @@ function BaseMediaCardComponent<T extends BaseMedia>({
           <PlayingStateIndicator state={item.state} />
         </div>
 
-        <ProgressBar percentage={progressPercentage} />
+        <ProgressBar percentage={progressPercentage} transcodeProgress={transcodeProgress} />
 
         <CardContent
           item={item}

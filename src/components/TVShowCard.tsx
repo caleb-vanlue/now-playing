@@ -136,36 +136,13 @@ function TVShowCard({
       <ProgressInfo
         percentage={progressPercentage}
         estimatedFinishTime={estimatedFinishTime}
+        transcodeProgress={
+          episode.transcodeProgress !== undefined &&
+          (episode.videoDecision === "transcode" || episode.audioDecision === "transcode")
+            ? episode.transcodeProgress
+            : undefined
+        }
       />
-
-      {episode.transcodeProgress !== undefined &&
-        (episode.videoDecision === "transcode" ||
-          episode.audioDecision === "transcode") && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-            className="mb-4 bg-gray-800/50 rounded-lg p-3"
-          >
-            <div className="flex justify-between items-center mb-1 text-sm">
-              <span>Transcode Progress</span>
-              <span>{Math.round(episode.transcodeProgress)}%</span>
-            </div>
-            <div
-              className="w-full h-2 bg-gray-700 rounded-full overflow-hidden"
-              role="progressbar"
-              aria-valuenow={Math.round(episode.transcodeProgress)}
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-label="Transcode progress"
-            >
-              <div
-                className="h-full bg-blue-500 rounded-full"
-                style={{ width: `${episode.transcodeProgress}%` }}
-              ></div>
-            </div>
-          </motion.div>
-        )}
 
       {episode.summary && (
         <motion.div
@@ -389,6 +366,10 @@ function TVShowCard({
     </>
   );
 
+  const isTranscoding =
+    episode.transcodeProgress !== undefined &&
+    (episode.videoDecision === "transcode" || episode.audioDecision === "transcode");
+
   return (
     <BaseMediaCard
       item={episode}
@@ -398,6 +379,7 @@ function TVShowCard({
       renderDetailHeader={renderDetailHeader}
       renderDetailContent={renderDetailContent}
       progressPercentage={progressPercentage}
+      transcodeProgress={isTranscoding ? episode.transcodeProgress : undefined}
       className="col-span-2"
     />
   );
