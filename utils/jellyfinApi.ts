@@ -1,5 +1,6 @@
 import { MediaData, Track, Movie, Episode, Person } from "../types/media";
 import { fetchWithTimeout } from "./plexApi";
+import { normalizeVideoResolution } from "./mediaCardUtils";
 
 interface JellyfinPerson {
   Id: string;
@@ -111,16 +112,6 @@ function mapJellyfinState(isPaused: boolean | undefined): "playing" | "paused" {
   return isPaused ? "paused" : "playing";
 }
 
-function heightToResolutionLabel(height: number | undefined): string {
-  if (!height) return "";
-  if (height >= 2160) return "4k";
-  if (height >= 1440) return "1440";
-  if (height >= 1080) return "1080";
-  if (height >= 720) return "720";
-  if (height >= 480) return "480";
-  return String(height);
-}
-
 function extractStreams(streams: JellyfinMediaStream[] | undefined) {
   const videoStream = streams?.find((s) => s.Type === "Video");
   const audioStream =
@@ -128,7 +119,7 @@ function extractStreams(streams: JellyfinMediaStream[] | undefined) {
     streams?.find((s) => s.Type === "Audio");
 
   return {
-    videoResolution: heightToResolutionLabel(videoStream?.Height),
+    videoResolution: normalizeVideoResolution(videoStream?.Height?.toString()),
     videoCodec: videoStream?.Codec,
     videoProfile: videoStream?.Profile,
     // BitRate from Jellyfin is bits/sec; our type stores kbps (card renders kbps/1000 = Mbps)

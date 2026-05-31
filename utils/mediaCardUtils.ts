@@ -42,15 +42,31 @@ export const formatDurationMMSS = (duration: number): string => {
   return `${minutes}:${String(seconds).padStart(2, "0")}`;
 };
 
+// Maps raw resolution strings (Plex) or pixel heights as strings (Jellyfin) to
+// standard labels. Numeric thresholds handle odd values like "400" → "480p".
+export function normalizeVideoResolution(value: string | undefined): string {
+  if (!value) return "";
+  const str = value.toLowerCase().trim();
+  if (str === "4k" || str === "uhd") return "4K";
+  if (str === "sd") return "SD";
+  const num = parseInt(str, 10);
+  if (!isNaN(num)) {
+    if (num >= 2160) return "4K";
+    if (num >= 1440) return "1440p";
+    if (num >= 1080) return "1080p";
+    if (num >= 720) return "720p";
+    if (num >= 480) return "480p";
+    if (num >= 360) return "360p";
+    if (num >= 240) return "240p";
+    return "SD";
+  }
+  return value.toUpperCase();
+}
+
 export const formatQuality = (
   videoResolution?: string,
   audioCodec?: string
-): string => {
-  if (videoResolution) {
-    return videoResolution.toUpperCase();
-  }
-  return "";
-};
+): string => videoResolution ?? "";
 
 export const calculateProgress = (
   viewOffset?: number,

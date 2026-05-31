@@ -1,4 +1,5 @@
 import { MediaData, Track, Movie, Episode } from "../types/media";
+import { normalizeVideoResolution } from "./mediaCardUtils";
 
 const FETCH_TIMEOUT = parseInt(process.env.NEXT_PUBLIC_FETCH_TIMEOUT || "8000");
 
@@ -121,7 +122,7 @@ function extractPlexStreams(session: PlexSession) {
   );
   return {
     duration: session.duration || mediaInfo?.duration || 0,
-    videoResolution: mediaInfo?.videoResolution || "",
+    videoResolution: normalizeVideoResolution(mediaInfo?.videoResolution),
     audioCodec: mediaInfo?.audioCodec || "",
     videoCodec: mediaInfo?.videoCodec,
     videoProfile: mediaInfo?.videoProfile,
