@@ -1,9 +1,9 @@
 version: "3.8"
 
 services:
-  plex-api-dashboard:
+  now-playing:
     image: irrelativity/now-playing:latest
-    container_name: plex-api-dashboard
+    container_name: now-playing
     ports:
       - "0.0.0.0:3003:3003"
     environment:
