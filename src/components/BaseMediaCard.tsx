@@ -1,8 +1,7 @@
 import React, { memo, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { SiPlex, SiJellyfin } from "react-icons/si";
 import { useMediaCard } from "../hooks/useMediaCard";
-import { PlayingStateIndicator, ProgressBar } from "./CardComponents";
+import { PlayingStateIndicator, ProgressBar, SourceIcon } from "./CardComponents";
 import { UserInfo } from "./UserAvatar";
 import { BaseMedia } from "../../types/media";
 import { getTimeAgo } from "../../utils/dateUtils";
@@ -46,17 +45,10 @@ function CardContentComponent<T extends BaseMedia>(props: CardContentProps<T>) {
     onAvatarError,
   } = props;
 
-  const sourceIcon =
-    item.source === "plex" ? (
-      <SiPlex size={28} className="text-gray-500 shrink-0" title="Plex" />
-    ) : (
-      <SiJellyfin size={22} className="text-gray-500 shrink-0" title="Jellyfin" />
-    );
-
   return (
     <div className="p-4 relative">
       <div className="absolute top-4 right-4">
-        {sourceIcon}
+        <SourceIcon source={item.source} size={28} />
       </div>
       <div className="pr-8">
         {renderMainContent(item)}

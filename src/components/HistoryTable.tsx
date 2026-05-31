@@ -1,8 +1,8 @@
 import React, { useState, useMemo, useEffect, memo } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { SiPlex, SiJellyfin } from "react-icons/si";
 import { HistoryItem } from "../../types/media";
+import { SourceIcon } from "./CardComponents";
 import { getTimeAgo } from "../../utils/dateUtils";
 
 interface HistoryTableProps {
@@ -77,11 +77,7 @@ const HistoryItemCard = memo(
         className="relative bg-[var(--card-background)] rounded-lg p-4 hover:bg-[var(--card-background-hover)] transition-colors hardware-accelerated card-transition"
       >
         <div className="absolute top-3 right-3">
-          {item.source === "plex" ? (
-            <SiPlex size={20} className="text-gray-500" title="Plex" />
-          ) : (
-            <SiJellyfin size={16} className="text-gray-500" title="Jellyfin" />
-          )}
+          <SourceIcon source={item.source} size={20} />
         </div>
         <div className="flex gap-3">
           <div className="flex-shrink-0 flex flex-col items-center gap-1.5">

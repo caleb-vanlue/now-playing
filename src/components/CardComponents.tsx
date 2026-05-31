@@ -1,5 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
+import { SiPlex, SiJellyfin } from "react-icons/si";
 
 export function PlayingStateIndicator({
   state,
@@ -91,6 +92,20 @@ export function ProgressInfo({
         ></div>
       </div>
     </motion.div>
+  );
+}
+
+export function SourceIcon({
+  source,
+  size = 24,
+}: {
+  source: "plex" | "jellyfin";
+  size?: number;
+}) {
+  return source === "plex" ? (
+    <SiPlex size={size} className="text-gray-500 shrink-0" title="Plex" />
+  ) : (
+    <SiJellyfin size={Math.round(size * 0.8)} className="text-gray-500 shrink-0" title="Jellyfin" />
   );
 }
 
