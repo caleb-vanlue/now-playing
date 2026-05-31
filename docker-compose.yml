@@ -2,11 +2,7 @@ version: "3.8"
 
 services:
   plex-api-dashboard:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        - NEXT_PUBLIC_FETCH_TIMEOUT=${FETCH_TIMEOUT:-8000}
+    image: irrelativity/now-playing:latest
     container_name: plex-api-dashboard
     ports:
       - "0.0.0.0:3003:3003"
@@ -14,9 +10,12 @@ services:
       - NODE_ENV=${NODE_ENV:-production}
       - PLEX_URL=${PLEX_URL}
       - PLEX_TOKEN=${PLEX_TOKEN}
+      - JELLYFIN_URL=${JELLYFIN_URL}
+      - JELLYFIN_API_KEY=${JELLYFIN_API_KEY}
       - NEXT_PUBLIC_FETCH_TIMEOUT=${FETCH_TIMEOUT:-8000}
       - SPOTIFY_CLIENT_ID=${SPOTIFY_CLIENT_ID}
       - SPOTIFY_CLIENT_SECRET=${SPOTIFY_CLIENT_SECRET}
+      - USERNAME_MAP=${USERNAME_MAP}
     restart: unless-stopped
     extra_hosts:
       - "host.docker.internal:host-gateway"
