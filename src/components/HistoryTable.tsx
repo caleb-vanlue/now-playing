@@ -137,6 +137,7 @@ export default function HistoryTable({ items, loading }: HistoryTableProps) {
   const [imageErrors, setImageErrors] = useState<ImageStateMap>({});
   const [selectedUser, setSelectedUser] = useState<string>("all");
   const [selectedType, setSelectedType] = useState<string>("all");
+  const [selectedSource, setSelectedSource] = useState<string>("all");
 
   useEffect(() => {
     return () => setImageErrors({});
@@ -154,14 +155,22 @@ export default function HistoryTable({ items, loading }: HistoryTableProps) {
     return Array.from(set).sort();
   }, [items]);
 
+  const sources = useMemo(() => {
+    const set = new Set<string>();
+    items.forEach((item) => set.add(item.source));
+    return Array.from(set).sort();
+  }, [items]);
+
   const filteredItems = useMemo(() => {
     let filtered = items;
     if (selectedUser !== "all")
       filtered = filtered.filter((item) => item.userName === selectedUser);
     if (selectedType !== "all")
       filtered = filtered.filter((item) => item.type === selectedType);
+    if (selectedSource !== "all")
+      filtered = filtered.filter((item) => item.source === selectedSource);
     return filtered;
-  }, [items, selectedUser, selectedType]);
+  }, [items, selectedUser, selectedType, selectedSource]);
 
   const handleImageError = (itemKey: string) => {
     setImageErrors((prev) => ({ ...prev, [itemKey]: true }));
@@ -233,9 +242,30 @@ export default function HistoryTable({ items, loading }: HistoryTableProps) {
         {chevron}
       </div>
 
-      {(selectedUser !== "all" || selectedType !== "all") && (
+      {sources.length > 1 && (
+        <div className="relative w-full sm:w-auto">
+          <label htmlFor="source-filter" className="sr-only">Filter by source</label>
+          <select
+            id="source-filter"
+            value={selectedSource}
+            onChange={(e) => setSelectedSource(e.target.value)}
+            className={selectStyles}
+            aria-label="Filter by source"
+          >
+            <option value="all">All Sources</option>
+            {sources.map((source) => (
+              <option key={source} value={source}>
+                {source.charAt(0).toUpperCase() + source.slice(1)}
+              </option>
+            ))}
+          </select>
+          {chevron}
+        </div>
+      )}
+
+      {(selectedUser !== "all" || selectedType !== "all" || selectedSource !== "all") && (
         <button
-          onClick={() => { setSelectedUser("all"); setSelectedType("all"); }}
+          onClick={() => { setSelectedUser("all"); setSelectedType("all"); setSelectedSource("all"); }}
           className="text-sm text-gray-400 hover:text-[var(--accent)] transition-colors sm:ml-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] rounded px-2 py-1"
           aria-label="Clear all filters"
         >
