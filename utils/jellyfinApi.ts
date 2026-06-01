@@ -38,6 +38,7 @@ interface JellyfinNowPlayingItem {
   Id: string;
   Name: string;
   Type: string;
+  SeriesId?: string;
   SeriesName?: string;
   IndexNumber?: number;
   ParentIndexNumber?: number;
@@ -201,6 +202,7 @@ function mapToEpisode(
     sessionId: session.Id,
     viewOffset: ticksToMs(play.PositionTicks),
     showTitle: item.SeriesName ?? "Unknown Show",
+    seriesThumbId: item.SeriesId,
     season: item.ParentIndexNumber ?? 0,
     episode: item.IndexNumber ?? 0,
     duration: ticksToMs(item.RunTimeTicks),

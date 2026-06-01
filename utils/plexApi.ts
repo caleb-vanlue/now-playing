@@ -97,6 +97,7 @@ interface PlexSession {
 
 interface PlexEpisodeSession extends PlexSession {
   grandparentTitle?: string;
+  grandparentThumb?: string;
   parentIndex?: number;
   index?: number;
 }
@@ -182,6 +183,7 @@ function mapToEpisode(session: PlexEpisodeSession): Episode {
     ...mapPlexBaseFields(session, "Video Player"),
     ...streams,
     showTitle: session.grandparentTitle || "Unknown Show",
+    seriesThumbId: session.grandparentThumb,
     season: session.parentIndex || 0,
     episode: session.index || 0,
     summary: session.summary || "",

@@ -16,10 +16,14 @@ import { useGridKeyboardNavigation } from "../hooks/useGridKeyboardNavigation";
 import { SiPlex, SiJellyfin } from "react-icons/si";
 import { HiDotsHorizontal } from "react-icons/hi";
 
-type MediaType = "music" | "movies" | "tvshows" | "history";
+type MediaType = "all" | "music" | "movies" | "tvshows" | "history";
 
 const EmptyState = memo(({ type }: { type: MediaType }) => {
   const messages = {
+    all: {
+      title: "Nothing currently playing",
+      subtitle: "Active sessions will appear here",
+    },
     music: {
       title: "No music currently playing",
       subtitle: "Music will appear here when someone starts playing",
@@ -54,9 +58,9 @@ function MediaPage() {
   const [serviceLinksOpen, setServiceLinksOpen] = useState(false);
   const { mediaData, lastSyncTime } = useMediaDataContext();
   const { history, hasMore: historyHasMore, loading: historyLoading, loadingMore: historyLoadingMore, loadMore: loadMoreHistory } = useHistory({ syncTrigger: lastSyncTime });
-  const [activeTab, setActiveTab] = useState<MediaType>("music");
+  const [activeTab, setActiveTab] = useState<MediaType>("all");
 
-  const order = useMemo(() => ["music", "movies", "tvshows", "history"], []);
+  const order = useMemo(() => ["all", "music", "movies", "tvshows", "history"], []);
   
   const handleSwipeLeft = useCallback(() => {
     setActiveTab(
@@ -88,20 +92,18 @@ function MediaPage() {
   // Determine grid columns based on tab type
   const gridColumns = useMemo(() => {
     switch (activeTab) {
-      case "music":
-        return 4; // lg:grid-cols-4
-      case "movies":
-        return 5; // lg:grid-cols-5
-      case "tvshows":
-        return 4; // lg:grid-cols-4
-      default:
-        return 1;
+      case "music": return 4;
+      case "movies": return 5;
+      case "tvshows": return 4;
+      default: return 1;
     }
   }, [activeTab]);
-  
+
   // Get current items count
   const currentItemsCount = useMemo(() => {
     switch (activeTab) {
+      case "all":
+        return tracks.length + movies.length + episodes.length;
       case "music":
         return tracks.length;
       case "movies":
@@ -125,6 +127,7 @@ function MediaPage() {
 
   const navItems = useMemo(
     () => [
+      { href: "#all", label: "All", count: tracks.length + movies.length + episodes.length },
       { href: "#music", label: "Music", count: tracks.length },
       { href: "#movies", label: "Movies", count: movies.length },
       { href: "#tvshows", label: "TV Shows", count: episodes.length },
@@ -140,6 +143,26 @@ function MediaPage() {
 
   const renderContent = useMemo(() => {
     switch (activeTab) {
+      case "all": {
+        const allItems = [
+          ...tracks.map((item) => ({ kind: "music" as const, item })),
+          ...movies.map((item) => ({ kind: "movie" as const, item })),
+          ...episodes.map((item) => ({ kind: "tv" as const, item })),
+        ];
+        if (allItems.length === 0) {
+          return <EmptyState type="all" />;
+        }
+        return (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6" role="group" aria-label="All media">
+            {allItems.map(({ kind, item }, index) => {
+              if (kind === "music") return <MusicCard key={item.id} track={item} index={index} />;
+              if (kind === "movie") return <MovieCard key={item.id} item={item} index={index} />;
+              return <TVShowCard key={item.id} item={item} index={index} showSeriesPoster />;
+            })}
+          </div>
+        );
+      }
+
       case "music":
         if (tracks.length === 0) {
           return <EmptyState type="music" />;

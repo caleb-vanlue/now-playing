@@ -47,11 +47,11 @@ function CardContentComponent<T extends BaseMedia>(props: CardContentProps<T>) {
   } = props;
 
   return (
-    <div className="p-4 relative">
+    <div className="p-4 relative flex flex-col flex-1">
       <div className="absolute top-4 right-4">
         <SourceIcon source={item.source} size={28} />
       </div>
-      <div className="pr-8">
+      <div className="pr-8 flex-1">
         {renderMainContent(item)}
       </div>
       <UserInfo
@@ -197,14 +197,14 @@ function BaseMediaCardComponent<T extends BaseMedia>({
   return (
     <div
       ref={cardRef}
-      className={`bg-[var(--card-background)] rounded-lg overflow-hidden shadow-md relative card-transition ${className}`}
+      className={`bg-[var(--card-background)] rounded-lg overflow-hidden shadow-md relative card-transition flex flex-col ${className}`}
       style={{
         opacity: 1,
         transform: "translateY(0)",
       }}
     >
       <div
-        className="cursor-pointer"
+        className="cursor-pointer flex flex-col flex-1"
         onClick={handleCardClick}
       >
         <div className="relative overflow-hidden">

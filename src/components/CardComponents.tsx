@@ -98,11 +98,12 @@ export function ProgressInfo({
           {Math.round(percentage)}% complete
         </span>
         <span className="whitespace-nowrap shrink-0 ml-3">
-          Ends at{" "}
+          Done @{" "}
           <time dateTime={estimatedFinishTime.toISOString()}>
             {estimatedFinishTime.toLocaleTimeString([], {
               hour: "numeric",
               minute: "2-digit",
+              hour12: false,
             })}
           </time>
         </span>

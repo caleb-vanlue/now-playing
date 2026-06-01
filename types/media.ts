@@ -89,6 +89,8 @@ export interface Episode extends BaseMedia {
   directors?: Person[];
   writers?: Person[];
   actors?: Person[];
+  // Series-level poster art (Plex: grandparentThumb path; Jellyfin: SeriesId)
+  seriesThumbId?: string;
 }
 
 export interface MediaData {

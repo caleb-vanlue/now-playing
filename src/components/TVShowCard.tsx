@@ -2,7 +2,7 @@ import React, { memo } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { Episode } from "../../types/media";
-import { getResponsiveThumbnailUrl } from "../../utils/api";
+import { getResponsiveThumbnailUrl, getSeriesThumbnailUrl } from "../../utils/api";
 import {
   calculateProgress,
   calculateFinishTime,
@@ -24,11 +24,13 @@ import {
 interface TVShowCardProps {
   item: Episode;
   index?: number;
+  showSeriesPoster?: boolean;
 }
 
 function TVShowCard({
   item: episode,
   index = 0,
+  showSeriesPoster = false,
 }: TVShowCardProps) {
   const progressPercentage = calculateProgress(
     episode.viewOffset,
@@ -47,7 +49,8 @@ function TVShowCard({
   const startedAt = new Date(episode.startTime);
 
   const renderThumbnail = (episode: Episode, imageState: ImageState) => {
-    const thumbnailUrl = getResponsiveThumbnailUrl(episode, "tv");
+    const seriesUrl = showSeriesPoster ? getSeriesThumbnailUrl(episode) : null;
+    const thumbnailUrl = seriesUrl ?? getResponsiveThumbnailUrl(episode, "tv");
 
     const badges = [
       <SeasonEpisodeBadge
@@ -73,8 +76,8 @@ function TVShowCard({
     return (
       <ImageWithFallback
         src={thumbnailUrl}
-        alt={episode.title}
-        aspectRatio="landscape"
+        alt={episode.showTitle}
+        aspectRatio={showSeriesPoster ? "portrait" : "landscape"}
         sizes="(max-width: 768px) 100vw, 50vw"
         fallbackIcon="📺"
         badges={badges}
@@ -380,7 +383,7 @@ function TVShowCard({
       renderDetailContent={renderDetailContent}
       progressPercentage={progressPercentage}
       transcodeProgress={isTranscoding ? episode.transcodeProgress : undefined}
-      className="col-span-2"
+      className={showSeriesPoster ? "" : "col-span-2"}
     />
   );
 }

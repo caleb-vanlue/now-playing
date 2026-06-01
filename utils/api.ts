@@ -1,4 +1,4 @@
-import { MediaData, HistoryData, HistoryItem, BaseMedia } from "../types/media";
+import { MediaData, HistoryData, HistoryItem, BaseMedia, Episode } from "../types/media";
 import { fetchPlexData, getThumbnailUrl as getPlexThumbnailUrl } from "./plexApi";
 import { fetchJellyfinData, jellyfinThumbnailUrl } from "./jellyfinApi";
 
@@ -111,6 +111,14 @@ export function getThumbnailUrl(
     quality: options?.quality || "low",
     width: options?.width,
   });
+}
+
+export function getSeriesThumbnailUrl(episode: Pick<Episode, "source" | "seriesThumbId">): string | null {
+  if (!episode.seriesThumbId) return null;
+  if (episode.source === "jellyfin") {
+    return jellyfinThumbnailUrl(episode.seriesThumbId, "high", 600);
+  }
+  return getPlexThumbnailUrl(episode.seriesThumbId, { quality: "high", width: 600 });
 }
 
 export function getResponsiveThumbnailUrl(
