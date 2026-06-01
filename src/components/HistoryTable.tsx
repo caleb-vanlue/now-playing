@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, memo } from "react";
+import React, { useState, useMemo, useEffect, useRef, memo } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { HistoryItem } from "../../types/media";
@@ -8,6 +8,9 @@ import { getTimeAgo } from "../../utils/dateUtils";
 interface HistoryTableProps {
   items: HistoryItem[];
   loading?: boolean;
+  loadingMore?: boolean;
+  hasMore?: boolean;
+  onLoadMore?: () => void;
 }
 
 interface ImageStateMap {
@@ -133,15 +136,36 @@ const HistoryItemCard = memo(
 
 HistoryItemCard.displayName = "HistoryItemCard";
 
-export default function HistoryTable({ items, loading }: HistoryTableProps) {
+export default function HistoryTable({ items, loading, loadingMore, hasMore, onLoadMore }: HistoryTableProps) {
   const [imageErrors, setImageErrors] = useState<ImageStateMap>({});
   const [selectedUser, setSelectedUser] = useState<string>("all");
   const [selectedType, setSelectedType] = useState<string>("all");
   const [selectedSource, setSelectedSource] = useState<string>("all");
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const loadingMoreRef = useRef(loadingMore);
 
   useEffect(() => {
     return () => setImageErrors({});
   }, []);
+
+  useEffect(() => {
+    loadingMoreRef.current = loadingMore ?? false;
+  }, [loadingMore]);
+
+  useEffect(() => {
+    if (!onLoadMore || !hasMore) return;
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !loadingMoreRef.current) onLoadMore();
+      },
+      { rootMargin: "200px" }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [onLoadMore, hasMore]);
 
   const users = useMemo(() => {
     const set = new Set<string>();
@@ -303,9 +327,19 @@ export default function HistoryTable({ items, loading }: HistoryTableProps) {
         ))}
       </div>
 
-      <p className="text-center text-gray-400 text-sm pt-8">
-        &copy; {new Date().getFullYear()} Caleb Van Lue. Thanks for visiting!
-      </p>
+      {loadingMore && (
+        <div className="flex items-center justify-center py-6">
+          <div className="w-5 h-5 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin" />
+        </div>
+      )}
+
+      {hasMore && <div ref={sentinelRef} className="h-1" />}
+
+      {!hasMore && items.length > 0 && (
+        <p className="text-center text-gray-400 text-sm pt-8">
+          &copy; {new Date().getFullYear()} Caleb Van Lue. Thanks for visiting!
+        </p>
+      )}
     </>
   );
 }

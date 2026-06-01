@@ -49,22 +49,28 @@ export async function fetchMediaData(signal?: AbortSignal): Promise<MediaData> {
   return merged;
 }
 
+const HISTORY_MAX = 250;
+
 export async function fetchHistory(
   signal?: AbortSignal,
-  limit = 100
+  limit = 25
 ): Promise<HistoryData> {
+  const clampedLimit = Math.min(limit, HISTORY_MAX);
+  // Fetch one extra per source to detect whether more items exist
+  const fetchLimit = clampedLimit + 1;
+
   const config = await getServiceConfig();
   const fetches: Promise<{ items: HistoryItem[] }>[] = [];
   if (config.plex) {
     fetches.push(
-      fetch(`/api/plex/history?limit=${limit}`, { signal }).then((r) =>
+      fetch(`/api/plex/history?limit=${fetchLimit}`, { signal }).then((r) =>
         r.ok ? r.json() : Promise.reject(new Error(`Plex history: ${r.status}`))
       )
     );
   }
   if (config.jellyfin) {
     fetches.push(
-      fetch(`/api/jellyfin/history?limit=${limit}`, { signal }).then((r) =>
+      fetch(`/api/jellyfin/history?limit=${fetchLimit}`, { signal }).then((r) =>
         r.ok
           ? r.json()
           : Promise.reject(new Error(`Jellyfin history: ${r.status}`))
@@ -80,10 +86,10 @@ export async function fetchHistory(
     return [];
   });
 
-  // Sort merged history by viewedAt descending
   allItems.sort((a, b) => b.viewedAt - a.viewedAt);
 
-  return { items: allItems.slice(0, limit) };
+  const hasMore = allItems.length > clampedLimit && clampedLimit < HISTORY_MAX;
+  return { items: allItems.slice(0, clampedLimit), hasMore };
 }
 
 export function getThumbnailUrl(

@@ -53,7 +53,7 @@ EmptyState.displayName = "EmptyState";
 function MediaPage() {
   const [serviceLinksOpen, setServiceLinksOpen] = useState(false);
   const { mediaData, lastSyncTime } = useMediaDataContext();
-  const { history, loading: historyLoading } = useHistory({ limit: 100, syncTrigger: lastSyncTime });
+  const { history, hasMore: historyHasMore, loading: historyLoading, loadingMore: historyLoadingMore, loadMore: loadMoreHistory } = useHistory({ syncTrigger: lastSyncTime });
   const [activeTab, setActiveTab] = useState<MediaType>("music");
 
   const order = useMemo(() => ["music", "movies", "tvshows", "history"], []);
@@ -201,9 +201,9 @@ function MediaPage() {
         );
 
       case "history":
-        return <HistoryTable items={history} loading={historyLoading} />;
+        return <HistoryTable items={history} loading={historyLoading} loadingMore={historyLoadingMore} hasMore={historyHasMore} onLoadMore={loadMoreHistory} />;
     }
-  }, [activeTab, tracks, movies, episodes, history, historyLoading, setItemRef, handleKeyDown]);
+  }, [activeTab, tracks, movies, episodes, history, historyLoading, historyLoadingMore, historyHasMore, loadMoreHistory, setItemRef, handleKeyDown]);
 
   return (
     <MediaDashboard>

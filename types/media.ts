@@ -110,4 +110,5 @@ export interface HistoryItem {
 
 export interface HistoryData {
   items: HistoryItem[];
+  hasMore: boolean;
 }
