@@ -245,7 +245,7 @@ function MediaPage() {
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Visit Plex website"
-          className={`transition-all duration-200 text-[#ff6b00] hover:opacity-80 overflow-hidden shrink-0 ${serviceLinksOpen ? "w-7 h-7 opacity-100" : "w-0 h-0 opacity-0 pointer-events-none"}`}
+          className={`transition-all duration-200 text-[#e5a00d] hover:opacity-80 overflow-hidden shrink-0 ${serviceLinksOpen ? "w-7 h-7 opacity-100" : "w-0 h-0 opacity-0 pointer-events-none"}`}
         >
           <SiPlex style={{ width: "100%", height: "100%", display: "block" }} />
         </a>
@@ -263,7 +263,7 @@ function MediaPage() {
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Visit Jellyfin website"
-          className={`transition-all duration-200 text-[#06b6d4] hover:opacity-80 overflow-hidden shrink-0 ${serviceLinksOpen ? "w-[22px] h-[22px] opacity-100" : "w-0 h-0 opacity-0 pointer-events-none"}`}
+          className={`transition-all duration-200 text-[#00a4dc] hover:opacity-80 overflow-hidden shrink-0 ${serviceLinksOpen ? "w-[22px] h-[22px] opacity-100" : "w-0 h-0 opacity-0 pointer-events-none"}`}
         >
           <SiJellyfin style={{ width: "100%", height: "100%", display: "block" }} />
         </a>

@@ -71,7 +71,7 @@ const MediaDashboard = memo(({ children }: MediaDashboardProps) => {
             aria-pressed={theme === "plex"}
             className={`transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] rounded ${
               theme === "plex"
-                ? "text-[#ff6b00]"
+                ? "text-[#e5a00d]"
                 : "text-gray-500 hover:text-gray-300"
             }`}
           >
@@ -84,7 +84,7 @@ const MediaDashboard = memo(({ children }: MediaDashboardProps) => {
             aria-pressed={theme === "jellyfin"}
             className={`transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] rounded ${
               theme === "jellyfin"
-                ? "text-[#06b6d4]"
+                ? "text-[#00a4dc]"
                 : "text-gray-500 hover:text-gray-300"
             }`}
           >

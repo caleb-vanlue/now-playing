@@ -32,8 +32,8 @@
   --color-foreground: var(--foreground);
   --card-background: #161b22;
   --card-background-hover: #1f2733;
-  --accent: #06b6d4;
-  --accent-light: #22d3ee;
+  --accent: #00a4dc;
+  --accent-light: #33bbec;
   --nav-inactive: #808080;
   --gradient-end: #111820;
   --font-sans: var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont,
@@ -42,11 +42,11 @@
 
 [data-theme="plex"] {
   --background: #141414;
-  --card-background: #1c1c1c;
-  --card-background-hover: #252525;
-  --accent: #ff6b00;
-  --accent-light: #ff8a3d;
-  --gradient-end: #181818;
+  --card-background: #1f1f1f;
+  --card-background-hover: #282a2d;
+  --accent: #e5a00d;
+  --accent-light: #f0b429;
+  --gradient-end: #1a1a1a;
 }
 
 html {
