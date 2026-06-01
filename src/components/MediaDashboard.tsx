@@ -41,7 +41,11 @@ const MediaDashboard = memo(({ children }: MediaDashboardProps) => {
   const headerContent = useMemo(
     () => (
       <div className="w-full flex flex-col md:flex-row md:items-center md:justify-between items-center">
-        <div className="flex flex-col mb-3 md:mb-0 items-center md:items-start text-center md:text-left">
+        <button
+          className="flex flex-col mb-3 md:mb-0 items-center md:items-start text-center md:text-left focus:outline-none"
+          onClick={() => document.getElementById("main-content")?.scrollTo({ top: 0, behavior: "smooth" })}
+          aria-label="Scroll to top"
+        >
           <div className="flex items-center justify-center md:justify-start">
             <div className="text-3xl sm:text-4xl font-bold">Now Playing</div>
             <div className="flex items-center ml-2">
@@ -63,7 +67,7 @@ const MediaDashboard = memo(({ children }: MediaDashboardProps) => {
               {counts.totalCount !== 1 ? "s" : ""}
             </span>
           </div>
-        </div>
+        </button>
         <div className="flex items-center gap-3">
           <button
             onClick={() => setTheme("plex")}
