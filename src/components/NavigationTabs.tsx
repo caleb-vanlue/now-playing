@@ -63,10 +63,22 @@ const NavigationTabs = React.memo(function NavigationTabs({
     tabRefs.current = tabRefs.current.slice(0, items.length);
   }, [items.length]);
 
+  useEffect(() => {
+    const current = activeTab || items[0]?.href;
+    const index = items.findIndex((item) => item.href === current);
+    if (index !== -1) {
+      tabRefs.current[index]?.scrollIntoView({
+        behavior: "smooth",
+        inline: "nearest",
+        block: "nearest",
+      });
+    }
+  }, [activeTab, items]);
+
   if (!onTabClick) {
     return (
       <nav
-        className="relative flex space-x-8 border-b border-gray-800/50 theme-bg-nav backdrop-blur-sm -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8"
+        className="relative flex border-b border-gray-800/50 theme-bg-nav backdrop-blur-sm -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 overflow-x-auto scrollbar-hide"
         aria-label="Main navigation"
       >
         <div
@@ -89,7 +101,7 @@ const NavigationTabs = React.memo(function NavigationTabs({
                 aria-current={isActive ? "page" : undefined}
                 tabIndex={isActive ? 0 : -1}
                 onKeyDown={(e) => handleKeyDown(e, index, true)}
-                className={`relative py-3 px-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] rounded ${
+                className={`relative py-3 px-1 whitespace-nowrap scroll-mx-6 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] rounded ${
                   isActive ? "text-white" : "text-gray-400 hover:text-white"
                 }`}
               >
@@ -125,7 +137,7 @@ const NavigationTabs = React.memo(function NavigationTabs({
 
   return (
     <nav
-      className="relative flex justify-center sm:justify-start space-x-8 border-b border-gray-800/50 theme-bg-nav backdrop-blur-sm -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8"
+      className="relative flex border-b border-gray-800/50 theme-bg-nav backdrop-blur-sm -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 overflow-x-auto scrollbar-hide"
       aria-label="Media type navigation"
     >
       <div role="tablist" ref={tabListRef} className="flex space-x-8">

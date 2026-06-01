@@ -188,6 +188,14 @@ input:focus {
   background: var(--accent);
 }
 
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 .reduce-layers {
   transform: translateZ(0);
   backface-visibility: hidden;
