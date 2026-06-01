@@ -51,16 +51,16 @@ const MediaDashboard = memo(({ children }: MediaDashboardProps) => {
             </div>
           </div>
           <div className="text-gray-400 text-sm mt-1 flex items-center gap-2">
-            <span>
-              {counts.totalCount} active session
-              {counts.totalCount !== 1 ? "s" : ""}
+            <span aria-live="polite" aria-atomic="true">
+              {isConnected ? "Connected" : "Disconnected"}
             </span>
             <span
               className={`w-2 h-2 rounded-full flex-shrink-0 ${isConnected ? "bg-green-500" : "bg-red-500"}`}
               aria-hidden="true"
             ></span>
-            <span aria-live="polite" aria-atomic="true">
-              {isConnected ? "Connected" : "Disconnected"}
+            <span>
+              {counts.totalCount} active session
+              {counts.totalCount !== 1 ? "s" : ""}
             </span>
           </div>
         </div>
