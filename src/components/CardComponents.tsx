@@ -58,7 +58,10 @@ export function ProgressBar({
       {bufferEnd !== undefined && (
         <div
           className="absolute top-0 h-full bg-[var(--accent)]/30"
-          style={{ left: `${percentage}%`, width: `${bufferEnd - percentage}%` }}
+          style={{
+            left: `${percentage}%`,
+            width: `${bufferEnd - percentage}%`,
+          }}
         />
       )}
       <div
@@ -91,7 +94,9 @@ export function ProgressInfo({
       className="mb-4 bg-gray-800/50 rounded-lg p-3"
     >
       <div className="flex justify-between items-center mb-1 text-sm">
-        <span className="whitespace-nowrap">{Math.round(percentage)}% complete</span>
+        <span className="whitespace-nowrap">
+          {Math.round(percentage)}% complete
+        </span>
         <span className="whitespace-nowrap shrink-0 ml-3">
           Ends at{" "}
           <time dateTime={estimatedFinishTime.toISOString()}>
@@ -102,9 +107,6 @@ export function ProgressInfo({
           </time>
         </span>
       </div>
-      {transcodeProgress !== undefined && (
-        <div className="text-xs text-gray-500 text-center mb-1">transcoding</div>
-      )}
       <div
         className="relative w-full h-2 bg-gray-700 rounded-full overflow-hidden"
         role="progressbar"
@@ -145,7 +147,11 @@ export function SourceIcon({
   return source === "plex" ? (
     <SiPlex size={size} className="text-gray-500 shrink-0" title="Plex" />
   ) : (
-    <SiJellyfin size={Math.round(size * 0.8)} className="text-gray-500 shrink-0" title="Jellyfin" />
+    <SiJellyfin
+      size={Math.round(size * 0.8)}
+      className="text-gray-500 shrink-0"
+      title="Jellyfin"
+    />
   );
 }
 
