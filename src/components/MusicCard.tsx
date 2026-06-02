@@ -68,13 +68,13 @@ function MusicCard({ track, index = 0 }: MusicCardProps) {
   const renderMainContent = useCallback(
     (track: Track) => (
       <>
-        <h3 className="text-xl font-bold truncate" title={track.title}>
+        <h3 className="text-xl font-bold" title={track.title}>
           {track.title}
         </h3>
-        <p className="truncate" title={track.artist}>
+        <p title={track.artist}>
           {track.artist}
         </p>
-        <p className="text-gray-400 truncate" title={track.album}>
+        <p className="text-gray-400" title={track.album}>
           {track.album}
         </p>
         {track.audioCodec && (
