@@ -119,8 +119,15 @@ function extractStreams(streams: JellyfinMediaStream[] | undefined) {
     streams?.find((s) => s.Type === "Audio" && s.IsDefault !== false) ??
     streams?.find((s) => s.Type === "Audio");
 
+  // Use the larger of the actual height or the 16:9-equivalent height derived
+  // from width, so letterboxed content (e.g. cinemascope 3840×1608) isn't
+  // misclassified — 3840px wide is 4K even when height is only 1608.
+  const effectiveHeight = videoStream
+    ? Math.max(videoStream.Height ?? 0, Math.round((videoStream.Width ?? 0) * 9 / 16))
+    : undefined;
+
   return {
-    videoResolution: normalizeVideoResolution(videoStream?.Height?.toString()),
+    videoResolution: normalizeVideoResolution(effectiveHeight?.toString()),
     videoCodec: videoStream?.Codec,
     videoProfile: videoStream?.Profile,
     // BitRate from Jellyfin is bits/sec; our type stores kbps (card renders kbps/1000 = Mbps)
