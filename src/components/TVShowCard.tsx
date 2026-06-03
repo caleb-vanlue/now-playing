@@ -319,8 +319,14 @@ function TVShowCard({
           <p className="text-gray-400 text-sm mb-2">Cast</p>
           <div className="grid grid-cols-3 gap-3">
             {episode.actors.slice(0, 9).map((actor, i) => (
-              <div key={i} className="flex flex-col items-center gap-1.5 min-w-0 px-1">
-                <div className="relative w-full aspect-square rounded-full overflow-hidden">
+              <a
+                key={i}
+                href={`https://www.imdb.com/find?q=${encodeURIComponent(actor.tag)}&s=nm`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-col items-center gap-1.5 min-w-0 px-1 group"
+              >
+                <div className="relative w-full aspect-square rounded-full overflow-hidden ring-2 ring-transparent group-hover:ring-[var(--accent)] transition-all">
                   {actor.thumb ? (
                     <Image
                       src={actor.thumb}
@@ -341,10 +347,10 @@ function TVShowCard({
                   )}
                 </div>
                 <div className="text-xs min-w-0 w-full text-center">
-                  <p className="font-medium truncate">{actor.tag}</p>
+                  <p className="font-medium truncate group-hover:text-[var(--accent)] transition-colors">{actor.tag}</p>
                   {actor.role && <p className="text-gray-500 truncate">{actor.role}</p>}
                 </div>
-              </div>
+              </a>
             ))}
           </div>
         </motion.div>
