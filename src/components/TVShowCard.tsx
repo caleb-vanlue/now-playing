@@ -9,6 +9,7 @@ import {
   formatDuration,
   formatQuality,
   getRatingSource,
+  getBestDisplayRating,
   formatAudioChannels,
 } from "../../utils/mediaCardUtils";
 import { BaseMediaCard, ImageState } from "./BaseMediaCard";
@@ -86,36 +87,39 @@ function TVShowCard({
     );
   };
 
-  const renderMainContent = (episode: Episode) => (
-    <div className="flex flex-col">
-      <h3 className="text-xl font-bold truncate" title={episode.title}>
-        {episode.title}
-      </h3>
-      <p
-        className="text-gray-400 truncate font-medium"
-        title={episode.showTitle}
-      >
-        {episode.showTitle}
-      </p>
-      <div className="mt-1">
-        <p className="text-gray-400 text-sm flex items-center gap-2">
-          <span>{formattedDuration}</span>
-          {qualityFormatted && (
-            <>
-              <span className="text-gray-600">•</span>
-              <span>{qualityFormatted}</span>
-            </>
-          )}
-          {episode.rating && (
-            <>
-              <span className="text-gray-600">•</span>
-              <span>⭐ {episode.rating}/10</span>
-            </>
-          )}
+  const renderMainContent = (episode: Episode) => {
+    const bestRating = getBestDisplayRating(episode.ratings, episode.rating);
+    return (
+      <div className="flex flex-col">
+        <h3 className="text-xl font-bold truncate" title={episode.title}>
+          {episode.title}
+        </h3>
+        <p
+          className="text-gray-400 truncate font-medium"
+          title={episode.showTitle}
+        >
+          {episode.showTitle}
         </p>
+        <div className="mt-1">
+          <p className="text-gray-400 text-sm flex items-center gap-2">
+            <span>{formattedDuration}</span>
+            {qualityFormatted && (
+              <>
+                <span className="text-gray-600">•</span>
+                <span>{qualityFormatted}</span>
+              </>
+            )}
+            {bestRating && (
+              <>
+                <span className="text-gray-600">•</span>
+                <span>⭐ {bestRating.value}</span>
+              </>
+            )}
+          </p>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderDetailHeader = (episode: Episode) => (
     <div>

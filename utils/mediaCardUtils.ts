@@ -103,6 +103,27 @@ export const getRatingSource = (rating: {
   return rating.type;
 };
 
+interface DisplayRating {
+  label: string;
+  value: string;
+}
+
+export const getBestDisplayRating = (
+  ratings: { image?: string; type: string; value: string }[] | undefined,
+  fallbackRating: number | undefined
+): DisplayRating | null => {
+  if (ratings && ratings.length > 0) {
+    const imdb = ratings.find((r) => r.image?.toLowerCase().includes("imdb"));
+    if (imdb) return { label: "IMDB", value: imdb.value };
+    const first = ratings[0];
+    return { label: getRatingSource(first), value: first.value };
+  }
+  if (fallbackRating != null) {
+    return { label: "⭐", value: `${fallbackRating}/10` };
+  }
+  return null;
+};
+
 export const formatAudioChannels = (
   channels: number | undefined,
   channelLayout?: string

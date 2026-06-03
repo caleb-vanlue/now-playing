@@ -9,6 +9,7 @@ import {
   formatDuration,
   formatQuality,
   getRatingSource,
+  getBestDisplayRating,
   formatAudioChannels,
 } from "../../utils/mediaCardUtils";
 import { BaseMediaCard, ImageState } from "./BaseMediaCard";
@@ -72,31 +73,34 @@ function MovieCard({ item: movie, index = 0 }: MovieCardProps) {
     );
   };
 
-  const renderMainContent = (movie: Movie) => (
-    <>
-      <h3 className="text-xl font-bold truncate" title={movie.title}>
-        {movie.title}
-      </h3>
-      <p>{movie.year}</p>
-      <div className="mt-1">
-        <p className="text-gray-400 text-sm flex items-center gap-2">
-          <span>{formattedDuration}</span>
-          {qualityFormatted && (
-            <>
-              <span className="text-gray-600">•</span>
-              <span>{qualityFormatted}</span>
-            </>
-          )}
-          {movie.rating && (
-            <>
-              <span className="text-gray-600">•</span>
-              <span>⭐ {movie.rating}/10</span>
-            </>
-          )}
-        </p>
-      </div>
-    </>
-  );
+  const renderMainContent = (movie: Movie) => {
+    const bestRating = getBestDisplayRating(movie.ratings, movie.rating);
+    return (
+      <>
+        <h3 className="text-xl font-bold truncate" title={movie.title}>
+          {movie.title}
+        </h3>
+        <p>{movie.year}</p>
+        <div className="mt-1">
+          <p className="text-gray-400 text-sm flex items-center gap-2">
+            <span>{formattedDuration}</span>
+            {qualityFormatted && (
+              <>
+                <span className="text-gray-600">•</span>
+                <span>{qualityFormatted}</span>
+              </>
+            )}
+            {bestRating && (
+              <>
+                <span className="text-gray-600">•</span>
+                <span>⭐ {bestRating.value}</span>
+              </>
+            )}
+          </p>
+        </div>
+      </>
+    );
+  };
 
   const renderDetailHeader = (movie: Movie) => (
     <div>
