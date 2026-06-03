@@ -306,28 +306,30 @@ function MovieCard({ item: movie, index = 0 }: MovieCardProps) {
           className="mt-4"
         >
           <p className="text-gray-400 text-sm mb-2">Cast</p>
-          <div className="grid grid-cols-1 gap-2">
-            {movie.actors.slice(0, 10).map((actor, i) => (
-              <div key={i} className="flex items-center gap-2 min-w-0">
-                {actor.thumb ? (
-                  <Image
-                    src={actor.thumb}
-                    alt={actor.tag}
-                    width={40}
-                    height={40}
-                    className="rounded-full object-cover w-10 h-10 shrink-0"
-                  />
-                ) : (
-                  <div className="w-10 h-10 shrink-0 rounded-full bg-gray-700 flex items-center justify-center text-xs font-medium text-gray-300">
-                    {actor.tag
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")
-                      .slice(0, 2)
-                      .toUpperCase()}
-                  </div>
-                )}
-                <div className="text-xs min-w-0 flex-1">
+          <div className="grid grid-cols-3 gap-3">
+            {movie.actors.slice(0, 9).map((actor, i) => (
+              <div key={i} className="flex flex-col items-center gap-1.5 min-w-0 px-1">
+                <div className="relative w-full aspect-square rounded-full overflow-hidden">
+                  {actor.thumb ? (
+                    <Image
+                      src={actor.thumb}
+                      alt={actor.tag}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 640px) 45vw, 30vw"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 bg-gray-700 flex items-center justify-center text-sm font-medium text-gray-300">
+                      {actor.tag
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")
+                        .slice(0, 2)
+                        .toUpperCase()}
+                    </div>
+                  )}
+                </div>
+                <div className="text-xs min-w-0 w-full text-center">
                   <p className="font-medium truncate">{actor.tag}</p>
                   {actor.role && <p className="text-gray-500 truncate">{actor.role}</p>}
                 </div>

@@ -153,7 +153,7 @@ function MediaPage() {
           return <EmptyState type="all" />;
         }
         return (
-          <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6" role="group" aria-label="All media">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6" role="group" aria-label="All media">
             {allItems.map(({ kind, item }, index) => {
               if (kind === "music") return <MusicCard key={item.id} track={item} index={index} />;
               if (kind === "movie") return <MovieCard key={item.id} item={item} index={index} />;
@@ -188,7 +188,7 @@ function MediaPage() {
           return <EmptyState type="movies" />;
         }
         return (
-          <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6" role="group" aria-label="Movies">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6" role="group" aria-label="Movies">
             {movies.map((movie, index) => (
               <div
                 key={movie.id}
@@ -208,7 +208,7 @@ function MediaPage() {
           return <EmptyState type="tvshows" />;
         }
         return (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" role="group" aria-label="TV Shows">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6" role="group" aria-label="TV Shows">
             {episodes.map((episode, index) => (
               <div
                 key={episode.id}
