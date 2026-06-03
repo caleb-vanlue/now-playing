@@ -18,6 +18,7 @@ interface JellyfinItemDetail {
   OfficialRating?: string;
   CommunityRating?: number;
   Taglines?: string[];
+  BackdropImageTags?: string[];
 }
 
 interface JellyfinMediaStream {

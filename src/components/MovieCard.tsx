@@ -2,7 +2,7 @@ import React, { memo } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { Movie } from "../../types/media";
-import { getResponsiveThumbnailUrl } from "../../utils/api";
+import { getResponsiveThumbnailUrl, getMovieBackdropUrl } from "../../utils/api";
 import {
   calculateProgress,
   calculateFinishTime,
@@ -25,9 +25,10 @@ import {
 interface MovieCardProps {
   item: Movie;
   index?: number;
+  showBackdrop?: boolean;
 }
 
-function MovieCard({ item: movie, index = 0 }: MovieCardProps) {
+function MovieCard({ item: movie, index = 0, showBackdrop = false }: MovieCardProps) {
   const progressPercentage = calculateProgress(
     movie.viewOffset,
     movie.duration,
@@ -44,7 +45,8 @@ function MovieCard({ item: movie, index = 0 }: MovieCardProps) {
   const startedAt = new Date(movie.startTime);
 
   const renderThumbnail = (movie: Movie, imageState: ImageState) => {
-    const thumbnailUrl = getResponsiveThumbnailUrl(movie, "movie");
+    const backdropUrl = showBackdrop ? getMovieBackdropUrl(movie) : null;
+    const thumbnailUrl = backdropUrl ?? getResponsiveThumbnailUrl(movie, "movie");
 
     const badges = [];
 
@@ -65,8 +67,8 @@ function MovieCard({ item: movie, index = 0 }: MovieCardProps) {
       <ImageWithFallback
         src={thumbnailUrl}
         alt={movie.title}
-        aspectRatio="portrait"
-        sizes="(max-width: 768px) 100vw, 33vw"
+        aspectRatio={backdropUrl ? "landscape" : "portrait"}
+        sizes="(max-width: 768px) 100vw, 50vw"
         fallbackIcon="🎬"
         badges={badges}
         onLoad={() => imageState.setImageLoaded(true)}

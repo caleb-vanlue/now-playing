@@ -93,6 +93,7 @@ interface PlexSession {
   Writer?: PlexTag[];
   Role?: PlexTag[];
   Rating?: PlexRating[];
+  art?: string;
 }
 
 interface PlexEpisodeSession extends PlexSession {
@@ -174,6 +175,7 @@ function mapToMovie(session: PlexSession): Movie {
     directors: session.Director,
     writers: session.Writer,
     actors: session.Role?.slice(0, 10),
+    backdropPath: session.art,
   };
 }
 

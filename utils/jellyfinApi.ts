@@ -32,6 +32,7 @@ interface JellyfinItemDetail {
   Taglines?: string[];
   AlbumArtist?: string;
   ProductionYear?: number;
+  BackdropImageTags?: string[];
 }
 
 interface JellyfinNowPlayingItem {
@@ -85,9 +86,10 @@ function ticksToMs(ticks: number | undefined): number {
 export function jellyfinThumbnailUrl(
   itemId: string,
   quality: "low" | "medium" | "high" = "medium",
-  width?: number
+  width?: number,
+  imageType: string = "Primary"
 ): string {
-  const params = new URLSearchParams({ itemId, imageType: "Primary", quality });
+  const params = new URLSearchParams({ itemId, imageType, quality });
   if (width) params.set("width", width.toString());
   return `/api/jellyfin/thumbnail?${params.toString()}`;
 }
@@ -180,6 +182,7 @@ function mapToMovie(session: JellyfinSession, detail: JellyfinItemDetail): Movie
     actors: mapPeople(detail.People, "Actor").slice(0, 10),
     directors: mapPeople(detail.People, "Director"),
     writers: mapPeople(detail.People, "Writer"),
+    backdropPath: detail.BackdropImageTags?.length ? item.Id : undefined,
     ...streams,
   };
 }

@@ -1,4 +1,4 @@
-import { MediaData, HistoryData, HistoryItem, BaseMedia, Episode } from "../types/media";
+import { MediaData, HistoryData, HistoryItem, BaseMedia, Episode, Movie } from "../types/media";
 import { fetchPlexData, getThumbnailUrl as getPlexThumbnailUrl } from "./plexApi";
 import { fetchJellyfinData, jellyfinThumbnailUrl } from "./jellyfinApi";
 
@@ -119,6 +119,14 @@ export function getSeriesThumbnailUrl(episode: Pick<Episode, "source" | "seriesT
     return jellyfinThumbnailUrl(episode.seriesThumbId, "high", 600);
   }
   return getPlexThumbnailUrl(episode.seriesThumbId, { quality: "high", width: 600 });
+}
+
+export function getMovieBackdropUrl(movie: Pick<Movie, "source" | "backdropPath">): string | null {
+  if (!movie.backdropPath) return null;
+  if (movie.source === "jellyfin") {
+    return jellyfinThumbnailUrl(movie.backdropPath, "high", 1280, "Backdrop");
+  }
+  return getPlexThumbnailUrl(movie.backdropPath, { quality: "high", width: 1280 });
 }
 
 export function getResponsiveThumbnailUrl(

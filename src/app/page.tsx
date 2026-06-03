@@ -188,7 +188,7 @@ function MediaPage() {
           return <EmptyState type="movies" />;
         }
         return (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6" role="group" aria-label="Movies">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6" role="group" aria-label="Movies">
             {movies.map((movie, index) => (
               <div
                 key={movie.id}
@@ -197,7 +197,7 @@ function MediaPage() {
                 tabIndex={index === 0 ? 0 : -1}
                 className="focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] rounded-lg"
               >
-                <MovieCard item={movie} index={index} />
+                <MovieCard item={movie} index={index} showBackdrop />
               </div>
             ))}
           </div>

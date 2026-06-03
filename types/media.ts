@@ -64,6 +64,7 @@ export interface Movie extends BaseMedia {
   directors?: Person[];
   writers?: Person[];
   actors?: Person[];
+  backdropPath?: string;
 }
 
 export interface Episode extends BaseMedia {
