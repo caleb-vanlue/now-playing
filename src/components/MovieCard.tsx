@@ -12,6 +12,7 @@ import {
   getBestDisplayRating,
   formatAudioChannels,
 } from "../../utils/mediaCardUtils";
+import { getRatingIcon } from "../../utils/ratingIcons";
 import { BaseMediaCard, ImageState } from "./BaseMediaCard";
 import { ProgressInfo } from "./CardComponents";
 import { SelfContainedUserAvatar } from "./UserAvatar";
@@ -93,7 +94,10 @@ function MovieCard({ item: movie, index = 0 }: MovieCardProps) {
             {bestRating && (
               <>
                 <span className="text-gray-600">•</span>
-                <span>⭐ {bestRating.value}</span>
+                <span className="flex items-center gap-1">
+                  {getRatingIcon(bestRating)}
+                  {bestRating.value}
+                </span>
               </>
             )}
           </p>
@@ -283,6 +287,7 @@ function MovieCard({ item: movie, index = 0 }: MovieCardProps) {
           <div className="flex flex-wrap gap-3">
             {movie.ratings.map((rating, i) => (
               <div key={i} className="flex items-center gap-2">
+                {getRatingIcon(rating)}
                 <span className="text-xs text-gray-400">
                   {getRatingSource(rating)}:
                 </span>

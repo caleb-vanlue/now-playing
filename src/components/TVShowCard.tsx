@@ -12,6 +12,7 @@ import {
   getBestDisplayRating,
   formatAudioChannels,
 } from "../../utils/mediaCardUtils";
+import { getRatingIcon } from "../../utils/ratingIcons";
 import { BaseMediaCard, ImageState } from "./BaseMediaCard";
 import { ProgressInfo } from "./CardComponents";
 import { SelfContainedUserAvatar } from "./UserAvatar";
@@ -112,7 +113,10 @@ function TVShowCard({
             {bestRating && (
               <>
                 <span className="text-gray-600">•</span>
-                <span>⭐ {bestRating.value}</span>
+                <span className="flex items-center gap-1">
+                  {getRatingIcon(bestRating)}
+                  {bestRating.value}
+                </span>
               </>
             )}
           </p>
@@ -294,6 +298,7 @@ function TVShowCard({
           <div className="flex flex-wrap gap-3">
             {episode.ratings.map((rating, i) => (
               <div key={i} className="flex items-center gap-2">
+                {getRatingIcon(rating)}
                 <span className="text-xs text-gray-400">
                   {getRatingSource(rating)}:
                 </span>

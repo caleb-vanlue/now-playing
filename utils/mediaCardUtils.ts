@@ -103,9 +103,11 @@ export const getRatingSource = (rating: {
   return rating.type;
 };
 
-interface DisplayRating {
+export interface DisplayRating {
   label: string;
   value: string;
+  image?: string;
+  type: string;
 }
 
 export const getBestDisplayRating = (
@@ -113,13 +115,31 @@ export const getBestDisplayRating = (
   fallbackRating: number | undefined
 ): DisplayRating | null => {
   if (ratings && ratings.length > 0) {
-    const imdb = ratings.find((r) => r.image?.toLowerCase().includes("imdb"));
-    if (imdb) return { label: "IMDB", value: imdb.value };
-    const first = ratings[0];
-    return { label: getRatingSource(first), value: first.value };
+    const find = (pred: (img: string) => boolean) =>
+      ratings.find((r) => pred(r.image?.toLowerCase() ?? ""));
+    const wrap = (r: { image?: string; type: string; value: string }): DisplayRating => ({
+      label: getRatingSource(r),
+      value: r.value,
+      image: r.image,
+      type: r.type,
+    });
+
+    const rtCritics = find((img) => img.includes("rottentomatoes") && img.includes("ripe"));
+    if (rtCritics) return wrap(rtCritics);
+
+    const rtAudience = find((img) => img.includes("rottentomatoes") && img.includes("spilled"));
+    if (rtAudience) return wrap(rtAudience);
+
+    const imdb = find((img) => img.includes("imdb"));
+    if (imdb) return wrap(imdb);
+
+    const tmdb = find((img) => img.includes("themoviedb") || img.includes("thetvdb"));
+    if (tmdb) return wrap(tmdb);
+
+    return wrap(ratings[0]);
   }
   if (fallbackRating != null) {
-    return { label: "⭐", value: `${fallbackRating}/10` };
+    return { label: "rating", value: `${fallbackRating}/10`, type: "fallback" };
   }
   return null;
 };
