@@ -1,6 +1,5 @@
 import React, { memo } from "react";
 import { motion } from "framer-motion";
-import Image from "next/image";
 import { Episode } from "../../types/media";
 import { useRelatedItems } from "../hooks/useRelatedItems";
 import { RelatedCarousel } from "./RelatedCarousel";
@@ -10,13 +9,19 @@ import {
   calculateFinishTime,
   formatDuration,
   formatQuality,
-  getRatingSource,
   getBestDisplayRating,
   formatAudioChannels,
 } from "../../utils/mediaCardUtils";
 import { getRatingIcon } from "../../utils/ratingIcons";
 import { BaseMediaCard, ImageState } from "./BaseMediaCard";
-import { ProgressInfo } from "./CardComponents";
+import {
+  ProgressInfo,
+  SummarySection,
+  RatingsSection,
+  CastGrid,
+  GenresSection,
+  WritersSection,
+} from "./CardComponents";
 import { SelfContainedUserAvatar } from "./UserAvatar";
 import {
   SeasonEpisodeBadge,
@@ -47,89 +52,10 @@ function TVShowDetailContent({ episode }: { episode: Episode }) {
         }
       />
 
-      {episode.summary && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="mb-4"
-        >
-          <p className="text-gray-400 text-sm">Summary</p>
-          <p className="text-sm leading-tight">{episode.summary}</p>
-        </motion.div>
-      )}
-
-      {episode.ratings && episode.ratings.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="mt-4"
-        >
-          <p className="text-gray-400 text-sm mb-2">Ratings</p>
-          <div className="flex flex-wrap gap-3">
-            {episode.ratings.map((rating, i) => (
-              <div key={i} className="flex items-center gap-2">
-                {getRatingIcon(rating)}
-                <span className="text-xs text-gray-400">{getRatingSource(rating)}:</span>
-                <span className="text-sm font-medium">{rating.value}</span>
-              </div>
-            ))}
-          </div>
-        </motion.div>
-      )}
-
-      {episode.actors && episode.actors.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35 }}
-          className="mt-4"
-        >
-          <p className="text-gray-400 text-sm mb-2">Cast</p>
-          <div className="grid grid-cols-3 gap-3">
-            {episode.actors.slice(0, 15).map((actor, i) => (
-              <a
-                key={i}
-                href={`https://www.imdb.com/find?q=${encodeURIComponent(actor.tag)}&s=nm`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex flex-col items-center gap-1.5 min-w-0 px-1 group"
-              >
-                <div className="relative w-full aspect-square rounded-full overflow-hidden ring-2 ring-transparent group-hover:ring-[var(--accent)] transition-all">
-                  {actor.thumb ? (
-                    <Image src={actor.thumb} alt={actor.tag} fill className="object-cover" sizes="(max-width: 640px) 45vw, 30vw" />
-                  ) : (
-                    <div className="absolute inset-0 bg-gray-700 flex items-center justify-center text-sm font-medium text-gray-300">
-                      {actor.tag.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
-                    </div>
-                  )}
-                </div>
-                <div className="text-xs min-w-0 w-full text-center">
-                  <p className="font-medium truncate group-hover:text-[var(--accent)] transition-colors">{actor.tag}</p>
-                  {actor.role && <p className="text-gray-500 truncate">{actor.role}</p>}
-                </div>
-              </a>
-            ))}
-          </div>
-        </motion.div>
-      )}
-
-      {episode.genre && episode.genre.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="mt-4"
-        >
-          <p className="text-gray-400 text-sm mb-2">Genres</p>
-          <div className="flex flex-wrap gap-2">
-            {episode.genre.map((g, i) => (
-              <span key={i} className="bg-gray-800 px-2 py-1 rounded-md text-xs">{g}</span>
-            ))}
-          </div>
-        </motion.div>
-      )}
+      <SummarySection summary={episode.summary} />
+      <RatingsSection ratings={episode.ratings} />
+      <CastGrid actors={episode.actors} />
+      <GenresSection genres={episode.genre} />
 
       <RelatedCarousel items={related} loading={relatedLoading} />
 
@@ -221,17 +147,7 @@ function TVShowDetailContent({ episode }: { episode: Episode }) {
         </div>
       </motion.div>
 
-      {episode.writers && episode.writers.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
-          className="mt-4"
-        >
-          <p className="text-gray-400 text-sm mb-1">Writers</p>
-          <p className="text-sm">{episode.writers.map((w) => w.tag).join(", ")}</p>
-        </motion.div>
-      )}
+      <WritersSection writers={episode.writers} />
     </>
   );
 }
