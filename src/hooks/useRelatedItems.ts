@@ -14,7 +14,12 @@ export function useRelatedItems(item: BaseMedia) {
     if (fetchedRef.current) return;
     fetchedRef.current = true;
 
-    // For Jellyfin TV episodes, use the series ID — episode IDs return no similar results
+    // For TV episodes, use the series ID — episode IDs return no similar results
+    const plexId =
+      item.source === "plex" && "seriesRatingKey" in item
+        ? ((item as { seriesRatingKey?: string }).seriesRatingKey ?? item.id)
+        : item.id;
+
     const jellyfinId =
       item.source === "jellyfin" && "seriesThumbId" in item
         ? ((item as { seriesThumbId?: string }).seriesThumbId ?? item.id)
@@ -22,7 +27,7 @@ export function useRelatedItems(item: BaseMedia) {
 
     const url =
       item.source === "plex"
-        ? `/api/plex/related?ratingKey=${encodeURIComponent(item.id)}`
+        ? `/api/plex/related?ratingKey=${encodeURIComponent(plexId)}`
         : `/api/jellyfin/related?itemId=${encodeURIComponent(jellyfinId)}`;
 
     fetch(url)

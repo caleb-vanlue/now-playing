@@ -92,6 +92,8 @@ export interface Episode extends BaseMedia {
   actors?: Person[];
   // Series-level poster art (Plex: grandparentThumb path; Jellyfin: SeriesId)
   seriesThumbId?: string;
+  // Series ratingKey for Plex TV shows (used for related content lookup)
+  seriesRatingKey?: string;
 }
 
 export interface MediaData {
