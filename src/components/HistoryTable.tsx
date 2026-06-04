@@ -143,29 +143,19 @@ export default function HistoryTable({ items, loading, loadingMore, hasMore, onL
   const [selectedSource, setSelectedSource] = useState<string>("all");
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const loadingMoreRef = useRef(loadingMore);
+  const sentinelVisibleRef = useRef(false);
+  const prevLoadingMoreRef = useRef(false);
 
-  useEffect(() => {
-    return () => setImageErrors({});
-  }, []);
-
-  useEffect(() => {
-    loadingMoreRef.current = loadingMore ?? false;
-  }, [loadingMore]);
-
-  useEffect(() => {
-    if (!onLoadMore || !hasMore) return;
-    const sentinel = sentinelRef.current;
-    if (!sentinel) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !loadingMoreRef.current) onLoadMore();
-      },
-      { rootMargin: "200px" }
-    );
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, [onLoadMore, hasMore]);
+  const filteredItems = useMemo(() => {
+    let filtered = items;
+    if (selectedUser !== "all")
+      filtered = filtered.filter((item) => item.userName === selectedUser);
+    if (selectedType !== "all")
+      filtered = filtered.filter((item) => item.type === selectedType);
+    if (selectedSource !== "all")
+      filtered = filtered.filter((item) => item.source === selectedSource);
+    return filtered;
+  }, [items, selectedUser, selectedType, selectedSource]);
 
   const users = useMemo(() => {
     const set = new Set<string>();
@@ -185,16 +175,36 @@ export default function HistoryTable({ items, loading, loadingMore, hasMore, onL
     return Array.from(set).sort();
   }, [items]);
 
-  const filteredItems = useMemo(() => {
-    let filtered = items;
-    if (selectedUser !== "all")
-      filtered = filtered.filter((item) => item.userName === selectedUser);
-    if (selectedType !== "all")
-      filtered = filtered.filter((item) => item.type === selectedType);
-    if (selectedSource !== "all")
-      filtered = filtered.filter((item) => item.source === selectedSource);
-    return filtered;
-  }, [items, selectedUser, selectedType, selectedSource]);
+  useEffect(() => {
+    return () => setImageErrors({});
+  }, []);
+
+  useEffect(() => {
+    loadingMoreRef.current = loadingMore ?? false;
+  }, [loadingMore]);
+
+  useEffect(() => {
+    if (!onLoadMore || !hasMore) return;
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        sentinelVisibleRef.current = entry.isIntersecting;
+        if (entry.isIntersecting && !loadingMoreRef.current) onLoadMore();
+      },
+      { rootMargin: "200px" }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [onLoadMore, hasMore, filteredItems.length]);
+
+  useEffect(() => {
+    if (prevLoadingMoreRef.current && !loadingMore) {
+      if (sentinelVisibleRef.current && hasMore) onLoadMore?.();
+    }
+    prevLoadingMoreRef.current = loadingMore ?? false;
+  }, [loadingMore, hasMore, onLoadMore]);
 
   const handleImageError = (itemKey: string) => {
     setImageErrors((prev) => ({ ...prev, [itemKey]: true }));
@@ -307,6 +317,7 @@ export default function HistoryTable({ items, loading, loadingMore, hasMore, onL
           <p className="text-xl">No items match your filters</p>
           <p className="mt-2">Try adjusting your filter settings</p>
         </div>
+        {hasMore && <div ref={sentinelRef} className="h-1" />}
       </div>
     );
   }
