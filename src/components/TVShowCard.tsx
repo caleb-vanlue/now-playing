@@ -2,6 +2,8 @@ import React, { memo } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { Episode } from "../../types/media";
+import { useRelatedItems } from "../hooks/useRelatedItems";
+import { RelatedCarousel } from "./RelatedCarousel";
 import { getResponsiveThumbnailUrl, getSeriesThumbnailUrl } from "../../utils/api";
 import {
   calculateProgress,
@@ -22,6 +24,217 @@ import {
   TranscodeStatusBadge,
   ImageWithFallback,
 } from "./ImageWithFallback";
+
+function TVShowDetailContent({ episode }: { episode: Episode }) {
+  const { items: related, loading: relatedLoading } = useRelatedItems(episode);
+  const progressPercentage = calculateProgress(episode.viewOffset, episode.duration);
+  const estimatedFinishTime = calculateFinishTime(episode.duration, episode.viewOffset);
+  const qualityFormatted = formatQuality(episode.videoResolution, episode.audioCodec);
+  const formattedDuration = formatDuration(episode.duration);
+  const seasonEpisode = `S${episode.season}:E${episode.episode}`;
+  const startedAt = new Date(episode.startTime);
+
+  return (
+    <>
+      <ProgressInfo
+        percentage={progressPercentage}
+        estimatedFinishTime={estimatedFinishTime}
+        transcodeProgress={
+          episode.transcodeProgress !== undefined &&
+          (episode.videoDecision === "transcode" || episode.audioDecision === "transcode")
+            ? episode.transcodeProgress
+            : undefined
+        }
+      />
+
+      {episode.summary && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="mb-4"
+        >
+          <p className="text-gray-400 text-sm">Summary</p>
+          <p className="text-sm leading-tight">{episode.summary}</p>
+        </motion.div>
+      )}
+
+      {episode.ratings && episode.ratings.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="mt-4"
+        >
+          <p className="text-gray-400 text-sm mb-2">Ratings</p>
+          <div className="flex flex-wrap gap-3">
+            {episode.ratings.map((rating, i) => (
+              <div key={i} className="flex items-center gap-2">
+                {getRatingIcon(rating)}
+                <span className="text-xs text-gray-400">{getRatingSource(rating)}:</span>
+                <span className="text-sm font-medium">{rating.value}</span>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+      )}
+
+      {episode.actors && episode.actors.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35 }}
+          className="mt-4"
+        >
+          <p className="text-gray-400 text-sm mb-2">Cast</p>
+          <div className="grid grid-cols-3 gap-3">
+            {episode.actors.slice(0, 15).map((actor, i) => (
+              <a
+                key={i}
+                href={`https://www.imdb.com/find?q=${encodeURIComponent(actor.tag)}&s=nm`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-col items-center gap-1.5 min-w-0 px-1 group"
+              >
+                <div className="relative w-full aspect-square rounded-full overflow-hidden ring-2 ring-transparent group-hover:ring-[var(--accent)] transition-all">
+                  {actor.thumb ? (
+                    <Image src={actor.thumb} alt={actor.tag} fill className="object-cover" sizes="(max-width: 640px) 45vw, 30vw" />
+                  ) : (
+                    <div className="absolute inset-0 bg-gray-700 flex items-center justify-center text-sm font-medium text-gray-300">
+                      {actor.tag.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
+                    </div>
+                  )}
+                </div>
+                <div className="text-xs min-w-0 w-full text-center">
+                  <p className="font-medium truncate group-hover:text-[var(--accent)] transition-colors">{actor.tag}</p>
+                  {actor.role && <p className="text-gray-500 truncate">{actor.role}</p>}
+                </div>
+              </a>
+            ))}
+          </div>
+        </motion.div>
+      )}
+
+      {episode.genre && episode.genre.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="mt-4"
+        >
+          <p className="text-gray-400 text-sm mb-2">Genres</p>
+          <div className="flex flex-wrap gap-2">
+            {episode.genre.map((g, i) => (
+              <span key={i} className="bg-gray-800 px-2 py-1 rounded-md text-xs">{g}</span>
+            ))}
+          </div>
+        </motion.div>
+      )}
+
+      <RelatedCarousel items={related} loading={relatedLoading} />
+
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.5 }}
+        className="grid grid-cols-2 gap-3 mt-4"
+      >
+        <div className="stagger-item stagger-delay-1">
+          <p className="text-gray-400 text-sm">Show</p>
+          <p>{episode.showTitle}</p>
+        </div>
+        <div className="stagger-item stagger-delay-2">
+          <p className="text-gray-400 text-sm">Episode</p>
+          <p>{seasonEpisode}</p>
+        </div>
+        {episode.videoResolution && (
+          <div className="stagger-item stagger-delay-3">
+            <p className="text-gray-400 text-sm">Video Quality</p>
+            <p>{qualityFormatted}</p>
+          </div>
+        )}
+        {episode.videoCodec && (
+          <div className="stagger-item stagger-delay-4">
+            <p className="text-gray-400 text-sm">Video Format</p>
+            <p className="uppercase">
+              {episode.videoCodec}{" "}
+              {episode.videoProfile ? `(${episode.videoProfile})` : ""}
+            </p>
+          </div>
+        )}
+        {episode.audioCodec && (
+          <div className="stagger-item stagger-delay-5">
+            <p className="text-gray-400 text-sm">Audio Format</p>
+            <p className="uppercase">
+              {episode.audioCodec}{" "}
+              {episode.audioChannels
+                ? formatAudioChannels(episode.audioChannels, episode.audioChannelLayout)
+                : ""}
+            </p>
+          </div>
+        )}
+        <div className="stagger-item stagger-delay-6">
+          <p className="text-gray-400 text-sm">Duration</p>
+          <p>{formattedDuration}</p>
+        </div>
+        {episode.bitrate && (
+          <div className="stagger-item stagger-delay-7">
+            <p className="text-gray-400 text-sm">Bitrate</p>
+            <p>{(episode.bitrate / 1000).toFixed(1)} Mbps</p>
+          </div>
+        )}
+        <div className="stagger-item stagger-delay-8">
+          <p className="text-gray-400 text-sm">Playback Type</p>
+          <p>
+            {episode.videoDecision === "copy" && episode.audioDecision === "copy"
+              ? "Direct Play"
+              : episode.videoDecision === "transcode" && episode.audioDecision === "transcode"
+                ? "Full Transcode"
+                : episode.videoDecision === "transcode"
+                  ? "Video Transcode"
+                  : episode.audioDecision === "transcode"
+                    ? "Audio Transcode"
+                    : "Direct Play"}
+            {episode.transcodeHwRequested && " (HW)"}
+          </p>
+        </div>
+        <div className="stagger-item stagger-delay-9">
+          <p className="text-gray-400 text-sm">Device</p>
+          <p>{episode.player}</p>
+        </div>
+        <div className="stagger-item stagger-delay-10">
+          <p className="text-gray-400 text-sm">User</p>
+          <div className="flex items-center">
+            <SelfContainedUserAvatar userId={episode.userId} userAvatar={episode.userAvatar} size="medium" />
+            <span className="ml-2">{episode.userId}</span>
+          </div>
+        </div>
+        <div className="stagger-item stagger-delay-15">
+          <p className="text-gray-400 text-sm">Started</p>
+          <p>
+            <time dateTime={startedAt.toISOString()}>{startedAt.toLocaleTimeString()}</time>
+          </p>
+        </div>
+        <div className="stagger-item stagger-delay-16">
+          <p className="text-gray-400 text-sm">Status</p>
+          <p className="capitalize">{episode.state}</p>
+        </div>
+      </motion.div>
+
+      {episode.writers && episode.writers.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8 }}
+          className="mt-4"
+        >
+          <p className="text-gray-400 text-sm mb-1">Writers</p>
+          <p className="text-sm">{episode.writers.map((w) => w.tag).join(", ")}</p>
+        </motion.div>
+      )}
+    </>
+  );
+}
 
 interface TVShowCardProps {
   item: Episode;
@@ -142,249 +355,7 @@ function TVShowCard({
     </div>
   );
 
-  const renderDetailContent = (episode: Episode) => (
-    <>
-      <ProgressInfo
-        percentage={progressPercentage}
-        estimatedFinishTime={estimatedFinishTime}
-        transcodeProgress={
-          episode.transcodeProgress !== undefined &&
-          (episode.videoDecision === "transcode" || episode.audioDecision === "transcode")
-            ? episode.transcodeProgress
-            : undefined
-        }
-      />
-
-      {episode.summary && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="mb-4"
-        >
-          <p className="text-gray-400 text-sm">Summary</p>
-          <p className="text-sm leading-tight">{episode.summary}</p>
-        </motion.div>
-      )}
-
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.3 }}
-        className="grid grid-cols-2 gap-3"
-      >
-        <div className="stagger-item stagger-delay-1">
-          <p className="text-gray-400 text-sm">Show</p>
-          <p>{episode.showTitle}</p>
-        </div>
-        <div className="stagger-item stagger-delay-2">
-          <p className="text-gray-400 text-sm">Episode</p>
-          <p>{seasonEpisode}</p>
-        </div>
-        {episode.videoResolution && (
-          <div className="stagger-item stagger-delay-3">
-            <p className="text-gray-400 text-sm">Video Quality</p>
-            <p>{qualityFormatted}</p>
-          </div>
-        )}
-        {episode.videoCodec && (
-          <div className="stagger-item stagger-delay-4">
-            <p className="text-gray-400 text-sm">Video Format</p>
-            <p className="uppercase">
-              {episode.videoCodec}{" "}
-              {episode.videoProfile ? `(${episode.videoProfile})` : ""}
-            </p>
-          </div>
-        )}
-        {episode.audioCodec && (
-          <div className="stagger-item stagger-delay-5">
-            <p className="text-gray-400 text-sm">Audio Format</p>
-            <p className="uppercase">
-              {episode.audioCodec}{" "}
-              {episode.audioChannels
-                ? formatAudioChannels(
-                    episode.audioChannels,
-                    episode.audioChannelLayout,
-                  )
-                : ""}
-            </p>
-          </div>
-        )}
-        <div className="stagger-item stagger-delay-6">
-          <p className="text-gray-400 text-sm">Duration</p>
-          <p>{formattedDuration}</p>
-        </div>
-        {episode.bitrate && (
-          <div className="stagger-item stagger-delay-7">
-            <p className="text-gray-400 text-sm">Bitrate</p>
-            <p>{(episode.bitrate / 1000).toFixed(1)} Mbps</p>
-          </div>
-        )}
-        <div className="stagger-item stagger-delay-8">
-          <p className="text-gray-400 text-sm">Playback Type</p>
-          <p>
-            {episode.videoDecision === "copy" &&
-            episode.audioDecision === "copy"
-              ? "Direct Play"
-              : episode.videoDecision === "transcode" &&
-                  episode.audioDecision === "transcode"
-                ? "Full Transcode"
-                : episode.videoDecision === "transcode"
-                  ? "Video Transcode"
-                  : episode.audioDecision === "transcode"
-                    ? "Audio Transcode"
-                    : "Direct Play"}
-            {episode.transcodeHwRequested && " (HW)"}
-          </p>
-        </div>
-        <div className="stagger-item stagger-delay-9">
-          <p className="text-gray-400 text-sm">Device</p>
-          <p>{episode.player}</p>
-        </div>
-        <div className="stagger-item stagger-delay-10">
-          <p className="text-gray-400 text-sm">User</p>
-          <div className="flex items-center">
-            <SelfContainedUserAvatar
-              userId={episode.userId}
-              userAvatar={episode.userAvatar}
-              size="medium"
-            />
-            <span className="ml-2">{episode.userId}</span>
-          </div>
-        </div>
-        <div className="stagger-item stagger-delay-15">
-          <p className="text-gray-400 text-sm">Started</p>
-          <p>
-            <time dateTime={startedAt.toISOString()}>
-              {startedAt.toLocaleTimeString()}
-            </time>
-          </p>
-        </div>
-        <div className="stagger-item stagger-delay-16">
-          <p className="text-gray-400 text-sm">Status</p>
-          <p className="capitalize">{episode.state}</p>
-        </div>
-      </motion.div>
-
-      {episode.genre && episode.genre.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="mt-4"
-        >
-          <p className="text-gray-400 text-sm mb-2">Genres</p>
-          <div className="flex flex-wrap gap-2">
-            {episode.genre.map((g, i) => (
-              <span
-                key={i}
-                className="bg-gray-800 px-2 py-1 rounded-md text-xs"
-              >
-                {g}
-              </span>
-            ))}
-          </div>
-        </motion.div>
-      )}
-
-      {episode.ratings && episode.ratings.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="mt-4"
-        >
-          <p className="text-gray-400 text-sm mb-2">Ratings</p>
-          <div className="flex flex-wrap gap-3">
-            {episode.ratings.map((rating, i) => (
-              <div key={i} className="flex items-center gap-2">
-                {getRatingIcon(rating)}
-                <span className="text-xs text-gray-400">
-                  {getRatingSource(rating)}:
-                </span>
-                <span className="text-sm font-medium">{rating.value}</span>
-              </div>
-            ))}
-          </div>
-        </motion.div>
-      )}
-
-      {episode.actors && episode.actors.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          className="mt-4"
-        >
-          <p className="text-gray-400 text-sm mb-2">Cast</p>
-          <div className="grid grid-cols-3 gap-3">
-            {episode.actors.slice(0, 15).map((actor, i) => (
-              <a
-                key={i}
-                href={`https://www.imdb.com/find?q=${encodeURIComponent(actor.tag)}&s=nm`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex flex-col items-center gap-1.5 min-w-0 px-1 group"
-              >
-                <div className="relative w-full aspect-square rounded-full overflow-hidden ring-2 ring-transparent group-hover:ring-[var(--accent)] transition-all">
-                  {actor.thumb ? (
-                    <Image
-                      src={actor.thumb}
-                      alt={actor.tag}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 640px) 45vw, 30vw"
-                    />
-                  ) : (
-                    <div className="absolute inset-0 bg-gray-700 flex items-center justify-center text-sm font-medium text-gray-300">
-                      {actor.tag
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")
-                        .slice(0, 2)
-                        .toUpperCase()}
-                    </div>
-                  )}
-                </div>
-                <div className="text-xs min-w-0 w-full text-center">
-                  <p className="font-medium truncate group-hover:text-[var(--accent)] transition-colors">{actor.tag}</p>
-                  {actor.role && <p className="text-gray-500 truncate">{actor.role}</p>}
-                </div>
-              </a>
-            ))}
-          </div>
-        </motion.div>
-      )}
-
-      {episode.directors && episode.directors.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7 }}
-          className="mt-4"
-        >
-          <p className="text-gray-400 text-sm mb-1">Directors</p>
-          <p className="text-sm">
-            {episode.directors.map((d) => d.tag).join(", ")}
-          </p>
-        </motion.div>
-      )}
-
-      {episode.writers && episode.writers.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
-          className="mt-4"
-        >
-          <p className="text-gray-400 text-sm mb-1">Writers</p>
-          <p className="text-sm">
-            {episode.writers.map((w) => w.tag).join(", ")}
-          </p>
-        </motion.div>
-      )}
-    </>
-  );
+  const renderDetailContent = (episode: Episode) => <TVShowDetailContent episode={episode} />;
 
   const isTranscoding =
     episode.transcodeProgress !== undefined &&

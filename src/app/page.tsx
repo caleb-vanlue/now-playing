@@ -77,8 +77,14 @@ function MediaPage() {
   }, [activeTab, order]);
 
   const swipeHandlers = useSwipeable({
-    onSwipedLeft: handleSwipeLeft,
-    onSwipedRight: handleSwipeRight,
+    onSwipedLeft: (e) => {
+      if ((e.event.target as Element)?.closest?.('[role="dialog"]')) return;
+      handleSwipeLeft();
+    },
+    onSwipedRight: (e) => {
+      if ((e.event.target as Element)?.closest?.('[role="dialog"]')) return;
+      handleSwipeRight();
+    },
     preventScrollOnSwipe: true,
   });
 

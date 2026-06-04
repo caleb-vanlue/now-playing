@@ -115,3 +115,12 @@ export interface HistoryData {
   items: HistoryItem[];
   hasMore: boolean;
 }
+
+export interface RelatedItem {
+  id: string;
+  title: string;
+  year?: number;
+  thumb?: string;
+  type: "movie" | "show" | "episode";
+  source: "plex" | "jellyfin";
+}

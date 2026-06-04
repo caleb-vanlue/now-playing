@@ -90,10 +90,28 @@ function DetailViewComponent<T extends BaseMedia>(props: DetailViewProps<T>) {
     closeButtonRef,
   } = props;
 
+  const overlayRef = useRef<HTMLDivElement>(null);
+
+  // Native listeners — React synthetic stopPropagation fires after react-swipeable's
+  // native listener on the parent, so we need to intercept at the DOM level instead.
+  useEffect(() => {
+    if (!showDetails) return;
+    const el = overlayRef.current;
+    if (!el) return;
+    const stop = (e: TouchEvent) => e.stopPropagation();
+    el.addEventListener("touchstart", stop, { passive: false });
+    el.addEventListener("touchmove", stop, { passive: false });
+    return () => {
+      el.removeEventListener("touchstart", stop);
+      el.removeEventListener("touchmove", stop);
+    };
+  }, [showDetails]);
+
   return (
     <AnimatePresence>
       {showDetails && (
         <motion.div
+          ref={overlayRef}
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.95 }}
