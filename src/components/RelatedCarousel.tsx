@@ -18,7 +18,7 @@ export function RelatedCarousel({ items, loading }: RelatedCarouselProps) {
       className="mt-4"
     >
       <p className="text-gray-400 text-sm mb-2">More Like This</p>
-      <div className="flex gap-3 overflow-x-auto pb-1 snap-x snap-mandatory scrollbar-hide">
+      <div className="flex gap-3 overflow-x-auto py-1 snap-x snap-mandatory scrollbar-hide">
         {loading
           ? Array.from({ length: 5 }).map((_, i) => (
               <div key={i} className="flex-shrink-0 w-20 snap-start">
@@ -30,11 +30,11 @@ export function RelatedCarousel({ items, loading }: RelatedCarouselProps) {
               <a
                 key={item.id}
                 href={`https://www.imdb.com/find?q=${encodeURIComponent(
-                  item.title + (item.year ? ` ${item.year}` : "")
+                  item.title + (item.year ? ` ${item.year}` : ""),
                 )}&s=tt`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-shrink-0 w-20 snap-start group"
+                className="flex-shrink-0 w-28 snap-start group"
               >
                 <div className="aspect-[2/3] rounded-md overflow-hidden bg-gray-800 relative ring-2 ring-transparent group-hover:ring-[var(--accent)] transition-all">
                   {item.thumb ? (
@@ -55,7 +55,9 @@ export function RelatedCarousel({ items, loading }: RelatedCarouselProps) {
                   {item.title}
                 </p>
                 {item.year && (
-                  <p className="text-[10px] text-center text-gray-500">{item.year}</p>
+                  <p className="text-[10px] text-center text-gray-500">
+                    {item.year}
+                  </p>
                 )}
               </a>
             ))}
