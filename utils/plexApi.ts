@@ -174,7 +174,7 @@ function mapToMovie(session: PlexSession): Movie {
     ratings: session.Rating,
     directors: session.Director,
     writers: session.Writer,
-    actors: session.Role?.slice(0, 10),
+    actors: session.Role?.slice(0, 15),
     backdropPath: session.art,
   };
 }
@@ -195,7 +195,7 @@ function mapToEpisode(session: PlexEpisodeSession): Episode {
     ratings: session.Rating,
     directors: session.Director,
     writers: session.Writer,
-    actors: session.Role?.slice(0, 10),
+    actors: session.Role?.slice(0, 15),
   };
 }
 

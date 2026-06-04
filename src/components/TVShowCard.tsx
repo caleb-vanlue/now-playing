@@ -318,7 +318,7 @@ function TVShowCard({
         >
           <p className="text-gray-400 text-sm mb-2">Cast</p>
           <div className="grid grid-cols-3 gap-3">
-            {episode.actors.slice(0, 9).map((actor, i) => (
+            {episode.actors.slice(0, 15).map((actor, i) => (
               <a
                 key={i}
                 href={`https://www.imdb.com/find?q=${encodeURIComponent(actor.tag)}&s=nm`}
