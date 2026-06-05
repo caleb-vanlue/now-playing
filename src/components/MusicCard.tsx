@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Track } from "../../types/media";
 import { getResponsiveThumbnailUrl } from "../../utils/api";
 import { useSpotifyTrack } from "../hooks/useSpotifyTrack";
+import { useLyrics } from "../hooks/useLyrics";
 import {
   calculateProgress,
   calculateFinishTime,
@@ -17,6 +18,7 @@ import {
   SpotifyBadge,
   ImageWithFallback,
 } from "./ImageWithFallback";
+import { LyricsPanel } from "./LyricsPanel";
 
 interface MusicCardProps {
   track: Track;
@@ -25,6 +27,7 @@ interface MusicCardProps {
 
 function MusicCard({ track, index = 0 }: MusicCardProps) {
   const { spotifyUrl } = useSpotifyTrack(track.artist, track.title);
+  const { lyrics, instrumental, loading: lyricsLoading } = useLyrics(track);
 
   const progressPercentage = calculateProgress(
     track.viewOffset,
@@ -146,6 +149,8 @@ function MusicCard({ track, index = 0 }: MusicCardProps) {
           </div>
         )}
 
+          <LyricsPanel lyrics={lyrics} instrumental={instrumental} loading={lyricsLoading} />
+
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -220,12 +225,16 @@ function MusicCard({ track, index = 0 }: MusicCardProps) {
 
         </motion.div>
         </>
+
       );
     },
     [
       spotifyUrl,
       progressPercentage,
       formattedDuration,
+      lyrics,
+      instrumental,
+      lyricsLoading,
     ]
   );
 
