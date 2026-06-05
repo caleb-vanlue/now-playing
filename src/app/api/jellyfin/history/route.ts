@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { HistoryItem } from "../../../../../types/media";
 import { applyUsernameMap } from "../../../../../utils/usernameMap";
+import { serverCache, HISTORY_CACHE_TTL } from "../../../../../utils/serverCache";
 
 interface JellyfinUser {
   Id: string;
@@ -40,6 +41,10 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const limit = parseInt(searchParams.get("limit") || "100");
+
+  const cacheKey = `jellyfin:history:${limit}`;
+  const cached = serverCache.get<unknown>(cacheKey);
+  if (cached) return NextResponse.json(cached);
 
   try {
     const headers = {
@@ -141,6 +146,7 @@ export async function GET(request: Request) {
       };
     });
 
+    serverCache.set(cacheKey, { items: historyItems }, HISTORY_CACHE_TTL);
     return NextResponse.json({ items: historyItems });
   } catch (error) {
     console.error("Error fetching Jellyfin history:", error);

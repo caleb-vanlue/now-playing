@@ -23,3 +23,4 @@ class ServerCache {
 
 export const serverCache = new ServerCache();
 export const SESSIONS_CACHE_TTL = 30_000;
+export const HISTORY_CACHE_TTL = 60_000;

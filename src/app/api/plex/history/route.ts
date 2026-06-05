@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { HistoryItem } from "../../../../../types/media";
 import { applyUsernameMap } from "../../../../../utils/usernameMap";
+import { serverCache, HISTORY_CACHE_TTL } from "../../../../../utils/serverCache";
 
 interface PlexHistoryItem {
   ratingKey: string;
@@ -59,6 +60,10 @@ export async function GET(request: Request) {
   const limit = searchParams.get("limit") || "100";
   const sort = searchParams.get("sort") || "viewedAt:desc";
 
+  const cacheKey = `plex:history:${limit}:${sort}`;
+  const cached = serverCache.get<unknown>(cacheKey);
+  if (cached) return NextResponse.json(cached);
+
   try {
     const [historyRes, accountMap] = await Promise.all([
       fetch(
@@ -111,6 +116,7 @@ export async function GET(request: Request) {
       };
     });
 
+    serverCache.set(cacheKey, { items }, HISTORY_CACHE_TTL);
     return NextResponse.json({ items });
   } catch (error) {
     console.error("Error fetching Plex history:", error);
