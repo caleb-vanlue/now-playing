@@ -1,4 +1,4 @@
-import React, { memo } from "react";
+import React, { memo, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Episode } from "../../types/media";
 import { useRelatedItems } from "../hooks/useRelatedItems";
@@ -163,80 +163,63 @@ function TVShowCard({
   index = 0,
   showSeriesPoster = false,
 }: TVShowCardProps) {
-  const progressPercentage = calculateProgress(
-    episode.viewOffset,
-    episode.duration,
-  );
-  const estimatedFinishTime = calculateFinishTime(
-    episode.duration,
-    episode.viewOffset,
-  );
-  const seasonEpisode = `S${episode.season}:E${episode.episode}`;
-  const formattedDuration = formatDuration(episode.duration);
-  const qualityFormatted = formatQuality(
-    episode.videoResolution,
-    episode.audioCodec,
-  );
-  const startedAt = new Date(episode.startTime);
+  const progressPercentage = calculateProgress(episode.viewOffset, episode.duration);
 
-  const renderThumbnail = (episode: Episode, imageState: ImageState) => {
-    const seriesUrl = showSeriesPoster ? getSeriesThumbnailUrl(episode) : null;
-    const thumbnailUrl = seriesUrl ?? getResponsiveThumbnailUrl(episode, "tv");
+  const renderThumbnail = useCallback(
+    (episode: Episode, imageState: ImageState) => {
+      const seriesUrl = showSeriesPoster ? getSeriesThumbnailUrl(episode) : null;
+      const thumbnailUrl = seriesUrl ?? getResponsiveThumbnailUrl(episode, "tv");
 
-    const badges = [
-      <SeasonEpisodeBadge
-        key="season-episode"
-        season={episode.season}
-        episode={episode.episode}
-      />,
-    ];
-
-    if (episode.contentRating) {
-      badges.push(<ContentRatingBadge rating={episode.contentRating} />);
-    }
-
-    if (episode.videoDecision) {
-      badges.push(
-        <TranscodeStatusBadge
-          videoDecision={episode.videoDecision}
-          audioDecision={episode.audioDecision}
+      const badges = [
+        <SeasonEpisodeBadge
+          key="season-episode"
+          season={episode.season}
+          episode={episode.episode}
         />,
+      ];
+      if (episode.contentRating) badges.push(<ContentRatingBadge rating={episode.contentRating} />);
+      if (episode.videoDecision) {
+        badges.push(
+          <TranscodeStatusBadge
+            videoDecision={episode.videoDecision}
+            audioDecision={episode.audioDecision}
+          />
+        );
+      }
+
+      return (
+        <ImageWithFallback
+          src={thumbnailUrl}
+          alt={episode.showTitle}
+          aspectRatio={showSeriesPoster ? "portrait" : "landscape"}
+          sizes="(max-width: 768px) 100vw, 50vw"
+          fallbackIcon="📺"
+          badges={badges}
+          onLoad={() => imageState.setImageLoaded(true)}
+        />
       );
-    }
+    },
+    [showSeriesPoster]
+  );
 
-    return (
-      <ImageWithFallback
-        src={thumbnailUrl}
-        alt={episode.showTitle}
-        aspectRatio={showSeriesPoster ? "portrait" : "landscape"}
-        sizes="(max-width: 768px) 100vw, 50vw"
-        fallbackIcon="📺"
-        badges={badges}
-        onLoad={() => imageState.setImageLoaded(true)}
-      />
-    );
-  };
-
-  const renderMainContent = (episode: Episode) => {
+  const renderMainContent = useCallback((episode: Episode) => {
     const bestRating = getBestDisplayRating(episode.ratings, episode.rating);
+    const quality = formatQuality(episode.videoResolution, episode.audioCodec);
     return (
       <div className="flex flex-col">
         <h3 className="text-xl font-bold truncate" title={episode.title}>
           {episode.title}
         </h3>
-        <p
-          className="text-gray-400 truncate font-medium"
-          title={episode.showTitle}
-        >
+        <p className="text-gray-400 truncate font-medium" title={episode.showTitle}>
           {episode.showTitle}
         </p>
         <div className="mt-1">
           <p className="text-gray-400 text-sm flex items-center gap-2">
-            <span>{formattedDuration}</span>
-            {qualityFormatted && (
+            <span>{formatDuration(episode.duration)}</span>
+            {quality && (
               <>
                 <span className="text-gray-600">•</span>
-                <span>{qualityFormatted}</span>
+                <span>{quality}</span>
               </>
             )}
             {bestRating && (
@@ -252,15 +235,15 @@ function TVShowCard({
         </div>
       </div>
     );
-  };
+  }, []);
 
-  const renderDetailHeader = (episode: Episode) => (
+  const renderDetailHeader = useCallback((episode: Episode) => (
     <div>
       <h2 className="text-xl font-bold">{episode.title}</h2>
       <div className="flex items-center gap-2 text-sm text-gray-400 mt-1">
         <span>{episode.showTitle}</span>
         <span className="text-gray-600">•</span>
-        <span>{seasonEpisode}</span>
+        <span>{`S${episode.season}:E${episode.episode}`}</span>
         {episode.contentRating && (
           <>
             <span className="text-gray-600">•</span>
@@ -269,9 +252,12 @@ function TVShowCard({
         )}
       </div>
     </div>
-  );
+  ), []);
 
-  const renderDetailContent = (episode: Episode) => <TVShowDetailContent episode={episode} />;
+  const renderDetailContent = useCallback(
+    (episode: Episode) => <TVShowDetailContent episode={episode} />,
+    []
+  );
 
   const isTranscoding =
     episode.transcodeProgress !== undefined &&

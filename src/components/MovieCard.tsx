@@ -1,4 +1,4 @@
-import React, { memo } from "react";
+import React, { memo, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Movie } from "../../types/media";
 import { getResponsiveThumbnailUrl, getMovieBackdropUrl } from "../../utils/api";
@@ -156,55 +156,42 @@ interface MovieCardProps {
 }
 
 function MovieCard({ item: movie, index = 0, showBackdrop = false }: MovieCardProps) {
-  const progressPercentage = calculateProgress(
-    movie.viewOffset,
-    movie.duration,
-  );
-  const estimatedFinishTime = calculateFinishTime(
-    movie.duration,
-    movie.viewOffset,
-  );
-  const qualityFormatted = formatQuality(
-    movie.videoResolution,
-    movie.audioCodec,
-  );
-  const formattedDuration = formatDuration(movie.duration);
-  const startedAt = new Date(movie.startTime);
+  const progressPercentage = calculateProgress(movie.viewOffset, movie.duration);
 
-  const renderThumbnail = (movie: Movie, imageState: ImageState) => {
-    const backdropUrl = showBackdrop ? getMovieBackdropUrl(movie) : null;
-    const thumbnailUrl = backdropUrl ?? getResponsiveThumbnailUrl(movie, "movie");
+  const renderThumbnail = useCallback(
+    (movie: Movie, imageState: ImageState) => {
+      const backdropUrl = showBackdrop ? getMovieBackdropUrl(movie) : null;
+      const thumbnailUrl = backdropUrl ?? getResponsiveThumbnailUrl(movie, "movie");
 
-    const badges = [];
+      const badges = [];
+      if (movie.contentRating) badges.push(<ContentRatingBadge rating={movie.contentRating} />);
+      if (movie.videoDecision) {
+        badges.push(
+          <TranscodeStatusBadge
+            videoDecision={movie.videoDecision}
+            audioDecision={movie.audioDecision}
+          />
+        );
+      }
 
-    if (movie.contentRating) {
-      badges.push(<ContentRatingBadge rating={movie.contentRating} />);
-    }
-
-    if (movie.videoDecision) {
-      badges.push(
-        <TranscodeStatusBadge
-          videoDecision={movie.videoDecision}
-          audioDecision={movie.audioDecision}
-        />,
+      return (
+        <ImageWithFallback
+          src={thumbnailUrl}
+          alt={movie.title}
+          aspectRatio={backdropUrl ? "landscape" : "portrait"}
+          sizes="(max-width: 768px) 100vw, 50vw"
+          fallbackIcon="🎬"
+          badges={badges}
+          onLoad={() => imageState.setImageLoaded(true)}
+        />
       );
-    }
+    },
+    [showBackdrop]
+  );
 
-    return (
-      <ImageWithFallback
-        src={thumbnailUrl}
-        alt={movie.title}
-        aspectRatio={backdropUrl ? "landscape" : "portrait"}
-        sizes="(max-width: 768px) 100vw, 50vw"
-        fallbackIcon="🎬"
-        badges={badges}
-        onLoad={() => imageState.setImageLoaded(true)}
-      />
-    );
-  };
-
-  const renderMainContent = (movie: Movie) => {
+  const renderMainContent = useCallback((movie: Movie) => {
     const bestRating = getBestDisplayRating(movie.ratings, movie.rating);
+    const quality = formatQuality(movie.videoResolution, movie.audioCodec);
     return (
       <>
         <h3 className="text-xl font-bold truncate" title={movie.title}>
@@ -213,11 +200,11 @@ function MovieCard({ item: movie, index = 0, showBackdrop = false }: MovieCardPr
         <p>{movie.year}</p>
         <div className="mt-1">
           <p className="text-gray-400 text-sm flex items-center gap-2">
-            <span>{formattedDuration}</span>
-            {qualityFormatted && (
+            <span>{formatDuration(movie.duration)}</span>
+            {quality && (
               <>
                 <span className="text-gray-600">•</span>
-                <span>{qualityFormatted}</span>
+                <span>{quality}</span>
               </>
             )}
             {bestRating && (
@@ -233,9 +220,9 @@ function MovieCard({ item: movie, index = 0, showBackdrop = false }: MovieCardPr
         </div>
       </>
     );
-  };
+  }, []);
 
-  const renderDetailHeader = (movie: Movie) => (
+  const renderDetailHeader = useCallback((movie: Movie) => (
     <div>
       <h2 className="text-xl font-bold">{movie.title}</h2>
       <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-gray-400 mt-1">
@@ -247,7 +234,7 @@ function MovieCard({ item: movie, index = 0, showBackdrop = false }: MovieCardPr
           </>
         )}
         <span className="text-gray-600">•</span>
-        <span>{formattedDuration}</span>
+        <span>{formatDuration(movie.duration)}</span>
         {(movie.genre?.length ?? 0) > 0 && (
           <>
             <span className="text-gray-600">•</span>
@@ -259,9 +246,12 @@ function MovieCard({ item: movie, index = 0, showBackdrop = false }: MovieCardPr
         <p className="text-gray-500 italic text-sm mt-1">{movie.tagline}</p>
       )}
     </div>
-  );
+  ), []);
 
-  const renderDetailContent = (movie: Movie) => <MovieDetailContent movie={movie} />;
+  const renderDetailContent = useCallback(
+    (movie: Movie) => <MovieDetailContent movie={movie} />,
+    []
+  );
 
   const isTranscoding =
     movie.transcodeProgress !== undefined &&
