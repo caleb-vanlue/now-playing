@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import { applyUsernameMap } from "../../../../../utils/usernameMap";
+import { serverCache, SESSIONS_CACHE_TTL } from "../../../../../utils/serverCache";
+
+const CACHE_KEY = "plex:sessions";
 
 function sanitizePlexSession(session: Record<string, unknown>): void {
   if (session.User && typeof session.User === "object") {
@@ -43,6 +46,9 @@ export async function GET() {
     );
   }
 
+  const cached = serverCache.get<unknown>(CACHE_KEY);
+  if (cached) return NextResponse.json(cached);
+
   try {
     const response = await fetch(
       `${PLEX_URL}/status/sessions?X-Plex-Token=${PLEX_TOKEN}`,
@@ -62,6 +68,7 @@ export async function GET() {
     const sessions: Record<string, unknown>[] = data?.MediaContainer?.Metadata || [];
     sessions.forEach(sanitizePlexSession);
 
+    serverCache.set(CACHE_KEY, data, SESSIONS_CACHE_TTL);
     return NextResponse.json(data);
   } catch (error) {
     console.error("Error fetching from Plex:", error);

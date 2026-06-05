@@ -22,10 +22,20 @@ async function getServiceConfig(): Promise<ServiceConfig> {
 
 export async function fetchMediaData(signal?: AbortSignal): Promise<MediaData> {
   const config = await getServiceConfig();
-  const results = await Promise.allSettled([
-    config.plex ? fetchPlexData(signal) : Promise.resolve({ tracks: [], movies: [], episodes: [] }),
-    config.jellyfin ? fetchJellyfinData(signal) : Promise.resolve({ tracks: [], movies: [], episodes: [] }),
-  ]);
+
+  const configuredFetches: Promise<MediaData>[] = [];
+  if (config.plex) configuredFetches.push(fetchPlexData(signal));
+  if (config.jellyfin) configuredFetches.push(fetchJellyfinData(signal));
+
+  if (configuredFetches.length === 0) {
+    return { tracks: [], movies: [], episodes: [] };
+  }
+
+  const results = await Promise.allSettled(configuredFetches);
+
+  if (results.every((r) => r.status === "rejected")) {
+    throw (results[0] as PromiseRejectedResult).reason;
+  }
 
   const merged = results.reduce(
     (acc, result) => {

@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import { applyUsernameMap } from "../../../../../utils/usernameMap";
+import { serverCache, SESSIONS_CACHE_TTL } from "../../../../../utils/serverCache";
+
+const CACHE_KEY = "jellyfin:sessions";
 
 interface JellyfinPerson {
   Id: string;
@@ -108,6 +111,9 @@ export async function GET() {
     );
   }
 
+  const cached = serverCache.get<unknown>(CACHE_KEY);
+  if (cached) return NextResponse.json(cached);
+
   try {
     const res = await fetch(`${JELLYFIN_URL}/Sessions`, {
       headers: {
@@ -148,6 +154,7 @@ export async function GET() {
       }),
     );
 
+    serverCache.set(CACHE_KEY, { sessions: enriched }, SESSIONS_CACHE_TTL);
     return NextResponse.json({ sessions: enriched });
   } catch (error) {
     console.error("Error fetching from Jellyfin:", error);
