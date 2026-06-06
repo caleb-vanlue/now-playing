@@ -9,7 +9,7 @@ interface LyricsResult {
 const cache = new Map<string, LyricsResult>();
 
 export function useLyrics(track: Track) {
-  const cacheKey = track.startTime;
+  const cacheKey = `${track.artist}|${track.title}|${track.album ?? ""}`;
   const [result, setResult] = useState<LyricsResult>(
     () => cache.get(cacheKey) ?? { lyrics: null, instrumental: false }
   );

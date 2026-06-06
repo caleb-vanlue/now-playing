@@ -5,7 +5,7 @@ interface CacheItem {
 
 class SpotifyUrlCache {
   private cache: Map<string, CacheItem> = new Map();
-  private readonly CACHE_EXPIRATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+  private readonly CACHE_EXPIRATION = 24 * 60 * 60 * 1000;
 
   private createKey(artist: string, title: string): string {
     return `${artist.toLowerCase().trim()}:${title.toLowerCase().trim()}`;
@@ -43,7 +43,7 @@ class SpotifyUrlCache {
     } catch (error) {
       console.error(
         "Failed to load Spotify URL cache from localStorage",
-        error
+        error,
       );
       this.cache = new Map();
     }
