@@ -211,6 +211,45 @@ export function RatingsSection({ ratings, delay = 0.3 }: { ratings?: Rating[]; d
 
 const CAST_INITIAL = 6;
 
+function CastMemberCard({ actor, index: i }: { actor: Person; index: number }) {
+  const [imgFailed, setImgFailed] = useState(false);
+  const initials = actor.tag.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
+  const showFallback = !actor.thumb || imgFailed;
+
+  return (
+    <motion.a
+      initial={i >= CAST_INITIAL ? { opacity: 0, scale: 0.85 } : false}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.18, delay: i >= CAST_INITIAL ? (i - CAST_INITIAL) * 0.04 : 0 }}
+      href={`https://www.imdb.com/find?q=${encodeURIComponent(actor.tag)}&s=nm`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex flex-col items-center gap-1.5 min-w-0 px-1 group"
+    >
+      <div className="relative w-full aspect-square rounded-full overflow-hidden ring-2 ring-transparent group-hover:ring-[var(--accent)] transition-all">
+        {showFallback ? (
+          <div className="absolute inset-0 bg-gray-700 flex items-center justify-center text-sm font-medium text-gray-300">
+            {initials}
+          </div>
+        ) : (
+          <Image
+            src={actor.thumb!}
+            alt={actor.tag}
+            fill
+            className="object-cover"
+            sizes="(max-width: 640px) 45vw, 30vw"
+            onError={() => setImgFailed(true)}
+          />
+        )}
+      </div>
+      <div className="text-xs min-w-0 w-full text-center">
+        <p className="font-medium truncate group-hover:text-[var(--accent)] transition-colors">{actor.tag}</p>
+        {actor.role && <p className="text-gray-500 truncate">{actor.role}</p>}
+      </div>
+    </motion.a>
+  );
+}
+
 export function CastGrid({ actors, delay = 0.35 }: { actors?: Person[]; delay?: number }) {
   const [expanded, setExpanded] = useState(false);
 
@@ -230,36 +269,7 @@ export function CastGrid({ actors, delay = 0.35 }: { actors?: Person[]; delay?: 
       <p className="text-gray-400 text-sm mb-2">Cast</p>
       <div className="grid grid-cols-3 gap-3">
         {visible.map((actor, i) => (
-          <motion.a
-            key={actor.tag}
-            initial={i >= CAST_INITIAL ? { opacity: 0, scale: 0.85 } : false}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.18, delay: i >= CAST_INITIAL ? (i - CAST_INITIAL) * 0.04 : 0 }}
-            href={`https://www.imdb.com/find?q=${encodeURIComponent(actor.tag)}&s=nm`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex flex-col items-center gap-1.5 min-w-0 px-1 group"
-          >
-            <div className="relative w-full aspect-square rounded-full overflow-hidden ring-2 ring-transparent group-hover:ring-[var(--accent)] transition-all">
-              {actor.thumb ? (
-                <Image
-                  src={actor.thumb}
-                  alt={actor.tag}
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 640px) 45vw, 30vw"
-                />
-              ) : (
-                <div className="absolute inset-0 bg-gray-700 flex items-center justify-center text-sm font-medium text-gray-300">
-                  {actor.tag.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
-                </div>
-              )}
-            </div>
-            <div className="text-xs min-w-0 w-full text-center">
-              <p className="font-medium truncate group-hover:text-[var(--accent)] transition-colors">{actor.tag}</p>
-              {actor.role && <p className="text-gray-500 truncate">{actor.role}</p>}
-            </div>
-          </motion.a>
+          <CastMemberCard key={actor.tag} actor={actor} index={i} />
         ))}
       </div>
 
