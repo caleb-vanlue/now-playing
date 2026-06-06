@@ -13,6 +13,7 @@ import { useMediaData } from "../hooks/useMediaData";
 import { MediaData } from "../../types/media";
 import { spotifyCache } from "../../utils/spotifyCache";
 import { searchSpotifyTrack } from "../../utils/spotifyApi";
+import { prefetchLyrics } from "../hooks/useLyrics";
 
 interface MediaDataContextValue {
   mediaData: MediaData | null;
@@ -93,6 +94,10 @@ export function MediaDataProvider({
     },
     []
   );
+
+  useEffect(() => {
+    mediaDataState.mediaData?.tracks.forEach(prefetchLyrics);
+  }, [mediaDataState.mediaData?.tracks]);
 
   useEffect(() => {
     return () => {
