@@ -166,6 +166,7 @@ function MusicCard({ track, index = 0 }: MusicCardProps) {
           aspectRatio="square"
           sizes="(max-width: 640px) 300px, (max-width: 1024px) 400px, 500px"
           quality={85}
+          priority
           fallbackIcon="🎵"
           badges={badges}
           onLoad={() => imageState.setImageLoaded(true)}

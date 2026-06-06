@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
   devIndicators: false,
   allowedDevOrigins: ["192.168.0.108"],
   images: {
+    qualities: [60, 80, 85],
     localPatterns: [
       {
         pathname: "/api/plex/thumbnail**",
