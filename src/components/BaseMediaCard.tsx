@@ -123,11 +123,11 @@ function DetailViewComponent<T extends BaseMedia>(props: DetailViewProps<T>) {
           className="absolute inset-0 z-30 overflow-hidden rounded-lg shadow-xl theme-bg-header backdrop-blur-sm hardware-accelerated"
           role="dialog"
           aria-modal="true"
-          aria-labelledby={`detail-header-${item.id}`}
+          aria-labelledby={`detail-header-${item.sessionId}`}
         >
           <div
             ref={headerRef}
-            id={`detail-header-${item.id}`}
+            id={`detail-header-${item.sessionId}`}
             className="flex justify-between items-start p-4 border-b border-gray-800/50"
           >
             {renderDetailHeader(item)}

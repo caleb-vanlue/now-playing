@@ -161,9 +161,9 @@ function MediaPage() {
         return (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6" role="group" aria-label="All media">
             {allItems.map(({ kind, item }, index) => {
-              if (kind === "music") return <MusicCard key={item.id} track={item} index={index} />;
-              if (kind === "movie") return <MovieCard key={item.id} item={item} index={index} />;
-              return <TVShowCard key={item.id} item={item} index={index} showSeriesPoster />;
+              if (kind === "music") return <MusicCard key={item.sessionId} track={item} index={index} />;
+              if (kind === "movie") return <MovieCard key={item.sessionId} item={item} index={index} />;
+              return <TVShowCard key={item.sessionId} item={item} index={index} showSeriesPoster />;
             })}
           </div>
         );
@@ -177,7 +177,7 @@ function MediaPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" role="group" aria-label="Music tracks">
             {tracks.map((track, index) => (
               <div
-                key={track.id}
+                key={track.sessionId}
                 ref={setItemRef(index)}
                 onKeyDown={(e) => handleKeyDown(e, index)}
                 tabIndex={index === 0 ? 0 : -1}
@@ -197,7 +197,7 @@ function MediaPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6" role="group" aria-label="Movies">
             {movies.map((movie, index) => (
               <div
-                key={movie.id}
+                key={movie.sessionId}
                 ref={setItemRef(index)}
                 onKeyDown={(e) => handleKeyDown(e, index)}
                 tabIndex={index === 0 ? 0 : -1}
@@ -217,7 +217,7 @@ function MediaPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6" role="group" aria-label="TV Shows">
             {episodes.map((episode, index) => (
               <div
-                key={episode.id}
+                key={episode.sessionId}
                 ref={setItemRef(index)}
                 onKeyDown={(e) => handleKeyDown(e, index)}
                 tabIndex={index === 0 ? 0 : -1}

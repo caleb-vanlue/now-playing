@@ -87,17 +87,17 @@ export function useMediaData(options?: UseMediaDataOptions) {
 
     const prevData = prevMediaDataRef.current;
 
-    const sessionChanged = <T extends { id: string; state: string; viewOffset?: number }>(
+    const sessionChanged = <T extends { sessionId: string; state: string; viewOffset?: number }>(
       prev: T[],
       next: T[]
-    ) =>
-      prev.length !== next.length ||
-      next.some(
-        (item, i) =>
-          item.id !== prev[i].id ||
-          item.state !== prev[i].state ||
-          item.viewOffset !== prev[i].viewOffset
-      );
+    ) => {
+      if (prev.length !== next.length) return true;
+      const prevById = new Map(prev.map((item) => [item.sessionId, item]));
+      return next.some((item) => {
+        const p = prevById.get(item.sessionId);
+        return !p || p.state !== item.state || p.viewOffset !== item.viewOffset;
+      });
+    };
 
     if (
       !sessionChanged(prevData.tracks, newData.tracks) &&

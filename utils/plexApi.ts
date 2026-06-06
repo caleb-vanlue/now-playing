@@ -137,7 +137,8 @@ function extractPlexStreams(session: PlexSession) {
 
 function mapPlexBaseFields(session: PlexSession, defaultPlayer: string) {
   const sessionId =
-    session.Session?.id || `${session.type}-${session.ratingKey}-${Date.now()}`;
+    session.Session?.id ||
+    `${session.type}-${session.ratingKey}-${session.User?.title || ""}-${session.Player?.title || session.Player?.product || ""}`;
   return {
     source: "plex" as const,
     id: session.ratingKey,
