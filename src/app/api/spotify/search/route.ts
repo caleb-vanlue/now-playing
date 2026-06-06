@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import axios from "axios";
+import { serverCache, SPOTIFY_SEARCH_CACHE_TTL } from "../../../../utils/serverCache";
 
 let spotifyToken: string | null = null;
 let tokenExpiration: Date | null = null;
@@ -55,6 +56,10 @@ export async function GET(request: NextRequest) {
     );
   }
 
+  const cacheKey = `spotify:search:${artist.toLowerCase()}:${title.toLowerCase()}`;
+  const cached = serverCache.get<object>(cacheKey);
+  if (cached) return NextResponse.json(cached);
+
   try {
     const token = await getSpotifyToken();
 
@@ -73,14 +78,18 @@ export async function GET(request: NextRequest) {
     const tracks = response.data.tracks.items;
 
     if (tracks.length > 0) {
-      return NextResponse.json({
+      const result = {
         found: true,
         spotifyUrl: tracks[0].external_urls.spotify,
         trackName: tracks[0].name,
         artistName: tracks[0].artists[0].name,
-      });
+      };
+      serverCache.set(cacheKey, result, SPOTIFY_SEARCH_CACHE_TTL);
+      return NextResponse.json(result);
     } else {
-      return NextResponse.json({ found: false });
+      const result = { found: false };
+      serverCache.set(cacheKey, result, SPOTIFY_SEARCH_CACHE_TTL);
+      return NextResponse.json(result);
     }
   } catch (error) {
     console.error("Error searching Spotify:", error);

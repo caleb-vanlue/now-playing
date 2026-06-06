@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { RelatedItem } from "../../../../../types/media";
+import { serverCache, RELATED_CACHE_TTL } from "../../../../../utils/serverCache";
 
 interface PlexMetadata {
   ratingKey: string;
@@ -26,6 +27,10 @@ export async function GET(request: Request) {
   if (!ratingKey) {
     return NextResponse.json({ error: "ratingKey required" }, { status: 400 });
   }
+
+  const cacheKey = `plex:related:${ratingKey}`;
+  const cached = serverCache.get<{ items: RelatedItem[] }>(cacheKey);
+  if (cached) return NextResponse.json(cached);
 
   try {
     const res = await fetch(
@@ -57,6 +62,7 @@ export async function GET(request: Request) {
       if (items.length >= 15) break;
     }
 
+    serverCache.set(cacheKey, { items }, RELATED_CACHE_TTL);
     return NextResponse.json({ items });
   } catch (error) {
     console.error("Error fetching Plex related content:", error);

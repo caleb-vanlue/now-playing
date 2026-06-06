@@ -24,3 +24,5 @@ class ServerCache {
 export const serverCache = new ServerCache();
 export const SESSIONS_CACHE_TTL = 30_000;
 export const HISTORY_CACHE_TTL = 60_000;
+export const RELATED_CACHE_TTL = 6 * 60 * 60 * 1000; // 6 hours
+export const SPOTIFY_SEARCH_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
