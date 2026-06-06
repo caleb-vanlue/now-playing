@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import axios from "axios";
-import { serverCache, SPOTIFY_SEARCH_CACHE_TTL } from "../../../../utils/serverCache";
+import { serverCache, SPOTIFY_SEARCH_CACHE_TTL } from "../../../../../utils/serverCache";
 
 let spotifyToken: string | null = null;
 let tokenExpiration: Date | null = null;
