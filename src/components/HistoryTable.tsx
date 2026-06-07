@@ -79,10 +79,7 @@ const HistoryItemCard = memo(
         }}
         className="relative bg-[var(--card-background)] rounded-lg p-4 hover:bg-[var(--card-background-hover)] transition-colors hardware-accelerated card-transition"
       >
-        <div className="absolute top-4 right-4">
-          <SourceIcon source={item.source} size={20} />
-        </div>
-        <div className="flex gap-3">
+          <div className="flex gap-3">
           <div className="flex-shrink-0 flex flex-col items-center gap-1.5">
             <div className="w-20 h-14 flex items-center justify-center">
               <div
@@ -104,9 +101,14 @@ const HistoryItemCard = memo(
 
           <div className="flex-1 min-w-0 flex flex-col justify-between">
             <div>
-              <h3 className="font-medium text-white leading-tight truncate">
-                {item.displayTitle}
-              </h3>
+              <div className="flex items-start gap-2">
+                <h3 className="font-medium text-white leading-tight truncate flex-1 min-w-0">
+                  {item.displayTitle}
+                </h3>
+                <div className="flex-shrink-0 pt-0.5">
+                  <SourceIcon source={item.source} size={20} />
+                </div>
+              </div>
               {item.displaySubtitle && (
                 <p className="text-sm text-gray-400 mt-0.5 truncate">
                   {item.displaySubtitle}
