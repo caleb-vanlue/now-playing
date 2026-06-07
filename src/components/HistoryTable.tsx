@@ -105,7 +105,7 @@ const HistoryItemCard = memo(
                 <h3 className="font-medium text-white leading-tight truncate flex-1 min-w-0">
                   {item.displayTitle}
                 </h3>
-                <div className="flex-shrink-0 pt-0.5">
+                <div className="flex-shrink-0 pt-0.5 sm:hidden">
                   <SourceIcon source={item.source} size={20} />
                 </div>
               </div>
@@ -125,7 +125,8 @@ const HistoryItemCard = memo(
             </div>
           </div>
 
-          <div className="flex-shrink-0 hidden sm:flex flex-col justify-end">
+          <div className="flex-shrink-0 hidden sm:flex flex-col items-end justify-between">
+            <SourceIcon source={item.source} size={20} />
             <span className="text-sm text-gray-400 whitespace-nowrap">
               {timeAgo}
             </span>
