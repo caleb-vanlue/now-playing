@@ -120,7 +120,7 @@ function DetailViewComponent<T extends BaseMedia>(props: DetailViewProps<T>) {
             stiffness: 300,
             damping: 30,
           }}
-          className="absolute inset-0 z-30 overflow-hidden rounded-lg shadow-xl theme-bg-header backdrop-blur-sm hardware-accelerated"
+          className="absolute inset-0 z-30 overflow-hidden rounded-lg shadow-xl theme-bg-header backdrop-blur-sm"
           role="dialog"
           aria-modal="true"
           aria-labelledby={`detail-header-${item.sessionId}`}
