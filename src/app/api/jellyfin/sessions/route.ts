@@ -51,6 +51,7 @@ interface JellyfinSession {
     Id: string;
     Name: string;
     Type: string;
+    SeriesId?: string;
     SeriesName?: string;
     IndexNumber?: number;
     ParentIndexNumber?: number;
@@ -134,12 +135,25 @@ export async function GET() {
 
     const enriched = await Promise.all(
       activeSessions.map(async (session) => {
+        const item = session.NowPlayingItem;
         const detail = await fetchItemDetail(
           JELLYFIN_URL,
           JELLYFIN_API_KEY,
           session.UserId,
-          session.NowPlayingItem.Id,
+          item.Id,
         );
+
+        if (item.Type === "Episode" && item.SeriesId) {
+          const seriesDetail = await fetchItemDetail(
+            JELLYFIN_URL,
+            JELLYFIN_API_KEY,
+            session.UserId,
+            item.SeriesId,
+          );
+          if (seriesDetail.People?.length) {
+            detail.People = seriesDetail.People;
+          }
+        }
         const { RemoteEndPoint: _remoteEndPoint, ...safeSession } = session as typeof session & { RemoteEndPoint?: unknown };
         const nowPlayingItem = safeSession.NowPlayingItem as Record<string, unknown> | undefined;
         if (nowPlayingItem) {
