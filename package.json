@@ -20,7 +20,7 @@
     "react-swipeable": "^7.0.2",
     "react-virtualized-auto-sizer": "^1.0.26",
     "react-window": "^1.8.11",
-    "sharp": "^0.34.1"
+    "sharp": "^0.35.4"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
