@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useRef, useMemo, memo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SiPlex, SiJellyfin } from "react-icons/si";
 import { useMediaDataContext } from "./MediaDataContext";
@@ -10,13 +10,12 @@ interface MediaDashboardProps {
   children: React.ReactNode;
 }
 
-const MediaDashboard = memo(({ children }: MediaDashboardProps) => {
+export default function MediaDashboard({ children }: MediaDashboardProps) {
   const { mediaData, loading, error, isConnected, refreshData } =
     useMediaDataContext();
   const { theme, setTheme } = useTheme();
 
   const [showLoading, setShowLoading] = useState(loading && !mediaData);
-  const headerRef = useRef<HTMLDivElement>(null);
 
   const counts = useMemo(() => {
     const musicCount = mediaData?.tracks?.length || 0;
@@ -134,7 +133,6 @@ const MediaDashboard = memo(({ children }: MediaDashboardProps) => {
 
       <div className="fixed inset-0 flex flex-col bg-animated-gradient text-white overflow-hidden">
         <header
-          ref={headerRef}
           className="flex-shrink-0 z-20 theme-bg-header backdrop-blur-md px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-2 border-b border-gray-800/30 shadow-lg"
         >
           {headerContent}
@@ -165,8 +163,4 @@ const MediaDashboard = memo(({ children }: MediaDashboardProps) => {
       )}
     </>
   );
-});
-
-MediaDashboard.displayName = "MediaDashboard";
-
-export default MediaDashboard;
+}

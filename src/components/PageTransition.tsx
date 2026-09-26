@@ -20,18 +20,4 @@ const PageTransition = React.memo(function PageTransition({ children }: PageTran
   );
 });
 
-export const AdvancedPageTransition = React.memo(function AdvancedPageTransition({ children }: PageTransitionProps) {
-  return (
-    <motion.div
-      initial="initial"
-      animate="animate"
-      exit="exit"
-      variants={ANIMATION_CONFIG.ADVANCED_PAGE_TRANSITION}
-      className="w-full"
-    >
-      {children}
-    </motion.div>
-  );
-});
-
 export default PageTransition;

@@ -11,7 +11,7 @@ import {
   formatAudioChannels,
 } from "../../utils/mediaCardUtils";
 import { getRatingIcon } from "../../utils/ratingIcons";
-import { BaseMediaCard, ImageState } from "./BaseMediaCard";
+import { BaseMediaCard } from "./BaseMediaCard";
 import {
   ProgressInfo,
   SummarySection,
@@ -33,7 +33,7 @@ function MovieDetailContent({ movie }: { movie: Movie }) {
   const { items: related, loading: relatedLoading } = useRelatedItems(movie);
   const progressPercentage = calculateProgress(movie.viewOffset, movie.duration);
   const estimatedFinishTime = calculateFinishTime(movie.duration, movie.viewOffset);
-  const qualityFormatted = formatQuality(movie.videoResolution, movie.audioCodec);
+  const qualityFormatted = formatQuality(movie.videoResolution);
   const startedAt = new Date(movie.startTime);
 
   return (
@@ -151,15 +151,14 @@ function MovieDetailContent({ movie }: { movie: Movie }) {
 
 interface MovieCardProps {
   item: Movie;
-  index?: number;
   showBackdrop?: boolean;
 }
 
-function MovieCard({ item: movie, index = 0, showBackdrop = false }: MovieCardProps) {
+function MovieCard({ item: movie, showBackdrop = false }: MovieCardProps) {
   const progressPercentage = calculateProgress(movie.viewOffset, movie.duration);
 
   const renderThumbnail = useCallback(
-    (movie: Movie, imageState: ImageState) => {
+    (movie: Movie) => {
       const backdropUrl = showBackdrop ? getMovieBackdropUrl(movie) : null;
       const thumbnailUrl = backdropUrl ?? getResponsiveThumbnailUrl(movie, "movie");
 
@@ -183,7 +182,6 @@ function MovieCard({ item: movie, index = 0, showBackdrop = false }: MovieCardPr
           priority
           fallbackIcon="🎬"
           badges={badges}
-          onLoad={() => imageState.setImageLoaded(true)}
         />
       );
     },
@@ -192,7 +190,7 @@ function MovieCard({ item: movie, index = 0, showBackdrop = false }: MovieCardPr
 
   const renderMainContent = useCallback((movie: Movie) => {
     const bestRating = getBestDisplayRating(movie.ratings, movie.rating);
-    const quality = formatQuality(movie.videoResolution, movie.audioCodec);
+    const quality = formatQuality(movie.videoResolution);
     return (
       <>
         <h3 className="text-xl font-bold truncate" title={movie.title}>
@@ -261,7 +259,7 @@ function MovieCard({ item: movie, index = 0, showBackdrop = false }: MovieCardPr
   return (
     <BaseMediaCard
       item={movie}
-      index={index}
+     
       renderThumbnail={renderThumbnail}
       renderMainContent={renderMainContent}
       renderDetailHeader={renderDetailHeader}

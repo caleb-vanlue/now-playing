@@ -10,7 +10,7 @@ import {
   calculateFinishTime,
   formatDurationMMSS,
 } from "../../utils/mediaCardUtils";
-import { BaseMediaCard, ImageState } from "./BaseMediaCard";
+import { BaseMediaCard } from "./BaseMediaCard";
 import { ProgressInfo } from "./CardComponents";
 import { UserAvatar } from "./UserAvatar";
 import {
@@ -143,16 +143,15 @@ function MusicDetailContent({ track, spotifyUrl }: MusicDetailContentProps) {
 
 interface MusicCardProps {
   track: Track;
-  index?: number;
 }
 
-function MusicCard({ track, index = 0 }: MusicCardProps) {
+function MusicCard({ track }: MusicCardProps) {
   const { spotifyUrl } = useSpotifyTrack(track.artist, track.title);
 
   const progressPercentage = calculateProgress(track.viewOffset, track.duration);
 
   const renderThumbnail = useCallback(
-    (track: Track, imageState: ImageState) => {
+    (track: Track) => {
       const thumbnailUrl = getResponsiveThumbnailUrl(track, "music");
 
       const badges = [];
@@ -169,7 +168,6 @@ function MusicCard({ track, index = 0 }: MusicCardProps) {
           priority
           fallbackIcon="🎵"
           badges={badges}
-          onLoad={() => imageState.setImageLoaded(true)}
         />
       );
     },
@@ -228,7 +226,7 @@ function MusicCard({ track, index = 0 }: MusicCardProps) {
   return (
     <BaseMediaCard
       item={track}
-      index={index}
+     
       renderThumbnail={renderThumbnail}
       renderMainContent={renderMainContent}
       renderDetailHeader={renderDetailHeader}

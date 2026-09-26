@@ -6,23 +6,14 @@ import { UserInfo } from "./UserAvatar";
 import { BaseMedia } from "../../types/media";
 import { getTimeAgo } from "../../utils/dateUtils";
 
-export interface ImageState {
-  imageError: boolean;
-  imageLoaded: boolean;
-  setImageError: (error: boolean) => void;
-  setImageLoaded: (loaded: boolean) => void;
-}
-
 interface BaseMediaCardProps<T extends BaseMedia> {
   item: T;
-  index?: number;
-  renderThumbnail: (item: T, imageState: ImageState) => React.ReactNode;
+  renderThumbnail: (item: T) => React.ReactNode;
   renderMainContent: (item: T) => React.ReactNode;
   renderDetailHeader: (item: T) => React.ReactNode;
   renderDetailContent: (item: T) => React.ReactNode;
   progressPercentage: number;
   transcodeProgress?: number;
-  className?: string;
 }
 
 type CardContentProps<T extends BaseMedia> = {
@@ -163,19 +154,14 @@ function BaseMediaCardComponent<T extends BaseMedia>({
   renderDetailContent,
   progressPercentage,
   transcodeProgress,
-  className = "",
 }: BaseMediaCardProps<T>) {
   const {
     showDetails,
-    imageError,
-    imageLoaded,
     avatarError,
     cardRef,
     headerRef,
     contentMaxHeight,
     toggleDetails,
-    setImageError,
-    setImageLoaded,
     setAvatarError,
   } = useMediaCard();
   
@@ -210,23 +196,18 @@ function BaseMediaCardComponent<T extends BaseMedia>({
   }, [showDetails, handleClose]);
 
   const timeAgo = getTimeAgo(new Date(item.startTime));
-  const imageState = { imageError, imageLoaded, setImageError, setImageLoaded };
 
   return (
     <div
       ref={cardRef}
-      className={`bg-[var(--card-background)] rounded-lg overflow-hidden shadow-md relative card-transition flex flex-col ${className}`}
-      style={{
-        opacity: 1,
-        transform: "translateY(0)",
-      }}
+      className="bg-[var(--card-background)] rounded-lg overflow-hidden shadow-md relative card-transition flex flex-col"
     >
       <div
         className="cursor-pointer flex flex-col flex-1"
         onClick={handleCardClick}
       >
         <div className="relative overflow-hidden">
-          {renderThumbnail(item, imageState)}
+          {renderThumbnail(item)}
           <PlayingStateIndicator state={item.state} />
         </div>
 

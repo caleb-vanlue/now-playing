@@ -18,6 +18,8 @@ import { HiDotsHorizontal } from "react-icons/hi";
 
 type MediaType = "all" | "music" | "movies" | "tvshows" | "history";
 
+const TAB_ORDER: MediaType[] = ["all", "music", "movies", "tvshows", "history"];
+
 const EmptyState = memo(({ type }: { type: MediaType }) => {
   const messages = {
     all: {
@@ -54,27 +56,21 @@ const EmptyState = memo(({ type }: { type: MediaType }) => {
 
 EmptyState.displayName = "EmptyState";
 
-function MediaPage() {
+export default function MediaPage() {
   const [serviceLinksOpen, setServiceLinksOpen] = useState(false);
   const { mediaData, lastSyncTime } = useMediaDataContext();
   const { history, hasMore: historyHasMore, loading: historyLoading, loadingMore: historyLoadingMore, loadMore: loadMoreHistory } = useHistory({ syncTrigger: lastSyncTime });
   const [activeTab, setActiveTab] = useState<MediaType>("all");
 
-  const order = useMemo(() => ["all", "music", "movies", "tvshows", "history"], []);
-  
   const handleSwipeLeft = useCallback(() => {
     setActiveTab(
-      order[
-        Math.min(order.indexOf(activeTab) + 1, order.length - 1)
-      ] as MediaType
+      TAB_ORDER[Math.min(TAB_ORDER.indexOf(activeTab) + 1, TAB_ORDER.length - 1)]
     );
-  }, [activeTab, order]);
+  }, [activeTab]);
 
   const handleSwipeRight = useCallback(() => {
-    setActiveTab(
-      order[Math.max(order.indexOf(activeTab) - 1, 0)] as MediaType
-    );
-  }, [activeTab, order]);
+    setActiveTab(TAB_ORDER[Math.max(TAB_ORDER.indexOf(activeTab) - 1, 0)]);
+  }, [activeTab]);
 
   const swipeHandlers = useSwipeable({
     onSwipedLeft: (e) => {
@@ -160,10 +156,10 @@ function MediaPage() {
         }
         return (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6" role="group" aria-label="All media">
-            {allItems.map(({ kind, item }, index) => {
-              if (kind === "music") return <MusicCard key={item.sessionId} track={item} index={index} />;
-              if (kind === "movie") return <MovieCard key={item.sessionId} item={item} index={index} />;
-              return <TVShowCard key={item.sessionId} item={item} index={index} showSeriesPoster />;
+            {allItems.map(({ kind, item }) => {
+              if (kind === "music") return <MusicCard key={item.sessionId} track={item} />;
+              if (kind === "movie") return <MovieCard key={item.sessionId} item={item} />;
+              return <TVShowCard key={item.sessionId} item={item} showSeriesPoster />;
             })}
           </div>
         );
@@ -183,7 +179,7 @@ function MediaPage() {
                 tabIndex={index === 0 ? 0 : -1}
                 className="focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] rounded-lg"
               >
-                <MusicCard track={track} index={index} />
+                <MusicCard track={track} />
               </div>
             ))}
           </div>
@@ -203,7 +199,7 @@ function MediaPage() {
                 tabIndex={index === 0 ? 0 : -1}
                 className="focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] rounded-lg"
               >
-                <MovieCard item={movie} index={index} showBackdrop />
+                <MovieCard item={movie} showBackdrop />
               </div>
             ))}
           </div>
@@ -223,7 +219,7 @@ function MediaPage() {
                 tabIndex={index === 0 ? 0 : -1}
                 className="focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] rounded-lg"
               >
-                <TVShowCard item={episode} index={index} />
+                <TVShowCard item={episode} />
               </div>
             ))}
           </div>
@@ -300,5 +296,3 @@ function MediaPage() {
     </MediaDashboard>
   );
 }
-
-export default memo(MediaPage);

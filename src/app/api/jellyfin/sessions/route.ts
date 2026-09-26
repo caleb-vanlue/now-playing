@@ -154,7 +154,8 @@ export async function GET() {
             detail.People = seriesDetail.People;
           }
         }
-        const { RemoteEndPoint: _remoteEndPoint, ...safeSession } = session as typeof session & { RemoteEndPoint?: unknown };
+        const safeSession: typeof session & { RemoteEndPoint?: unknown } = { ...session };
+        delete safeSession.RemoteEndPoint;
         const nowPlayingItem = safeSession.NowPlayingItem as Record<string, unknown> | undefined;
         if (nowPlayingItem) {
           delete nowPlayingItem.Path;

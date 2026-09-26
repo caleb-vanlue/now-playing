@@ -1,33 +1,3 @@
-export const cardVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: (index: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.4,
-      delay: index * 0.05,
-    },
-  }),
-  hover: {
-    y: -8,
-    scale: 1.02,
-    boxShadow:
-      "0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1)",
-    transition: { duration: 0.2 },
-  },
-};
-
-export const imageVariants = {
-  hover: {
-    scale: 1.05,
-    transition: { duration: 0.4 },
-  },
-};
-
-export const formatTime = (date: Date): string => {
-  return date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-};
-
 export const formatDuration = (duration: number): string => {
   const minutes = Math.round(duration / 60000);
   if (minutes >= 60) {
@@ -63,10 +33,8 @@ export function normalizeVideoResolution(value: string | undefined): string {
   return value.toUpperCase();
 }
 
-export const formatQuality = (
-  videoResolution?: string,
-  audioCodec?: string
-): string => videoResolution ?? "";
+export const formatQuality = (videoResolution?: string): string =>
+  videoResolution ?? "";
 
 export const calculateProgress = (
   viewOffset?: number,

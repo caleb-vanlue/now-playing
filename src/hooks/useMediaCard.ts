@@ -3,8 +3,6 @@ import { debounce } from "../utils/animations";
 
 export function useMediaCard() {
   const [showDetails, setShowDetails] = useState<boolean>(false);
-  const [imageError, setImageError] = useState<boolean>(false);
-  const [imageLoaded, setImageLoaded] = useState<boolean>(false);
   const [avatarError, setAvatarError] = useState<boolean>(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
@@ -45,15 +43,11 @@ export function useMediaCard() {
 
   return {
     showDetails,
-    imageError,
-    imageLoaded,
     avatarError,
     cardRef,
     headerRef,
     contentMaxHeight,
     toggleDetails,
-    setImageError,
-    setImageLoaded,
     setAvatarError,
   };
 }

@@ -19,31 +19,6 @@ export const ANIMATION_CONFIG = {
     duration: 0.2,
     ease: "easeInOut" as const,
   },
-
-  ADVANCED_PAGE_TRANSITION: {
-    initial: {
-      opacity: 0,
-      y: 8,
-    },
-    animate: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.4,
-        ease: [0.25, 0.1, 0.25, 1.0],
-        when: "beforeChildren" as const,
-        staggerChildren: 0.05,
-      },
-    },
-    exit: {
-      opacity: 0,
-      y: 8,
-      transition: {
-        duration: 0.2,
-        ease: [0.25, 0.1, 0.25, 1.0],
-      },
-    },
-  },
 } as const;
 
 export function debounce<T extends (...args: unknown[]) => unknown>(

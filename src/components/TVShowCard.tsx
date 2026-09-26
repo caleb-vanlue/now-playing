@@ -13,7 +13,7 @@ import {
   formatAudioChannels,
 } from "../../utils/mediaCardUtils";
 import { getRatingIcon } from "../../utils/ratingIcons";
-import { BaseMediaCard, ImageState } from "./BaseMediaCard";
+import { BaseMediaCard } from "./BaseMediaCard";
 import {
   ProgressInfo,
   SummarySection,
@@ -34,7 +34,7 @@ function TVShowDetailContent({ episode }: { episode: Episode }) {
   const { items: related, loading: relatedLoading } = useRelatedItems(episode);
   const progressPercentage = calculateProgress(episode.viewOffset, episode.duration);
   const estimatedFinishTime = calculateFinishTime(episode.duration, episode.viewOffset);
-  const qualityFormatted = formatQuality(episode.videoResolution, episode.audioCodec);
+  const qualityFormatted = formatQuality(episode.videoResolution);
   const formattedDuration = formatDuration(episode.duration);
   const seasonEpisode = `S${episode.season}:E${episode.episode}`;
   const startedAt = new Date(episode.startTime);
@@ -154,19 +154,17 @@ function TVShowDetailContent({ episode }: { episode: Episode }) {
 
 interface TVShowCardProps {
   item: Episode;
-  index?: number;
   showSeriesPoster?: boolean;
 }
 
 function TVShowCard({
   item: episode,
-  index = 0,
   showSeriesPoster = false,
 }: TVShowCardProps) {
   const progressPercentage = calculateProgress(episode.viewOffset, episode.duration);
 
   const renderThumbnail = useCallback(
-    (episode: Episode, imageState: ImageState) => {
+    (episode: Episode) => {
       const seriesUrl = showSeriesPoster ? getSeriesThumbnailUrl(episode) : null;
       const thumbnailUrl = seriesUrl ?? getResponsiveThumbnailUrl(episode, "tv");
 
@@ -196,7 +194,6 @@ function TVShowCard({
           priority
           fallbackIcon="📺"
           badges={badges}
-          onLoad={() => imageState.setImageLoaded(true)}
         />
       );
     },
@@ -205,7 +202,7 @@ function TVShowCard({
 
   const renderMainContent = useCallback((episode: Episode) => {
     const bestRating = getBestDisplayRating(episode.ratings, episode.rating);
-    const quality = formatQuality(episode.videoResolution, episode.audioCodec);
+    const quality = formatQuality(episode.videoResolution);
     return (
       <div className="flex flex-col">
         <h3 className="text-xl font-bold truncate" title={episode.title}>
@@ -267,14 +264,13 @@ function TVShowCard({
   return (
     <BaseMediaCard
       item={episode}
-      index={index}
+     
       renderThumbnail={renderThumbnail}
       renderMainContent={renderMainContent}
       renderDetailHeader={renderDetailHeader}
       renderDetailContent={renderDetailContent}
       progressPercentage={progressPercentage}
       transcodeProgress={isTranscoding ? episode.transcodeProgress : undefined}
-      className={showSeriesPoster ? "" : "col-span-2"}
     />
   );
 }

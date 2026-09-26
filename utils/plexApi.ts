@@ -300,21 +300,3 @@ export function getThumbnailUrl(
 
   return `/api/plex/thumbnail?${params.toString()}`;
 }
-
-export function getResponsiveThumbnailUrl(
-  thumbnailPath: string | undefined,
-  type: "music" | "movie" | "tv"
-): string | null {
-  if (!thumbnailPath) return null;
-
-  const sizes: Record<
-    string,
-    { quality: "low" | "medium" | "high" | "original"; width: number }
-  > = {
-    music: { quality: "high", width: 500 },
-    movie: { quality: "high", width: 600 },
-    tv: { quality: "medium", width: 800 },
-  };
-
-  return getThumbnailUrl(thumbnailPath, sizes[type]);
-}

@@ -1,6 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import axios from "axios";
 import { serverCache, SPOTIFY_SEARCH_CACHE_TTL } from "../../../../../utils/serverCache";
+
+interface SpotifySearchResponse {
+  tracks: {
+    items: {
+      name: string;
+      external_urls: { spotify: string };
+      artists: { name: string }[];
+    }[];
+  };
+}
 
 let spotifyToken: string | null = null;
 let tokenExpiration: Date | null = null;
@@ -20,22 +29,25 @@ async function getSpotifyToken(): Promise<string> {
   const auth = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
 
   try {
-    const response = await axios.post(
-      "https://accounts.spotify.com/api/token",
-      "grant_type=client_credentials",
-      {
-        headers: {
-          Authorization: `Basic ${auth}`,
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        timeout: 10000,
-      }
-    );
+    const response = await fetch("https://accounts.spotify.com/api/token", {
+      method: "POST",
+      headers: {
+        Authorization: `Basic ${auth}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: "grant_type=client_credentials",
+      signal: AbortSignal.timeout(10000),
+    });
 
-    spotifyToken = response.data.access_token;
-    tokenExpiration = new Date(
-      Date.now() + (response.data.expires_in - 60) * 1000
-    );
+    if (!response.ok) {
+      throw new Error(`Spotify token error: ${response.status}`);
+    }
+
+    const data: { access_token: string; expires_in: number } =
+      await response.json();
+
+    spotifyToken = data.access_token;
+    tokenExpiration = new Date(Date.now() + (data.expires_in - 60) * 1000);
 
     return spotifyToken!;
   } catch (error) {
@@ -65,17 +77,22 @@ export async function GET(request: NextRequest) {
 
     const query = encodeURIComponent(`artist:"${artist}" track:"${title}"`);
 
-    const response = await axios.get(
+    const response = await fetch(
       `https://api.spotify.com/v1/search?q=${query}&type=track&limit=1`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-        timeout: 10000,
+        signal: AbortSignal.timeout(10000),
       }
     );
 
-    const tracks = response.data.tracks.items;
+    if (!response.ok) {
+      throw new Error(`Spotify search error: ${response.status}`);
+    }
+
+    const data: SpotifySearchResponse = await response.json();
+    const tracks = data.tracks.items;
 
     if (tracks.length > 0) {
       const result = {

@@ -1,4 +1,4 @@
-import axios from "axios";
+import { fetchWithTimeout } from "./plexApi";
 
 interface SpotifySearchResult {
   found: boolean;
@@ -14,19 +14,18 @@ export async function searchSpotifyTrack(
   signal?: AbortSignal
 ): Promise<SpotifySearchResult> {
   try {
-    const response = await axios.get<SpotifySearchResult>(
-      "/api/spotify/search",
-      {
-        params: {
-          artist,
-          title,
-        },
-        signal,
-        timeout: 10000,
-      }
+    const params = new URLSearchParams({ artist, title });
+    const response = await fetchWithTimeout(
+      `/api/spotify/search?${params}`,
+      { signal },
+      10000
     );
 
-    return response.data;
+    if (!response.ok) {
+      throw new Error(`Spotify search failed: ${response.status}`);
+    }
+
+    return await response.json();
   } catch (error) {
     if (signal?.aborted) {
       throw new Error("Request cancelled");

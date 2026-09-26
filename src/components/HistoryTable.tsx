@@ -47,10 +47,6 @@ const HistoryItemCard = memo(
       }
     };
 
-    const getTypeStyles = (_type: string) => {
-      return "bg-[var(--accent)]/20 text-[var(--accent-light)]";
-    };
-
     const thumbnail = (sizes: string) =>
       item.thumb && !hasImageError ? (
         <Image
@@ -89,7 +85,7 @@ const HistoryItemCard = memo(
               </div>
             </div>
             <span
-              className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ${getTypeStyles(item.type)}`}
+              className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-[var(--accent)]/20 text-[var(--accent-light)]"
             >
               {item.type === "episode"
                 ? "TV Show"
