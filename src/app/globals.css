@@ -80,7 +80,7 @@ body {
 }
 
 /* Transitions only after initial mount (prevents flash on load) */
-.theme-transitions-ready html,
+html.theme-transitions-ready,
 .theme-transitions-ready body,
 .theme-transitions-ready .bg-animated-gradient,
 .theme-transitions-ready .theme-bg,

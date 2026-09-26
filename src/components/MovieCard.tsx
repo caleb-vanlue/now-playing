@@ -172,7 +172,6 @@ function MovieCard({ item: movie, showBackdrop = false }: MovieCardProps) {
           alt={movie.title}
           aspectRatio={backdropUrl ? "landscape" : "portrait"}
           sizes="(max-width: 768px) 100vw, 50vw"
-          priority
           fallbackIcon="🎬"
           badges={badges}
         />

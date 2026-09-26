@@ -184,7 +184,6 @@ function TVShowCard({
           alt={episode.showTitle}
           aspectRatio={showSeriesPoster ? "portrait" : "landscape"}
           sizes="(max-width: 768px) 100vw, 50vw"
-          priority
           fallbackIcon="📺"
           badges={badges}
         />

@@ -1,80 +1,65 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { HistoryItem } from "../../types/media";
+import { HistoryData } from "../../types/media";
 import { fetchHistory } from "../../utils/api";
 
 const PAGE_SIZE = 25;
+const EMPTY: HistoryData["items"] = [];
 
 interface UseHistoryOptions {
-  syncTrigger?: number | null;
+  // Only fetch while the history view is visible
+  active: boolean;
+  // Changes whenever sessions start/stop; history can only grow when one ends
+  revision: string;
 }
 
-export function useHistory(options?: UseHistoryOptions) {
-  const [history, setHistory] = useState<HistoryItem[]>([]);
-  const [hasMore, setHasMore] = useState(false);
-  const [loading, setLoading] = useState<boolean>(true);
+export function useHistory({ active, revision }: UseHistoryOptions) {
+  const [data, setData] = useState<HistoryData | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const limitRef = useRef(PAGE_SIZE);
-  const abortControllerRef = useRef<AbortController | null>(null);
-  const hasFetchedRef = useRef(false);
+  const fetchedRevisionRef = useRef<string | null>(null);
+  const controllerRef = useRef<AbortController | null>(null);
 
-  const doFetch = useCallback(async (limit: number, isLoadMore = false) => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-
-    abortControllerRef.current = new AbortController();
-    const { signal } = abortControllerRef.current;
+  // State is only set after the request settles, never synchronously
+  const load = useCallback(async (limit: number) => {
+    controllerRef.current?.abort();
+    const controller = new AbortController();
+    controllerRef.current = controller;
 
     try {
-      if (isLoadMore) {
-        setLoadingMore(true);
-      } else if (!hasFetchedRef.current) {
-        setLoading(true);
-      }
-
-      const data = await fetchHistory(signal, limit);
-
-      if (signal.aborted) return;
-
-      setHistory(data.items);
-      setHasMore(data.hasMore);
+      const result = await fetchHistory(controller.signal, limit);
+      if (controller.signal.aborted) return;
+      setData(result);
       setError(null);
-      hasFetchedRef.current = true;
     } catch (err) {
-      if (signal.aborted) return;
+      if (controller.signal.aborted) return;
       console.error("Error fetching history:", err);
+      // Allow a retry the next time the view activates
+      fetchedRevisionRef.current = null;
       setError(err instanceof Error ? err : new Error("Unknown error"));
     } finally {
-      if (!signal.aborted) {
-        setLoading(false);
-        setLoadingMore(false);
-      }
+      if (!controller.signal.aborted) setLoadingMore(false);
     }
   }, []);
 
   useEffect(() => {
-    limitRef.current = PAGE_SIZE;
-    doFetch(PAGE_SIZE);
-    return () => abortControllerRef.current?.abort();
-  }, [doFetch]);
+    if (!active || fetchedRevisionRef.current === revision) return;
+    fetchedRevisionRef.current = revision;
+    load(limitRef.current);
+  }, [active, revision, load]);
 
-  // Re-fetch at the current limit when syncTrigger changes
-  useEffect(() => {
-    if (!hasFetchedRef.current) return;
-    doFetch(limitRef.current);
-  }, [options?.syncTrigger]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => () => controllerRef.current?.abort(), []);
 
   const loadMore = useCallback(() => {
-    const nextLimit = limitRef.current + PAGE_SIZE;
-    limitRef.current = nextLimit;
-    doFetch(nextLimit, true);
-  }, [doFetch]);
+    limitRef.current += PAGE_SIZE;
+    setLoadingMore(true);
+    load(limitRef.current);
+  }, [load]);
 
   return {
-    history,
-    hasMore,
-    loading,
+    history: data?.items ?? EMPTY,
+    hasMore: data?.hasMore ?? false,
+    loading: data === null && error === null,
     loadingMore,
     error,
     loadMore,

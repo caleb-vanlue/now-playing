@@ -13,25 +13,20 @@ interface HistoryTableProps {
   onLoadMore?: () => void;
 }
 
-interface ImageStateMap {
-  [key: string]: boolean;
+function historyItemKey(item: HistoryItem): string {
+  return `${item.source}-${item.id}-${item.viewedAt}-${item.userName}`;
 }
 
 const HistoryItemCard = memo(
   ({
     item,
     index,
-    imageErrors,
-    onImageError,
   }: {
     item: HistoryItem;
     index: number;
-    imageErrors: ImageStateMap;
-    onImageError: (itemKey: string) => void;
   }) => {
-    const itemKey = `${item.id}-${index}`;
+    const [hasImageError, setHasImageError] = useState(false);
     const viewedDate = new Date(item.viewedAt * 1000);
-    const hasImageError = imageErrors[itemKey];
 
     const getAspectRatioClass = (type: string) => {
       switch (type) {
@@ -56,7 +51,7 @@ const HistoryItemCard = memo(
           className="object-cover"
           loading="lazy"
           quality={60}
-          onError={() => onImageError(itemKey)}
+          onError={() => setHasImageError(true)}
         />
       ) : (
         <div className="w-full h-full flex items-center justify-center text-gray-600 text-2xl">
@@ -137,7 +132,6 @@ const HistoryItemCard = memo(
 HistoryItemCard.displayName = "HistoryItemCard";
 
 export default function HistoryTable({ items, loading, loadingMore, hasMore, onLoadMore }: HistoryTableProps) {
-  const [imageErrors, setImageErrors] = useState<ImageStateMap>({});
   const [selectedUser, setSelectedUser] = useState<string>("all");
   const [selectedType, setSelectedType] = useState<string>("all");
   const [selectedSource, setSelectedSource] = useState<string>("all");
@@ -176,10 +170,6 @@ export default function HistoryTable({ items, loading, loadingMore, hasMore, onL
   }, [items]);
 
   useEffect(() => {
-    return () => setImageErrors({});
-  }, []);
-
-  useEffect(() => {
     loadingMoreRef.current = loadingMore ?? false;
   }, [loadingMore]);
 
@@ -205,10 +195,6 @@ export default function HistoryTable({ items, loading, loadingMore, hasMore, onL
     }
     prevLoadingMoreRef.current = loadingMore ?? false;
   }, [loadingMore, hasMore, onLoadMore]);
-
-  const handleImageError = (itemKey: string) => {
-    setImageErrors((prev) => ({ ...prev, [itemKey]: true }));
-  };
 
   if (loading) {
     return (
@@ -328,13 +314,7 @@ export default function HistoryTable({ items, loading, loadingMore, hasMore, onL
 
       <div className="space-y-3">
         {filteredItems.map((item, index) => (
-          <HistoryItemCard
-            key={`${item.id}-${index}`}
-            item={item}
-            index={index}
-            imageErrors={imageErrors}
-            onImageError={handleImageError}
-          />
+          <HistoryItemCard key={historyItemKey(item)} item={item} index={index} />
         ))}
       </div>
 

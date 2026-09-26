@@ -7,17 +7,19 @@ interface ServiceConfig {
   jellyfin: boolean;
 }
 
-let configCache: ServiceConfig | null = null;
+let configPromise: Promise<ServiceConfig> | null = null;
 
-async function getServiceConfig(): Promise<ServiceConfig> {
-  if (configCache) return configCache;
-  try {
-    const res = await fetch("/api/config");
-    configCache = res.ok ? await res.json() : { plex: true, jellyfin: true };
-  } catch {
-    configCache = { plex: true, jellyfin: true };
-  }
-  return configCache!;
+// Shared by concurrent callers; a failure is not cached so the next poll retries
+function getServiceConfig(): Promise<ServiceConfig> {
+  configPromise ??= fetch("/api/config")
+    .then((res) =>
+      res.ok ? (res.json() as Promise<ServiceConfig>) : Promise.reject(new Error(`Config: ${res.status}`))
+    )
+    .catch((error) => {
+      configPromise = null;
+      throw error;
+    });
+  return configPromise;
 }
 
 export async function fetchMediaData(signal?: AbortSignal): Promise<MediaData> {

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SiPlex, SiJellyfin } from "react-icons/si";
 import { useMediaSessions, useMediaStatus } from "./MediaDataContext";
@@ -15,7 +15,8 @@ export default function MediaDashboard({ children }: MediaDashboardProps) {
   const { loading, error, isConnected, refreshData } = useMediaStatus();
   const { theme, setTheme } = useTheme();
 
-  const [showLoading, setShowLoading] = useState(loading && !mediaData);
+  // Only the very first load blocks the UI; on failure the overlay yields to the error toast
+  const showLoading = loading && !mediaData;
 
   const counts = useMemo(() => {
     const musicCount = mediaData?.tracks?.length || 0;
@@ -25,17 +26,6 @@ export default function MediaDashboard({ children }: MediaDashboardProps) {
 
     return { musicCount, moviesCount, tvShowsCount, totalCount };
   }, [mediaData]);
-
-  useEffect(() => {
-    if (loading && !mediaData) {
-      setShowLoading(true);
-    } else if (!loading && mediaData) {
-      const timer = setTimeout(() => {
-        setShowLoading(false);
-      }, 300);
-      return () => clearTimeout(timer);
-    }
-  }, [loading, mediaData]);
 
   const headerContent = useMemo(
     () => (

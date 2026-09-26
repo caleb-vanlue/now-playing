@@ -1,4 +1,6 @@
-const CACHE = "now-playing-v1";
+// Bumping the version deletes older caches on activate (v1 cached every
+// thumbnail it ever saw, growing without bound)
+const CACHE = "now-playing-v2";
 
 const PRECACHE = [
   "/",
@@ -29,19 +31,25 @@ function safeCache(cache, request, response) {
   }
 }
 
+// Only immutable build output and the app's own static files are cached.
+// Thumbnails, optimized images, API data and RSC payloads always go to the network.
+function isStaticAsset(url) {
+  return (
+    url.pathname.startsWith("/_next/static/") ||
+    url.pathname.startsWith("/fonts/") ||
+    url.pathname.startsWith("/images/") ||
+    PRECACHE.includes(url.pathname)
+  );
+}
+
 self.addEventListener("fetch", (event) => {
   const { request } = event;
+  if (request.method !== "GET") return;
+
   const url = new URL(request.url);
+  if (url.origin !== self.location.origin) return;
 
-  // Always hit the network for API routes — data must be live
-  if (url.pathname.startsWith("/api/")) {
-    event.respondWith(
-      fetch(request).catch(() => new Response(null, { status: 503 }))
-    );
-    return;
-  }
-
-  // Network-first for navigation requests (page HTML)
+  // Network-first for navigation requests (page HTML), cached copy when offline
   if (request.mode === "navigate") {
     event.respondWith(
       fetch(request)
@@ -57,14 +65,16 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Cache-first for static assets (JS, CSS, fonts, images)
+  if (!isStaticAsset(url)) return;
+
+  // Cache-first for static assets
   event.respondWith(
     caches.match(request).then(
       (cached) => cached ?? fetch(request).then((res) => {
         const clone = res.clone();
         caches.open(CACHE).then((cache) => safeCache(cache, request, clone));
         return res;
-      }).catch(() => Response.error())
+      })
     )
   );
 });

@@ -13,7 +13,6 @@ export interface MediaStatus {
   loading: boolean;
   error: Error | null;
   isConnected: boolean;
-  lastSyncTime: number | null;
 }
 
 const INACTIVITY_THRESHOLD_MS = 10 * 60 * 1000;
@@ -43,8 +42,9 @@ const INITIAL_STATUS: MediaStatus = {
   loading: true,
   error: null,
   isConnected: true,
-  lastSyncTime: null,
 };
+
+const CONNECTED_STATUS: MediaStatus = { loading: false, error: null, isConnected: true };
 
 /**
  * Adaptive polling for active sessions. All loop state lives inside a single
@@ -84,7 +84,8 @@ export function useMediaData({ active, paused, idle }: PollingIntervals) {
         retryCount = 0;
         // Same reference when nothing changed, so React bails out of the render
         setMediaData(snapshot);
-        setStatus({ loading: false, error: null, isConnected: true, lastSyncTime: Date.now() });
+        // Keep the same object while healthy so status consumers don't re-render every poll
+        setStatus(CONNECTED_STATUS);
         schedule(getPollingInterval(snapshot, lastActivity, intervals));
       } catch (err) {
         // Superseded by a newer poll or unmounted; that owner handles scheduling

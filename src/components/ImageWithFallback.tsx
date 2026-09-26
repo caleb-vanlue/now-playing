@@ -14,13 +14,10 @@ interface ImageWithFallbackProps {
   quality?: number;
   className?: string;
   fallbackIcon?: React.ReactNode;
-  priority?: boolean;
   badges?: React.ReactNode[];
-  onClick?: () => void;
-  onLoad?: () => void;
 }
 
-export const ImageWithFallback = React.memo(function ImageWithFallback({
+function ImageWithFallbackInner({
   src,
   alt,
   aspectRatio = "portrait",
@@ -31,17 +28,13 @@ export const ImageWithFallback = React.memo(function ImageWithFallback({
   quality = 80,
   className = "",
   fallbackIcon,
-  priority = false,
   badges = [],
-  onClick,
-  onLoad,
 }: ImageWithFallbackProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
 
   const handleLoad = () => {
     setIsLoading(false);
-    if (onLoad) onLoad();
   };
 
   const handleError = () => {
@@ -59,7 +52,6 @@ export const ImageWithFallback = React.memo(function ImageWithFallback({
     return (
       <div
         className={`${aspectRatioClasses[aspectRatio]} relative flex items-center justify-center bg-gray-800 overflow-hidden ${className}`}
-        onClick={onClick}
       >
         <div className="text-gray-600 text-2xl">
           {fallbackIcon || alt.charAt(0).toUpperCase()}
@@ -74,7 +66,6 @@ export const ImageWithFallback = React.memo(function ImageWithFallback({
   return (
     <div
       className={`${aspectRatioClasses[aspectRatio]} relative overflow-hidden ${className}`}
-      onClick={onClick}
     >
       {isLoading && <ImageLoadingSpinner />}
 
@@ -86,7 +77,6 @@ export const ImageWithFallback = React.memo(function ImageWithFallback({
         height={!fill ? height : undefined}
         sizes={sizes}
         quality={quality}
-        priority={priority}
         className={`object-cover transition-opacity duration-300 ${
           isLoading ? "opacity-0" : "opacity-100"
         }`}
@@ -99,6 +89,14 @@ export const ImageWithFallback = React.memo(function ImageWithFallback({
       ))}
     </div>
   );
+}
+
+// Keyed by src so load/error state resets when the artwork changes
+// (e.g. the next track in a music session reuses the same card)
+export const ImageWithFallback = React.memo(function ImageWithFallback(
+  props: ImageWithFallbackProps
+) {
+  return <ImageWithFallbackInner key={props.src ?? ""} {...props} />;
 });
 
 export const ContentRatingBadge = React.memo(function ContentRatingBadge({ rating }: { rating: string }) {

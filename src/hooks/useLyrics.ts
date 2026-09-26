@@ -52,30 +52,28 @@ export function prefetchLyrics(track: Track): void {
 
 export function useLyrics(track: Track) {
   const cacheKey = buildCacheKey(track);
-  const [result, setResult] = useState<LyricsResult>(
-    () => cache.get(cacheKey) ?? { lyrics: null, instrumental: false }
-  );
-  const [loading, setLoading] = useState(() => !cache.has(cacheKey));
+  const [resolved, setResolved] = useState<{ key: string; result: LyricsResult } | null>(null);
 
   useEffect(() => {
-    if (cache.has(cacheKey)) {
-      setResult(cache.get(cacheKey)!);
-      setLoading(false);
-      return;
-    }
-
     let cancelled = false;
-    fetchLyrics(track).then((resolved) => {
-      if (!cancelled) {
-        setResult(resolved);
-        setLoading(false);
-      }
+    // Always subscribe: a prefetch may finish between render and this effect.
+    // fetchLyrics serves cached/in-flight results, so re-running is cheap.
+    fetchLyrics(track).then((result) => {
+      if (!cancelled) setResolved({ key: cacheKey, result });
     });
 
     return () => {
       cancelled = true;
     };
-  }, [cacheKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [cacheKey, track]);
 
-  return { ...result, loading };
+  // Module cache entries are immutable once written, so reading it during render is safe
+  const result =
+    cache.get(cacheKey) ?? (resolved?.key === cacheKey ? resolved.result : null);
+
+  return {
+    lyrics: result?.lyrics ?? null,
+    instrumental: result?.instrumental ?? false,
+    loading: result === null,
+  };
 }

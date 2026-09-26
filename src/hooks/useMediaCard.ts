@@ -33,7 +33,10 @@ export function useMediaCard() {
       updateContentHeight();
       window.addEventListener("resize", debouncedUpdateContentHeight);
 
-      return () => window.removeEventListener("resize", debouncedUpdateContentHeight);
+      return () => {
+        debouncedUpdateContentHeight.cancel();
+        window.removeEventListener("resize", debouncedUpdateContentHeight);
+      };
     }
   }, [showDetails]);
 
