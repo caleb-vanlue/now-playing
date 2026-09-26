@@ -33,6 +33,9 @@ export async function fetchMediaData(signal?: AbortSignal): Promise<MediaData> {
 
   const results = await Promise.allSettled(configuredFetches);
 
+  // A cancelled poll must surface as cancellation, not as partial data or a failure
+  signal?.throwIfAborted();
+
   if (results.every((r) => r.status === "rejected")) {
     throw (results[0] as PromiseRejectedResult).reason;
   }
@@ -48,13 +51,6 @@ export async function fetchMediaData(signal?: AbortSignal): Promise<MediaData> {
     },
     { tracks: [], movies: [], episodes: [] } as MediaData
   );
-
-  const byStartTime = (a: BaseMedia, b: BaseMedia) =>
-    new Date(a.startTime).getTime() - new Date(b.startTime).getTime();
-
-  merged.tracks.sort(byStartTime);
-  merged.movies.sort(byStartTime);
-  merged.episodes.sort(byStartTime);
 
   return merged;
 }

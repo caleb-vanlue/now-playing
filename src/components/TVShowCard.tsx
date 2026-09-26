@@ -5,8 +5,6 @@ import { useRelatedItems } from "../hooks/useRelatedItems";
 import { RelatedCarousel } from "./RelatedCarousel";
 import { getResponsiveThumbnailUrl, getSeriesThumbnailUrl } from "../../utils/api";
 import {
-  calculateProgress,
-  calculateFinishTime,
   formatDuration,
   formatQuality,
   getBestDisplayRating,
@@ -32,8 +30,6 @@ import {
 
 function TVShowDetailContent({ episode }: { episode: Episode }) {
   const { items: related, loading: relatedLoading } = useRelatedItems(episode);
-  const progressPercentage = calculateProgress(episode.viewOffset, episode.duration);
-  const estimatedFinishTime = calculateFinishTime(episode.duration, episode.viewOffset);
   const qualityFormatted = formatQuality(episode.videoResolution);
   const formattedDuration = formatDuration(episode.duration);
   const seasonEpisode = `S${episode.season}:E${episode.episode}`;
@@ -42,8 +38,7 @@ function TVShowDetailContent({ episode }: { episode: Episode }) {
   return (
     <>
       <ProgressInfo
-        percentage={progressPercentage}
-        estimatedFinishTime={estimatedFinishTime}
+        item={episode}
         transcodeProgress={
           episode.transcodeProgress !== undefined &&
           (episode.videoDecision === "transcode" || episode.audioDecision === "transcode")
@@ -161,8 +156,6 @@ function TVShowCard({
   item: episode,
   showSeriesPoster = false,
 }: TVShowCardProps) {
-  const progressPercentage = calculateProgress(episode.viewOffset, episode.duration);
-
   const renderThumbnail = useCallback(
     (episode: Episode) => {
       const seriesUrl = showSeriesPoster ? getSeriesThumbnailUrl(episode) : null;
@@ -269,7 +262,6 @@ function TVShowCard({
       renderMainContent={renderMainContent}
       renderDetailHeader={renderDetailHeader}
       renderDetailContent={renderDetailContent}
-      progressPercentage={progressPercentage}
       transcodeProgress={isTranscoding ? episode.transcodeProgress : undefined}
     />
   );

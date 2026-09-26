@@ -24,6 +24,10 @@ export interface BaseMedia {
   startTime: string;
   sessionId: string;
   viewOffset?: number;
+  duration?: number;
+  // Client timestamp (ms) when viewOffset was reported; progress is
+  // interpolated forward from here while playing
+  syncedAt: number;
   // Transcode info (available from both services)
   videoDecision?: string;
   audioDecision?: string;

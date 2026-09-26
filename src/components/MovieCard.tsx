@@ -3,8 +3,6 @@ import { motion } from "framer-motion";
 import { Movie } from "../../types/media";
 import { getResponsiveThumbnailUrl, getMovieBackdropUrl } from "../../utils/api";
 import {
-  calculateProgress,
-  calculateFinishTime,
   formatDuration,
   formatQuality,
   getBestDisplayRating,
@@ -31,16 +29,13 @@ import { RelatedCarousel } from "./RelatedCarousel";
 
 function MovieDetailContent({ movie }: { movie: Movie }) {
   const { items: related, loading: relatedLoading } = useRelatedItems(movie);
-  const progressPercentage = calculateProgress(movie.viewOffset, movie.duration);
-  const estimatedFinishTime = calculateFinishTime(movie.duration, movie.viewOffset);
   const qualityFormatted = formatQuality(movie.videoResolution);
   const startedAt = new Date(movie.startTime);
 
   return (
     <>
       <ProgressInfo
-        percentage={progressPercentage}
-        estimatedFinishTime={estimatedFinishTime}
+        item={movie}
         transcodeProgress={
           movie.transcodeProgress !== undefined &&
           (movie.videoDecision === "transcode" || movie.audioDecision === "transcode")
@@ -155,8 +150,6 @@ interface MovieCardProps {
 }
 
 function MovieCard({ item: movie, showBackdrop = false }: MovieCardProps) {
-  const progressPercentage = calculateProgress(movie.viewOffset, movie.duration);
-
   const renderThumbnail = useCallback(
     (movie: Movie) => {
       const backdropUrl = showBackdrop ? getMovieBackdropUrl(movie) : null;
@@ -264,7 +257,6 @@ function MovieCard({ item: movie, showBackdrop = false }: MovieCardProps) {
       renderMainContent={renderMainContent}
       renderDetailHeader={renderDetailHeader}
       renderDetailContent={renderDetailContent}
-      progressPercentage={progressPercentage}
       transcodeProgress={isTranscoding ? movie.transcodeProgress : undefined}
     />
   );

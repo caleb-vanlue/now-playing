@@ -4,7 +4,6 @@ import { useMediaCard } from "../hooks/useMediaCard";
 import { PlayingStateIndicator, ProgressBar, SourceIcon } from "./CardComponents";
 import { UserInfo } from "./UserAvatar";
 import { BaseMedia } from "../../types/media";
-import { getTimeAgo } from "../../utils/dateUtils";
 
 interface BaseMediaCardProps<T extends BaseMedia> {
   item: T;
@@ -12,14 +11,12 @@ interface BaseMediaCardProps<T extends BaseMedia> {
   renderMainContent: (item: T) => React.ReactNode;
   renderDetailHeader: (item: T) => React.ReactNode;
   renderDetailContent: (item: T) => React.ReactNode;
-  progressPercentage: number;
   transcodeProgress?: number;
 }
 
 type CardContentProps<T extends BaseMedia> = {
   item: T;
   renderMainContent: (item: T) => React.ReactNode;
-  timeAgo: string;
   userId: string;
   userAvatar?: string;
   avatarError: boolean;
@@ -30,7 +27,6 @@ function CardContentComponent<T extends BaseMedia>(props: CardContentProps<T>) {
   const {
     item,
     renderMainContent,
-    timeAgo,
     userId,
     userAvatar,
     avatarError,
@@ -50,7 +46,7 @@ function CardContentComponent<T extends BaseMedia>(props: CardContentProps<T>) {
         userAvatar={userAvatar}
         avatarError={avatarError}
         onAvatarError={onAvatarError}
-        timeAgo={timeAgo}
+        since={item.startTime}
       />
     </div>
   );
@@ -152,7 +148,6 @@ function BaseMediaCardComponent<T extends BaseMedia>({
   renderMainContent,
   renderDetailHeader,
   renderDetailContent,
-  progressPercentage,
   transcodeProgress,
 }: BaseMediaCardProps<T>) {
   const {
@@ -195,7 +190,7 @@ function BaseMediaCardComponent<T extends BaseMedia>({
     return () => document.removeEventListener("keydown", handleEscape);
   }, [showDetails, handleClose]);
 
-  const timeAgo = getTimeAgo(new Date(item.startTime));
+  const handleAvatarError = useCallback(() => setAvatarError(true), [setAvatarError]);
 
   return (
     <div
@@ -211,16 +206,15 @@ function BaseMediaCardComponent<T extends BaseMedia>({
           <PlayingStateIndicator state={item.state} />
         </div>
 
-        <ProgressBar percentage={progressPercentage} transcodeProgress={transcodeProgress} />
+        <ProgressBar item={item} transcodeProgress={transcodeProgress} />
 
         <CardContent
           item={item}
           renderMainContent={renderMainContent}
-          timeAgo={timeAgo}
           userId={item.userId}
           userAvatar={item.userAvatar}
           avatarError={avatarError}
-          onAvatarError={() => setAvatarError(true)}
+          onAvatarError={handleAvatarError}
         />
       </div>
 

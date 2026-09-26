@@ -8,21 +8,29 @@ export async function fetchWithTimeout(
   options: RequestInit & { signal?: AbortSignal } = {},
   timeout = FETCH_TIMEOUT
 ): Promise<Response> {
+  const { signal, ...rest } = options;
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeout);
+  const timeoutId = setTimeout(
+    () => controller.abort(new DOMException("Request timed out", "TimeoutError")),
+    timeout
+  );
+  // Forward the caller's abort reason so cancellation stays distinguishable
+  // from a timeout (AbortError vs TimeoutError)
+  const onAbort = () => controller.abort(signal?.reason);
 
-  if (options.signal) {
-    options.signal.addEventListener("abort", () => controller.abort(), { once: true });
-  }
+  if (signal?.aborted) onAbort();
+  else signal?.addEventListener("abort", onAbort, { once: true });
 
   try {
-    const response = await fetch(url, { ...options, signal: controller.signal });
+    return await fetch(url, { ...rest, signal: controller.signal });
+  } finally {
     clearTimeout(timeoutId);
-    return response;
-  } catch (error) {
-    clearTimeout(timeoutId);
-    throw error;
+    signal?.removeEventListener("abort", onAbort);
   }
+}
+
+export function isTimeoutError(error: unknown): boolean {
+  return error instanceof DOMException && error.name === "TimeoutError";
 }
 
 // ── Plex API shape types ──────────────────────────────────────────────────────
@@ -151,6 +159,7 @@ function mapPlexBaseFields(session: PlexSession, defaultPlayer: string) {
     startTime: new Date(Date.now() - (session.viewOffset || 0)).toISOString(),
     sessionId,
     viewOffset: session.viewOffset || 0,
+    syncedAt: Date.now(),
     videoDecision: session.TranscodeSession?.videoDecision || "copy",
     audioDecision: session.TranscodeSession?.audioDecision || "copy",
     transcodeProgress: session.TranscodeSession?.progress,
@@ -266,17 +275,10 @@ export async function fetchPlexData(signal?: AbortSignal): Promise<MediaData> {
 
     return { tracks, movies, episodes };
   } catch (error) {
-    if (error instanceof Error) {
-      if (error.name === "AbortError") {
-        throw new Error(
-          "Request timed out. The Plex server may be unresponsive."
-        );
-      }
-      throw error;
+    if (isTimeoutError(error)) {
+      throw new Error("Request timed out. The Plex server may be unresponsive.");
     }
-    throw new Error(
-      "Unknown error occurred while fetching media data from Plex"
-    );
+    throw error;
   }
 }
 

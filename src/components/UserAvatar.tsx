@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import Image from "next/image";
+import { TimeAgo } from "./TimeAgo";
 
 interface UserAvatarProps {
   userId: string;
@@ -71,7 +72,7 @@ interface UserInfoProps {
   userAvatar?: string;
   avatarError: boolean;
   onAvatarError: () => void;
-  timeAgo: string;
+  since: string;
 }
 
 export const UserInfo = React.memo(function UserInfo({
@@ -79,7 +80,7 @@ export const UserInfo = React.memo(function UserInfo({
   userAvatar,
   avatarError,
   onAvatarError,
-  timeAgo,
+  since,
 }: UserInfoProps) {
   return (
     <div className="mt-4 flex items-center justify-between">
@@ -94,7 +95,7 @@ export const UserInfo = React.memo(function UserInfo({
           {userId}
         </span>
       </div>
-      <span className="text-xs text-gray-500">{timeAgo}</span>
+      <TimeAgo date={new Date(since)} className="text-xs text-gray-500" />
     </div>
   );
 });

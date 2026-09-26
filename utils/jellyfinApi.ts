@@ -1,5 +1,5 @@
 import { MediaData, Track, Movie, Episode, Person } from "../types/media";
-import { fetchWithTimeout } from "./plexApi";
+import { fetchWithTimeout, isTimeoutError } from "./plexApi";
 import { normalizeVideoResolution } from "./mediaCardUtils";
 
 interface JellyfinPerson {
@@ -145,9 +145,27 @@ function jellyfinUserAvatarUrl(userId: string | undefined): string | undefined {
   return `/api/jellyfin/thumbnail?itemId=${userId}&imageType=Primary&type=user&quality=low&width=80`;
 }
 
+function mapJellyfinBaseFields(session: JellyfinSession, defaultPlayer: string) {
+  const item = session.NowPlayingItem;
+  const viewOffset = ticksToMs(session.PlayState?.PositionTicks);
+  return {
+    source: "jellyfin" as const,
+    id: item.Id,
+    title: item.Name,
+    thumbnailFileId: item.Id,
+    state: mapJellyfinState(session.PlayState?.IsPaused),
+    userId: session.UserName ?? "Unknown User",
+    userAvatar: jellyfinUserAvatarUrl(session.UserId),
+    player: session.DeviceName ?? session.Client ?? defaultPlayer,
+    startTime: new Date(Date.now() - viewOffset).toISOString(),
+    sessionId: session.Id,
+    viewOffset,
+    syncedAt: Date.now(),
+  };
+}
+
 function mapToMovie(session: JellyfinSession, detail: JellyfinItemDetail): Movie {
   const item = session.NowPlayingItem;
-  const play = session.PlayState ?? {};
   const tc = session.TranscodingInfo;
   const streams = extractStreams(item.MediaStreams);
 
@@ -155,17 +173,7 @@ function mapToMovie(session: JellyfinSession, detail: JellyfinItemDetail): Movie
   const audioDecision = tc ? (tc.IsAudioDirect ? "copy" : "transcode") : "copy";
 
   return {
-    source: "jellyfin",
-    id: item.Id,
-    title: item.Name,
-    thumbnailFileId: item.Id,
-    state: mapJellyfinState(play.IsPaused),
-    userId: session.UserName ?? "Unknown User",
-    userAvatar: jellyfinUserAvatarUrl(session.UserId),
-    player: session.DeviceName ?? session.Client ?? "Video Player",
-    startTime: new Date(Date.now() - ticksToMs(play.PositionTicks)).toISOString(),
-    sessionId: session.Id,
-    viewOffset: ticksToMs(play.PositionTicks),
+    ...mapJellyfinBaseFields(session, "Video Player"),
     year: detail.ProductionYear ?? item.ProductionYear ?? 0,
     director: detail.People?.find((p) => p.Type === "Director")?.Name,
     studio: detail.Studios?.[0]?.Name,
@@ -192,7 +200,6 @@ function mapToEpisode(
   detail: JellyfinItemDetail
 ): Episode {
   const item = session.NowPlayingItem;
-  const play = session.PlayState ?? {};
   const tc = session.TranscodingInfo;
   const streams = extractStreams(item.MediaStreams);
 
@@ -200,17 +207,7 @@ function mapToEpisode(
   const audioDecision = tc ? (tc.IsAudioDirect ? "copy" : "transcode") : "copy";
 
   return {
-    source: "jellyfin",
-    id: item.Id,
-    title: item.Name,
-    thumbnailFileId: item.Id,
-    state: mapJellyfinState(play.IsPaused),
-    userId: session.UserName ?? "Unknown User",
-    userAvatar: jellyfinUserAvatarUrl(session.UserId),
-    player: session.DeviceName ?? session.Client ?? "Video Player",
-    startTime: new Date(Date.now() - ticksToMs(play.PositionTicks)).toISOString(),
-    sessionId: session.Id,
-    viewOffset: ticksToMs(play.PositionTicks),
+    ...mapJellyfinBaseFields(session, "Video Player"),
     showTitle: item.SeriesName ?? "Unknown Show",
     seriesThumbId: item.SeriesId,
     season: item.ParentIndexNumber ?? 0,
@@ -233,7 +230,6 @@ function mapToEpisode(
 
 function mapToTrack(session: JellyfinSession, detail: JellyfinItemDetail): Track {
   const item = session.NowPlayingItem;
-  const play = session.PlayState ?? {};
   const audioStream =
     item.MediaStreams?.find((s) => s.Type === "Audio" && s.IsDefault !== false) ??
     item.MediaStreams?.find((s) => s.Type === "Audio");
@@ -251,17 +247,7 @@ function mapToTrack(session: JellyfinSession, detail: JellyfinItemDetail): Track
     : "";
 
   return {
-    source: "jellyfin",
-    id: item.Id,
-    title: item.Name,
-    thumbnailFileId: item.Id,
-    state: mapJellyfinState(play.IsPaused),
-    userId: session.UserName ?? "Unknown User",
-    userAvatar: jellyfinUserAvatarUrl(session.UserId),
-    player: session.DeviceName ?? session.Client ?? "Music Player",
-    startTime: new Date(Date.now() - ticksToMs(play.PositionTicks)).toISOString(),
-    sessionId: session.Id,
-    viewOffset: ticksToMs(play.PositionTicks),
+    ...mapJellyfinBaseFields(session, "Music Player"),
     artist,
     album: item.Album ?? "Unknown Album",
     audioCodec: audioStream?.Codec ?? "",
@@ -311,7 +297,7 @@ export async function fetchJellyfinData(
 
     return { tracks, movies, episodes };
   } catch (error) {
-    if (error instanceof Error && error.name === "AbortError") {
+    if (isTimeoutError(error)) {
       throw new Error(
         "Request timed out. The Jellyfin server may be unresponsive."
       );

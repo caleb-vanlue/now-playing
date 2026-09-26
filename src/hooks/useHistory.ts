@@ -5,7 +5,7 @@ import { fetchHistory } from "../../utils/api";
 const PAGE_SIZE = 25;
 
 interface UseHistoryOptions {
-  syncTrigger?: Date;
+  syncTrigger?: number | null;
 }
 
 export function useHistory(options?: UseHistoryOptions) {

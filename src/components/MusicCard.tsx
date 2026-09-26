@@ -5,11 +5,7 @@ import { Track } from "../../types/media";
 import { getResponsiveThumbnailUrl } from "../../utils/api";
 import { useSpotifyTrack } from "../hooks/useSpotifyTrack";
 import { useLyrics } from "../hooks/useLyrics";
-import {
-  calculateProgress,
-  calculateFinishTime,
-  formatDurationMMSS,
-} from "../../utils/mediaCardUtils";
+import { formatDurationMMSS } from "../../utils/mediaCardUtils";
 import { BaseMediaCard } from "./BaseMediaCard";
 import { ProgressInfo } from "./CardComponents";
 import { UserAvatar } from "./UserAvatar";
@@ -28,20 +24,11 @@ interface MusicDetailContentProps {
 function MusicDetailContent({ track, spotifyUrl }: MusicDetailContentProps) {
   const { lyrics, instrumental, loading: lyricsLoading } = useLyrics(track);
 
-  const progressPercentage = calculateProgress(track.viewOffset, track.duration);
-  const estimatedFinishTime = track.duration
-    ? calculateFinishTime(track.duration, track.viewOffset)
-    : new Date();
   const formattedDuration = track.duration ? formatDurationMMSS(track.duration) : "0:00";
 
   return (
     <>
-      {track.duration && track.duration > 0 && (
-        <ProgressInfo
-          percentage={progressPercentage}
-          estimatedFinishTime={estimatedFinishTime}
-        />
-      )}
+      {track.duration ? <ProgressInfo item={track} /> : null}
 
       {spotifyUrl && (
         <div className="mb-4">
@@ -97,12 +84,12 @@ function MusicDetailContent({ track, spotifyUrl }: MusicDetailContentProps) {
           </div>
         )}
 
-        {track.duration && track.duration > 0 && (
+        {track.duration ? (
           <div className="stagger-item stagger-delay-5">
             <p className="text-gray-400 text-sm">Duration</p>
             <p>{formattedDuration}</p>
           </div>
-        )}
+        ) : null}
 
         <div className="stagger-item stagger-delay-6">
           <p className="text-gray-400 text-sm">Device</p>
@@ -147,8 +134,6 @@ interface MusicCardProps {
 
 function MusicCard({ track }: MusicCardProps) {
   const { spotifyUrl } = useSpotifyTrack(track.artist, track.title);
-
-  const progressPercentage = calculateProgress(track.viewOffset, track.duration);
 
   const renderThumbnail = useCallback(
     (track: Track) => {
@@ -231,7 +216,6 @@ function MusicCard({ track }: MusicCardProps) {
       renderMainContent={renderMainContent}
       renderDetailHeader={renderDetailHeader}
       renderDetailContent={renderDetailContent}
-      progressPercentage={progressPercentage}
     />
   );
 }

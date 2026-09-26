@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SiPlex, SiJellyfin } from "react-icons/si";
-import { useMediaDataContext } from "./MediaDataContext";
+import { useMediaSessions, useMediaStatus } from "./MediaDataContext";
 import { useTheme } from "../contexts/ThemeContext";
 
 interface MediaDashboardProps {
@@ -11,8 +11,8 @@ interface MediaDashboardProps {
 }
 
 export default function MediaDashboard({ children }: MediaDashboardProps) {
-  const { mediaData, loading, error, isConnected, refreshData } =
-    useMediaDataContext();
+  const mediaData = useMediaSessions();
+  const { loading, error, isConnected, refreshData } = useMediaStatus();
   const { theme, setTheme } = useTheme();
 
   const [showLoading, setShowLoading] = useState(loading && !mediaData);

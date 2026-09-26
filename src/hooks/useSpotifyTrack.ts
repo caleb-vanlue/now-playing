@@ -1,11 +1,10 @@
 import { useState, useEffect, useRef } from "react";
-import { useMediaDataContext } from "../components/MediaDataContext";
+import { getSpotifyUrl } from "../../utils/spotifyLookup";
 
 export function useSpotifyTrack(artist: string, trackTitle: string) {
   const [spotifyUrl, setSpotifyUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);
-  const { getSpotifyUrl } = useMediaDataContext();
 
   const searchKeyRef = useRef<string>(`${artist}:${trackTitle}`);
   const hasSearchedRef = useRef<boolean>(false);
@@ -56,7 +55,7 @@ export function useSpotifyTrack(artist: string, trackTitle: string) {
     return () => {
       abortController.abort();
     };
-  }, [artist, trackTitle, getSpotifyUrl]);
+  }, [artist, trackTitle]);
 
   return { spotifyUrl, isLoading, error };
 }

@@ -9,7 +9,7 @@ import MusicCard from "../components/MusicCard";
 import MovieCard from "../components/MovieCard";
 import TVShowCard from "../components/TVShowCard";
 import HistoryTable from "../components/HistoryTable";
-import { useMediaDataContext } from "../components/MediaDataContext";
+import { useMediaSessions, useMediaStatus } from "../components/MediaDataContext";
 import { useHistory } from "../hooks/useHistory";
 import { useSwipeable } from "react-swipeable";
 import { useGridKeyboardNavigation } from "../hooks/useGridKeyboardNavigation";
@@ -58,7 +58,8 @@ EmptyState.displayName = "EmptyState";
 
 export default function MediaPage() {
   const [serviceLinksOpen, setServiceLinksOpen] = useState(false);
-  const { mediaData, lastSyncTime } = useMediaDataContext();
+  const mediaData = useMediaSessions();
+  const { lastSyncTime } = useMediaStatus();
   const { history, hasMore: historyHasMore, loading: historyLoading, loadingMore: historyLoadingMore, loadMore: loadMoreHistory } = useHistory({ syncTrigger: lastSyncTime });
   const [activeTab, setActiveTab] = useState<MediaType>("all");
 

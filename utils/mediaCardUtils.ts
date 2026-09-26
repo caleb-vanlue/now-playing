@@ -43,15 +43,6 @@ export const calculateProgress = (
   return viewOffset && duration ? (viewOffset / duration) * 100 : 0;
 };
 
-export const calculateFinishTime = (
-  duration: number,
-  viewOffset: number = 0
-): Date => {
-  const currentTime = new Date();
-  const remainingMs = duration - viewOffset;
-  return new Date(currentTime.getTime() + remainingMs);
-};
-
 export const getRatingSource = (rating: {
   image?: string;
   type: string;

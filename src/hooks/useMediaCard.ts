@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { debounce } from "../utils/animations";
 
 export function useMediaCard() {
@@ -37,9 +37,9 @@ export function useMediaCard() {
     }
   }, [showDetails]);
 
-  const toggleDetails = () => {
-    setShowDetails(!showDetails);
-  };
+  const toggleDetails = useCallback(() => {
+    setShowDetails((open) => !open);
+  }, []);
 
   return {
     showDetails,

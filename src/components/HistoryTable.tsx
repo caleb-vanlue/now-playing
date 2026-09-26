@@ -3,7 +3,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { HistoryItem } from "../../types/media";
 import { SourceIcon } from "./CardComponents";
-import { getTimeAgo } from "../../utils/dateUtils";
+import { TimeAgo } from "./TimeAgo";
 
 interface HistoryTableProps {
   items: HistoryItem[];
@@ -31,7 +31,6 @@ const HistoryItemCard = memo(
   }) => {
     const itemKey = `${item.id}-${index}`;
     const viewedDate = new Date(item.viewedAt * 1000);
-    const timeAgo = getTimeAgo(viewedDate);
     const hasImageError = imageErrors[itemKey];
 
     const getAspectRatioClass = (type: string) => {
@@ -115,17 +114,19 @@ const HistoryItemCard = memo(
               <span className="text-xs text-gray-400">
                 Played by {item.userName}
               </span>
-              <span className="text-xs text-gray-400 sm:hidden ml-auto whitespace-nowrap">
-                {timeAgo}
-              </span>
+              <TimeAgo
+                date={viewedDate}
+                className="text-xs text-gray-400 sm:hidden ml-auto whitespace-nowrap"
+              />
             </div>
           </div>
 
           <div className="flex-shrink-0 hidden sm:flex flex-col items-end justify-between">
             <SourceIcon source={item.source} size={20} />
-            <span className="text-sm text-gray-400 whitespace-nowrap">
-              {timeAgo}
-            </span>
+            <TimeAgo
+              date={viewedDate}
+              className="text-sm text-gray-400 whitespace-nowrap"
+            />
           </div>
         </div>
       </motion.div>

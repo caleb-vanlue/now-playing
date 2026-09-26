@@ -1,284 +1,141 @@
-import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { MediaData } from "../../types/media";
 import { fetchMediaData } from "../../utils/api";
+import { reconcileMediaData, hasActivePlayback } from "../../utils/reconcileMediaData";
 
-interface UseMediaDataOptions {
-  activePollingInterval?: number;
-  pausedPollingInterval?: number;
-  idlePollingInterval?: number;
+export interface PollingIntervals {
+  active: number;
+  paused: number;
+  idle: number;
 }
 
-const DEFAULT_OPTIONS: UseMediaDataOptions = {
-  activePollingInterval: 30000,
-  pausedPollingInterval: 120000,
-  idlePollingInterval: 300000,
-};
+export interface MediaStatus {
+  loading: boolean;
+  error: Error | null;
+  isConnected: boolean;
+  lastSyncTime: number | null;
+}
 
 const INACTIVITY_THRESHOLD_MS = 10 * 60 * 1000;
+const MAX_IDLE_INTERVAL_MS = 10 * 60 * 1000;
+const ACTIVITY_EVENTS = ["mousemove", "keydown", "touchstart", "scroll"] as const;
 
-export function useMediaData(options?: UseMediaDataOptions) {
-  const config = useMemo(() => 
-    options ? { ...DEFAULT_OPTIONS, ...options } : DEFAULT_OPTIONS,
-    [options]
-  );
+function getPollingInterval(
+  data: MediaData,
+  lastActivity: number,
+  intervals: PollingIntervals
+): number {
+  if (Date.now() - lastActivity > INACTIVITY_THRESHOLD_MS) {
+    return Math.min(intervals.idle * 2, MAX_IDLE_INTERVAL_MS);
+  }
+  if (hasActivePlayback(data)) return intervals.active;
 
+  const hasAnySession =
+    data.tracks.length > 0 || data.movies.length > 0 || data.episodes.length > 0;
+  return hasAnySession ? intervals.paused : intervals.idle;
+}
+
+function getRetryDelay(attempt: number): number {
+  return Math.min(5000 * Math.pow(1.5, attempt - 1), 60000);
+}
+
+const INITIAL_STATUS: MediaStatus = {
+  loading: true,
+  error: null,
+  isConnected: true,
+  lastSyncTime: null,
+};
+
+/**
+ * Adaptive polling for active sessions. All loop state lives inside a single
+ * effect, so there are no stale closures, polling pauses while the tab is
+ * hidden, and a cancelled request never counts as a failure.
+ */
+export function useMediaData({ active, paused, idle }: PollingIntervals) {
   const [mediaData, setMediaData] = useState<MediaData | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<Error | null>(null);
-  const [lastSyncTime, setLastSyncTime] = useState<Date>(new Date());
-  const [isConnected, setIsConnected] = useState<boolean>(true);
-
-  const progressTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const pollingTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const retryCount = useRef(0);
-  const lastUserActivityRef = useRef<number>(Date.now());
-  const prevMediaDataRef = useRef<MediaData | null>(null);
-  const abortControllerRef = useRef<AbortController | null>(null);
+  const [status, setStatus] = useState<MediaStatus>(INITIAL_STATUS);
+  const refreshRef = useRef<() => void>(() => {});
 
   useEffect(() => {
-    const updateActivity = () => {
-      lastUserActivityRef.current = Date.now();
+    const intervals = { active, paused, idle };
+    let snapshot: MediaData | null = null;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let controller: AbortController | undefined;
+    let retryCount = 0;
+    let lastActivity = Date.now();
+
+    const schedule = (delay: number) => {
+      clearTimeout(timer);
+      // Hidden tabs don't poll; visibility change triggers a fresh fetch instead
+      if (!document.hidden) timer = setTimeout(poll, delay);
     };
 
-    window.addEventListener("mousemove", updateActivity, { passive: true });
-    window.addEventListener("keydown", updateActivity, { passive: true });
-    window.addEventListener("touchstart", updateActivity, { passive: true });
-    window.addEventListener("scroll", updateActivity, { passive: true });
+    const poll = async () => {
+      clearTimeout(timer);
+      controller?.abort();
+      const current = new AbortController();
+      controller = current;
 
-    return () => {
-      window.removeEventListener("mousemove", updateActivity);
-      window.removeEventListener("keydown", updateActivity);
-      window.removeEventListener("touchstart", updateActivity);
-      window.removeEventListener("scroll", updateActivity);
-    };
-  }, []);
+      try {
+        const next = await fetchMediaData(current.signal);
+        if (current.signal.aborted) return;
 
-  const getPollingInterval = useCallback(
-    (data: MediaData | null): number => {
-      const userInactiveTime = Date.now() - lastUserActivityRef.current;
-      if (userInactiveTime > INACTIVITY_THRESHOLD_MS) {
-        return Math.min(config.idlePollingInterval! * 2, 600000);
-      }
+        snapshot = reconcileMediaData(snapshot, next);
+        retryCount = 0;
+        // Same reference when nothing changed, so React bails out of the render
+        setMediaData(snapshot);
+        setStatus({ loading: false, error: null, isConnected: true, lastSyncTime: Date.now() });
+        schedule(getPollingInterval(snapshot, lastActivity, intervals));
+      } catch (err) {
+        // Superseded by a newer poll or unmounted; that owner handles scheduling
+        if (current.signal.aborted) return;
 
-      if (!data) return config.idlePollingInterval!;
-
-      const hasActivePlayback =
-        data.tracks.some((t) => t.state === "playing") ||
-        data.movies.some((m) => m.state === "playing") ||
-        data.episodes.some((e) => e.state === "playing");
-
-      const hasAnySession =
-        data.tracks.length > 0 ||
-        data.movies.length > 0 ||
-        data.episodes.length > 0;
-
-      if (hasActivePlayback) return config.activePollingInterval!;
-      if (hasAnySession) return config.pausedPollingInterval!;
-      return config.idlePollingInterval!;
-    },
-    [config]
-  );
-
-  const processMediaData = useCallback((newData: MediaData): MediaData => {
-    if (!prevMediaDataRef.current) {
-      prevMediaDataRef.current = newData;
-      return newData;
-    }
-
-    const prevData = prevMediaDataRef.current;
-
-    const sessionChanged = <T extends { sessionId: string; state: string; viewOffset?: number }>(
-      prev: T[],
-      next: T[]
-    ) => {
-      if (prev.length !== next.length) return true;
-      const prevById = new Map(prev.map((item) => [item.sessionId, item]));
-      return next.some((item) => {
-        const p = prevById.get(item.sessionId);
-        return !p || p.state !== item.state || p.viewOffset !== item.viewOffset;
-      });
-    };
-
-    if (
-      !sessionChanged(prevData.tracks, newData.tracks) &&
-      !sessionChanged(prevData.movies, newData.movies) &&
-      !sessionChanged(prevData.episodes, newData.episodes)
-    ) {
-      return prevData;
-    }
-
-    prevMediaDataRef.current = newData;
-    return newData;
-  }, []);
-
-  const updateProgress = useCallback(() => {
-    setMediaData((current) => {
-      if (!current) return current;
-
-      const updated = {
-        ...current,
-        tracks: current.tracks.map((track) => ({
-          ...track,
-          viewOffset:
-            track.state === "playing" && track.duration
-              ? Math.min((track.viewOffset || 0) + 1000, track.duration)
-              : track.viewOffset,
-        })),
-        movies: current.movies.map((movie) => ({
-          ...movie,
-          viewOffset:
-            movie.state === "playing"
-              ? Math.min((movie.viewOffset || 0) + 1000, movie.duration)
-              : movie.viewOffset,
-        })),
-        episodes: current.episodes.map((episode) => ({
-          ...episode,
-          viewOffset:
-            episode.state === "playing"
-              ? Math.min((episode.viewOffset || 0) + 1000, episode.duration)
-              : episode.viewOffset,
-        })),
-      };
-
-      const hasChanges =
-        current.tracks.some((t) => t.state === "playing") ||
-        current.movies.some((m) => m.state === "playing") ||
-        current.episodes.some((e) => e.state === "playing");
-
-      return hasChanges ? updated : current;
-    });
-  }, []);
-
-  const fetchData = useCallback(async () => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-
-    abortControllerRef.current = new AbortController();
-    try {
-      setLoading((prevLoading) => {
-        return !mediaData && prevLoading !== true ? true : prevLoading;
-      });
-
-      const data = await fetchMediaData(abortControllerRef.current.signal);
-
-      const processedData = processMediaData(data);
-
-      setMediaData(processedData);
-      setLastSyncTime(new Date());
-      setLoading(false);
-      setError(null);
-      setIsConnected(true);
-      retryCount.current = 0;
-
-      const nextInterval = getPollingInterval(processedData);
-
-      if (pollingTimerRef.current) {
-        clearTimeout(pollingTimerRef.current);
-      }
-
-      pollingTimerRef.current = setTimeout(() => {
-        fetchData();
-      }, nextInterval);
-    } catch (err) {
-      if (!(err instanceof DOMException && err.name === "AbortError")) {
         console.error("Error fetching media data:", err);
-        setError(
-          err instanceof Error ? err : new Error("An unknown error occurred")
-        );
-        setLoading(false);
-        setIsConnected(false);
-        retryCount.current++;
-        const retryDelay = Math.min(
-          5000 * Math.pow(1.5, retryCount.current - 1),
-          60000
-        );
-
-        if (pollingTimerRef.current) {
-          clearTimeout(pollingTimerRef.current);
-        }
-
-        pollingTimerRef.current = setTimeout(() => {
-          fetchData();
-        }, retryDelay);
-      }
-    }
-  }, [getPollingInterval, mediaData, processMediaData]);
-
-  useEffect(() => {
-    fetchData();
-
-    return () => {
-      if (pollingTimerRef.current) {
-        clearTimeout(pollingTimerRef.current);
-      }
-      if (progressTimerRef.current) {
-        clearInterval(progressTimerRef.current);
-      }
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    const startProgressUpdates = () => {
-      if (progressTimerRef.current) return;
-      progressTimerRef.current = setInterval(updateProgress, 1000);
-    };
-
-    const stopProgressUpdates = () => {
-      if (progressTimerRef.current) {
-        clearInterval(progressTimerRef.current);
-        progressTimerRef.current = null;
+        retryCount++;
+        setStatus((prev) => ({
+          ...prev,
+          loading: false,
+          error: err instanceof Error ? err : new Error("An unknown error occurred"),
+          isConnected: false,
+        }));
+        schedule(getRetryDelay(retryCount));
       }
     };
 
-    const hasActivePlayback =
-      mediaData &&
-      (mediaData.tracks.some((t) => t.state === "playing") ||
-        mediaData.movies.some((m) => m.state === "playing") ||
-        mediaData.episodes.some((e) => e.state === "playing"));
+    const onActivity = () => {
+      lastActivity = Date.now();
+    };
 
-    if (hasActivePlayback && !document.hidden) {
-      startProgressUpdates();
-    } else {
-      stopProgressUpdates();
-    }
-
-    const handleVisibilityChange = () => {
+    const onVisibilityChange = () => {
       if (document.hidden) {
-        stopProgressUpdates();
-      } else if (hasActivePlayback) {
-        startProgressUpdates();
+        clearTimeout(timer);
+      } else {
+        poll();
       }
     };
 
-    document.addEventListener("visibilitychange", handleVisibilityChange);
+    refreshRef.current = () => {
+      retryCount = 0;
+      lastActivity = Date.now();
+      poll();
+    };
+
+    ACTIVITY_EVENTS.forEach((event) =>
+      window.addEventListener(event, onActivity, { passive: true })
+    );
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    poll();
 
     return () => {
-      stopProgressUpdates();
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      clearTimeout(timer);
+      controller?.abort();
+      refreshRef.current = () => {};
+      ACTIVITY_EVENTS.forEach((event) => window.removeEventListener(event, onActivity));
+      document.removeEventListener("visibilitychange", onVisibilityChange);
     };
-  }, [mediaData, updateProgress]);
+  }, [active, paused, idle]);
 
-  const refreshData = useCallback(() => {
-    if (pollingTimerRef.current) {
-      clearTimeout(pollingTimerRef.current);
-    }
+  const refreshData = useCallback(() => refreshRef.current(), []);
 
-    retryCount.current = 0;
-    lastUserActivityRef.current = Date.now();
-    fetchData();
-  }, [fetchData]);
-
-  return {
-    mediaData,
-    loading,
-    error,
-    lastSyncTime,
-    isConnected,
-    refreshData,
-  };
+  return { mediaData, status, refreshData };
 }

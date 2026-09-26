@@ -1,6 +1,5 @@
-export function getTimeAgo(date: Date): string {
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
+export function getTimeAgo(date: Date, now: number): string {
+  const diffMs = now - date.getTime();
   const diffSec = Math.round(diffMs / 1000);
   const diffMin = Math.round(diffSec / 60);
 

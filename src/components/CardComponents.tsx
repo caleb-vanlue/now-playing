@@ -4,7 +4,9 @@ import Image from "next/image";
 import { SiPlex, SiJellyfin } from "react-icons/si";
 import { HiChevronDown } from "react-icons/hi";
 import { Rating, Person } from "../../types/media";
-import { getRatingSource } from "../../utils/mediaCardUtils";
+import { calculateProgress, getRatingSource } from "../../utils/mediaCardUtils";
+import { useLiveViewOffset, ProgressSource } from "../hooks/useLiveViewOffset";
+import { useNow } from "../hooks/useNow";
 import { getRatingIcon } from "../../utils/ratingIcons";
 
 export function PlayingStateIndicator({
@@ -37,19 +39,23 @@ export function PlayingStateIndicator({
   );
 }
 
+function bufferEndFor(percentage: number, transcodeProgress?: number) {
+  return transcodeProgress !== undefined
+    ? percentage + (transcodeProgress / 100) * (100 - percentage)
+    : undefined;
+}
+
 export function ProgressBar({
-  percentage,
+  item,
   transcodeProgress,
 }: {
-  percentage: number;
+  item: ProgressSource;
   transcodeProgress?: number;
 }) {
+  const percentage = calculateProgress(useLiveViewOffset(item), item.duration);
   if (percentage <= 0) return null;
 
-  const bufferEnd =
-    transcodeProgress !== undefined
-      ? percentage + (transcodeProgress / 100) * (100 - percentage)
-      : undefined;
+  const bufferEnd = bufferEndFor(percentage, transcodeProgress);
 
   return (
     <div
@@ -78,18 +84,18 @@ export function ProgressBar({
 }
 
 export function ProgressInfo({
-  percentage,
-  estimatedFinishTime,
+  item,
   transcodeProgress,
 }: {
-  percentage: number;
-  estimatedFinishTime: Date;
+  item: ProgressSource;
   transcodeProgress?: number;
 }) {
-  const bufferEnd =
-    transcodeProgress !== undefined
-      ? percentage + (transcodeProgress / 100) * (100 - percentage)
-      : undefined;
+  const viewOffset = useLiveViewOffset(item);
+  // "Done @" moves with the wall clock even while paused
+  const now = useNow(1000);
+  const percentage = calculateProgress(viewOffset, item.duration);
+  const estimatedFinishTime = new Date(now + (item.duration ?? 0) - viewOffset);
+  const bufferEnd = bufferEndFor(percentage, transcodeProgress);
 
   return (
     <motion.div
@@ -104,13 +110,15 @@ export function ProgressInfo({
         </span>
         <span className="whitespace-nowrap shrink-0 ml-3">
           Done @{" "}
-          <time dateTime={estimatedFinishTime.toISOString()}>
-            {estimatedFinishTime.toLocaleTimeString([], {
-              hour: "numeric",
-              minute: "2-digit",
-              hour12: false,
-            })}
-          </time>
+          {now !== 0 && (
+            <time dateTime={estimatedFinishTime.toISOString()}>
+              {estimatedFinishTime.toLocaleTimeString([], {
+                hour: "numeric",
+                minute: "2-digit",
+                hour12: false,
+              })}
+            </time>
+          )}
         </span>
       </div>
       <div
