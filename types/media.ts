@@ -2,11 +2,9 @@ export interface Rating {
   image?: string;
   type: string;
   value: string;
-  count?: string;
 }
 
 export interface Person {
-  id?: string;
   tag: string;
   role?: string;
   thumb?: string;
@@ -65,7 +63,6 @@ export interface Movie extends BaseMedia {
   bitrate?: number;
   // People and metadata
   ratings?: Rating[];
-  directors?: Person[];
   writers?: Person[];
   actors?: Person[];
   backdropPath?: string;
@@ -91,7 +88,6 @@ export interface Episode extends BaseMedia {
   bitrate?: number;
   // People and metadata
   ratings?: Rating[];
-  directors?: Person[];
   writers?: Person[];
   actors?: Person[];
   // Series-level poster art (Plex: grandparentThumb path; Jellyfin: SeriesId)
@@ -104,6 +100,17 @@ export interface MediaData {
   tracks: Track[];
   movies: Movie[];
   episodes: Episode[];
+}
+
+// Client-clock fields are stamped by the browser when a response arrives, so
+// progress interpolation never depends on server/client clock agreement
+export type SessionItem<T extends BaseMedia> = Omit<T, "syncedAt" | "startTime">;
+
+// What /api/{plex,jellyfin}/sessions return: only the fields the UI renders
+export interface SessionsResponse {
+  tracks: SessionItem<Track>[];
+  movies: SessionItem<Movie>[];
+  episodes: SessionItem<Episode>[];
 }
 
 export interface HistoryItem {

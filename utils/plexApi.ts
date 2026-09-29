@@ -1,4 +1,4 @@
-import { MediaData, Track, Movie, Episode } from "../types/media";
+import { SessionsResponse, SessionItem, Track, Movie, Episode, Rating, Person } from "../types/media";
 import { normalizeVideoResolution } from "./mediaCardUtils";
 
 const FETCH_TIMEOUT = parseInt(process.env.NEXT_PUBLIC_FETCH_TIMEOUT || "8000");
@@ -37,6 +37,8 @@ export function isTimeoutError(error: unknown): boolean {
 
 interface PlexTag {
   tag: string;
+  role?: string;
+  thumb?: string;
 }
 
 interface PlexRating {
@@ -77,7 +79,7 @@ interface PlexTranscodeSession {
   transcodeHwRequested?: boolean;
 }
 
-interface PlexSession {
+export interface PlexSession {
   ratingKey: string;
   title: string;
   thumb?: string;
@@ -122,6 +124,15 @@ interface PlexTrackSession extends PlexSession {
 
 // ── Shared mapping helpers ────────────────────────────────────────────────────
 
+// Copy only rendered fields — Plex tag objects also carry ids, filters and keys
+function mapRatings(ratings: PlexRating[] | undefined): Rating[] | undefined {
+  return ratings?.map(({ image, type, value }) => ({ image, type, value }));
+}
+
+function mapPeople(tags: PlexTag[] | undefined, limit?: number): Person[] | undefined {
+  return tags?.slice(0, limit).map(({ tag, role, thumb }) => ({ tag, role, thumb }));
+}
+
 function mapPlexState(plexState: string | undefined): "playing" | "paused" {
   return plexState === "playing" ? "playing" : "paused";
 }
@@ -156,10 +167,8 @@ function mapPlexBaseFields(session: PlexSession, defaultPlayer: string) {
     userId: session.User?.title || "Unknown User",
     userAvatar: session.User?.thumb || undefined,
     player: session.Player?.title || session.Player?.product || defaultPlayer,
-    startTime: new Date(Date.now() - (session.viewOffset || 0)).toISOString(),
     sessionId,
     viewOffset: session.viewOffset || 0,
-    syncedAt: Date.now(),
     videoDecision: session.TranscodeSession?.videoDecision || "copy",
     audioDecision: session.TranscodeSession?.audioDecision || "copy",
     transcodeProgress: session.TranscodeSession?.progress,
@@ -169,7 +178,7 @@ function mapPlexBaseFields(session: PlexSession, defaultPlayer: string) {
 
 // ── Mappers ───────────────────────────────────────────────────────────────────
 
-function mapToMovie(session: PlexSession): Movie {
+function mapToMovie(session: PlexSession): SessionItem<Movie> {
   const streams = extractPlexStreams(session);
   return {
     ...mapPlexBaseFields(session, "Video Player"),
@@ -182,15 +191,14 @@ function mapToMovie(session: PlexSession): Movie {
     genre: session.Genre?.map((g) => g.tag) || [],
     rating: session.rating ?? session.audienceRating,
     tagline: session.tagline,
-    ratings: session.Rating,
-    directors: session.Director,
-    writers: session.Writer,
-    actors: session.Role?.slice(0, 15),
+    ratings: mapRatings(session.Rating),
+    writers: session.Writer?.map(({ tag }) => ({ tag })),
+    actors: mapPeople(session.Role, 15),
     backdropPath: session.art,
   };
 }
 
-function mapToEpisode(session: PlexEpisodeSession): Episode {
+function mapToEpisode(session: PlexEpisodeSession): SessionItem<Episode> {
   const streams = extractPlexStreams(session);
   return {
     ...mapPlexBaseFields(session, "Video Player"),
@@ -204,14 +212,13 @@ function mapToEpisode(session: PlexEpisodeSession): Episode {
     contentRating: session.contentRating || "",
     genre: session.Genre?.map((g) => g.tag) || [],
     rating: session.rating ?? session.audienceRating,
-    ratings: session.Rating,
-    directors: session.Director,
-    writers: session.Writer,
-    actors: session.Role?.slice(0, 15),
+    ratings: mapRatings(session.Rating),
+    writers: session.Writer?.map(({ tag }) => ({ tag })),
+    actors: mapPeople(session.Role, 15),
   };
 }
 
-function mapToTrack(session: PlexTrackSession): Track {
+function mapToTrack(session: PlexTrackSession): SessionItem<Track> {
   const mediaInfo = session.Media?.[0];
   const stream = mediaInfo?.Part?.[0]?.Stream?.[0];
   const quality =
@@ -238,48 +245,25 @@ function mapToTrack(session: PlexTrackSession): Track {
 
 // ── Public API ────────────────────────────────────────────────────────────────
 
-export async function fetchPlexData(signal?: AbortSignal): Promise<MediaData> {
-  try {
-    const response = await fetchWithTimeout(
-      `/api/plex/sessions`,
-      { headers: { Accept: "application/json" }, signal },
-    );
+/** Server-side: maps raw /status/sessions metadata to the fields the UI renders. */
+export function mapPlexSessions(sessions: PlexSession[]): SessionsResponse {
+  const result: SessionsResponse = { tracks: [], movies: [], episodes: [] };
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(
-        `Plex API Error (${response.status}): ${errorText || "Unknown error"}`
-      );
-    }
-
-    const data = await response.json();
-    const sessions: PlexSession[] = data.MediaContainer?.Metadata || [];
-
-    const tracks: Track[] = [];
-    const movies: Movie[] = [];
-    const episodes: Episode[] = [];
-
-    for (const session of sessions) {
-      try {
-        if (session.type === "track") {
-          tracks.push(mapToTrack(session as PlexTrackSession));
-        } else if (session.type === "movie") {
-          movies.push(mapToMovie(session));
-        } else if (session.type === "episode") {
-          episodes.push(mapToEpisode(session as PlexEpisodeSession));
-        }
-      } catch (err) {
-        console.error(`Error mapping Plex ${session.type}:`, err);
+  for (const session of sessions) {
+    try {
+      if (session.type === "track") {
+        result.tracks.push(mapToTrack(session as PlexTrackSession));
+      } else if (session.type === "movie") {
+        result.movies.push(mapToMovie(session));
+      } else if (session.type === "episode") {
+        result.episodes.push(mapToEpisode(session as PlexEpisodeSession));
       }
+    } catch (err) {
+      console.error(`Error mapping Plex ${session.type}:`, err);
     }
-
-    return { tracks, movies, episodes };
-  } catch (error) {
-    if (isTimeoutError(error)) {
-      throw new Error("Request timed out. The Plex server may be unresponsive.");
-    }
-    throw error;
   }
+
+  return result;
 }
 
 export function getThumbnailUrl(

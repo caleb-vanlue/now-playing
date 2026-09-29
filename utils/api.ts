@@ -1,6 +1,15 @@
-import { MediaData, HistoryData, HistoryItem, BaseMedia, Episode, Movie } from "../types/media";
-import { fetchPlexData, getThumbnailUrl as getPlexThumbnailUrl } from "./plexApi";
-import { fetchJellyfinData, jellyfinThumbnailUrl } from "./jellyfinApi";
+import {
+  MediaData,
+  HistoryData,
+  HistoryItem,
+  BaseMedia,
+  Episode,
+  Movie,
+  SessionItem,
+  SessionsResponse,
+} from "../types/media";
+import { fetchWithTimeout, isTimeoutError, getThumbnailUrl as getPlexThumbnailUrl } from "./plexApi";
+import { jellyfinThumbnailUrl } from "./jellyfinApi";
 
 interface ServiceConfig {
   plex: boolean;
@@ -22,12 +31,58 @@ function getServiceConfig(): Promise<ServiceConfig> {
   return configPromise;
 }
 
+const SOURCE_LABELS: Record<BaseMedia["source"], string> = {
+  plex: "Plex",
+  jellyfin: "Jellyfin",
+};
+
+async function fetchSessions(
+  source: BaseMedia["source"],
+  signal?: AbortSignal
+): Promise<MediaData> {
+  const label = SOURCE_LABELS[source];
+  try {
+    const response = await fetchWithTimeout(`/api/${source}/sessions`, {
+      headers: { Accept: "application/json" },
+      signal,
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(
+        `${label} API Error (${response.status}): ${errorText || "Unknown error"}`
+      );
+    }
+
+    const data: SessionsResponse = await response.json();
+
+    // Stamp with the client clock so progress interpolates from receipt time
+    const now = Date.now();
+    const stamp = <T extends SessionItem<BaseMedia>>(item: T) => ({
+      ...item,
+      syncedAt: now,
+      startTime: new Date(now - (item.viewOffset || 0)).toISOString(),
+    });
+
+    return {
+      tracks: data.tracks.map(stamp),
+      movies: data.movies.map(stamp),
+      episodes: data.episodes.map(stamp),
+    };
+  } catch (error) {
+    if (isTimeoutError(error)) {
+      throw new Error(`Request timed out. The ${label} server may be unresponsive.`);
+    }
+    throw error;
+  }
+}
+
 export async function fetchMediaData(signal?: AbortSignal): Promise<MediaData> {
   const config = await getServiceConfig();
 
   const configuredFetches: Promise<MediaData>[] = [];
-  if (config.plex) configuredFetches.push(fetchPlexData(signal));
-  if (config.jellyfin) configuredFetches.push(fetchJellyfinData(signal));
+  if (config.plex) configuredFetches.push(fetchSessions("plex", signal));
+  if (config.jellyfin) configuredFetches.push(fetchSessions("jellyfin", signal));
 
   if (configuredFetches.length === 0) {
     return { tracks: [], movies: [], episodes: [] };

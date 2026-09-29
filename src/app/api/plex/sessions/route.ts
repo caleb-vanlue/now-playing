@@ -1,39 +1,9 @@
 import { NextResponse } from "next/server";
 import { applyUsernameMap } from "../../../../../utils/usernameMap";
 import { serverCache, SESSIONS_CACHE_TTL } from "../../../../../utils/serverCache";
+import { mapPlexSessions, PlexSession } from "../../../../../utils/plexApi";
 
 const CACHE_KEY = "plex:sessions";
-
-function sanitizePlexSession(session: Record<string, unknown>): void {
-  if (session.User && typeof session.User === "object") {
-    const user = session.User as Record<string, unknown>;
-    if (user.title) {
-      user.title = applyUsernameMap(String(user.title));
-    }
-  }
-
-  if (session.Player && typeof session.Player === "object") {
-    const player = session.Player as Record<string, unknown>;
-    delete player.address;
-    delete player.remotePublicAddress;
-    delete player.machineIdentifier;
-    delete player.token;
-  }
-
-  if (session.Session && typeof session.Session === "object") {
-    const s = session.Session as Record<string, unknown>;
-    delete s.Location;
-  }
-
-  const media = session.Media as Array<Record<string, unknown>> | undefined;
-  media?.forEach((m) => {
-    const parts = m.Part as Array<Record<string, unknown>> | undefined;
-    parts?.forEach((part) => {
-      delete part.file;
-      delete part.key;
-    });
-  });
-}
 
 export async function GET() {
   const PLEX_URL = process.env.PLEX_URL;
@@ -64,9 +34,15 @@ export async function GET() {
       throw new Error(`Plex API Error: ${response.status}`);
     }
 
-    const data = await response.json();
-    const sessions: Record<string, unknown>[] = data?.MediaContainer?.Metadata || [];
-    sessions.forEach(sanitizePlexSession);
+    const raw = await response.json();
+    const sessions: PlexSession[] = raw?.MediaContainer?.Metadata || [];
+    sessions.forEach((s) => {
+      if (s.User?.title) s.User.title = applyUsernameMap(s.User.title);
+    });
+
+    // Build the response field-by-field so nothing unlisted (addresses, file
+    // paths, device ids) can reach the client
+    const data = mapPlexSessions(sessions);
 
     serverCache.set(CACHE_KEY, data, SESSIONS_CACHE_TTL);
     return NextResponse.json(data);

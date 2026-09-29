@@ -1,5 +1,4 @@
-import { MediaData, Track, Movie, Episode, Person } from "../types/media";
-import { fetchWithTimeout, isTimeoutError } from "./plexApi";
+import { SessionsResponse, SessionItem, Track, Movie, Episode, Person } from "../types/media";
 import { normalizeVideoResolution } from "./mediaCardUtils";
 
 interface JellyfinPerson {
@@ -22,7 +21,7 @@ interface JellyfinMediaStream {
   IsDefault?: boolean;
 }
 
-interface JellyfinItemDetail {
+export interface JellyfinItemDetail {
   People?: JellyfinPerson[];
   Genres?: string[];
   Studios?: { Name: string }[];
@@ -63,21 +62,24 @@ interface JellyfinTranscodingInfo {
   CompletionPercentage?: number;
 }
 
-interface JellyfinSession {
+export interface JellyfinSession {
   Id: string;
-  UserId?: string;
+  UserId: string;
   UserName?: string;
   DeviceName?: string;
   Client?: string;
-  NowPlayingItem: JellyfinNowPlayingItem;
+  IsActive?: boolean;
+  NowPlayingItem?: JellyfinNowPlayingItem;
   PlayState?: JellyfinPlayState;
   TranscodingInfo?: JellyfinTranscodingInfo;
 }
 
-interface EnrichedSession {
-  session: JellyfinSession;
+export interface EnrichedSession {
+  session: JellyfinSession & { NowPlayingItem: JellyfinNowPlayingItem };
   detail: JellyfinItemDetail;
 }
+
+type ActiveSession = EnrichedSession["session"];
 
 function ticksToMs(ticks: number | undefined): number {
   return ticks ? Math.floor(ticks / 10000) : 0;
@@ -102,7 +104,6 @@ function mapPeople(
   return people
     .filter((p) => p.Type === type)
     .map((p) => ({
-      id: p.Id,
       tag: p.Name,
       role: p.Role,
       thumb: p.PrimaryImageTag
@@ -145,7 +146,7 @@ function jellyfinUserAvatarUrl(userId: string | undefined): string | undefined {
   return `/api/jellyfin/thumbnail?itemId=${userId}&imageType=Primary&type=user&quality=low&width=80`;
 }
 
-function mapJellyfinBaseFields(session: JellyfinSession, defaultPlayer: string) {
+function mapJellyfinBaseFields(session: ActiveSession, defaultPlayer: string) {
   const item = session.NowPlayingItem;
   const viewOffset = ticksToMs(session.PlayState?.PositionTicks);
   return {
@@ -157,14 +158,12 @@ function mapJellyfinBaseFields(session: JellyfinSession, defaultPlayer: string) 
     userId: session.UserName ?? "Unknown User",
     userAvatar: jellyfinUserAvatarUrl(session.UserId),
     player: session.DeviceName ?? session.Client ?? defaultPlayer,
-    startTime: new Date(Date.now() - viewOffset).toISOString(),
     sessionId: session.Id,
     viewOffset,
-    syncedAt: Date.now(),
   };
 }
 
-function mapToMovie(session: JellyfinSession, detail: JellyfinItemDetail): Movie {
+function mapToMovie(session: ActiveSession, detail: JellyfinItemDetail): SessionItem<Movie> {
   const item = session.NowPlayingItem;
   const tc = session.TranscodingInfo;
   const streams = extractStreams(item.MediaStreams);
@@ -188,17 +187,16 @@ function mapToMovie(session: JellyfinSession, detail: JellyfinItemDetail): Movie
     transcodeProgress: tc?.CompletionPercentage,
     transcodeHwRequested: false,
     actors: mapPeople(detail.People, "Actor").slice(0, 15),
-    directors: mapPeople(detail.People, "Director"),
-    writers: mapPeople(detail.People, "Writer"),
+    writers: mapPeople(detail.People, "Writer").map(({ tag }) => ({ tag })),
     backdropPath: detail.BackdropImageTags?.length ? item.Id : undefined,
     ...streams,
   };
 }
 
 function mapToEpisode(
-  session: JellyfinSession,
+  session: ActiveSession,
   detail: JellyfinItemDetail
-): Episode {
+): SessionItem<Episode> {
   const item = session.NowPlayingItem;
   const tc = session.TranscodingInfo;
   const streams = extractStreams(item.MediaStreams);
@@ -222,13 +220,12 @@ function mapToEpisode(
     transcodeProgress: tc?.CompletionPercentage,
     transcodeHwRequested: false,
     actors: mapPeople(detail.People, "Actor").slice(0, 15),
-    directors: mapPeople(detail.People, "Director"),
-    writers: mapPeople(detail.People, "Writer"),
+    writers: mapPeople(detail.People, "Writer").map(({ tag }) => ({ tag })),
     ...streams,
   };
 }
 
-function mapToTrack(session: JellyfinSession, detail: JellyfinItemDetail): Track {
+function mapToTrack(session: ActiveSession, detail: JellyfinItemDetail): SessionItem<Track> {
   const item = session.NowPlayingItem;
   const audioStream =
     item.MediaStreams?.find((s) => s.Type === "Audio" && s.IsDefault !== false) ??
@@ -257,51 +254,24 @@ function mapToTrack(session: JellyfinSession, detail: JellyfinItemDetail): Track
   };
 }
 
-export async function fetchJellyfinData(
-  signal?: AbortSignal
-): Promise<MediaData> {
-  try {
-    const response = await fetchWithTimeout("/api/jellyfin/sessions", {
-      headers: { Accept: "application/json" },
-      signal,
-    });
+/** Server-side: maps enriched sessions to the fields the UI renders. */
+export function mapJellyfinSessions(enrichedSessions: EnrichedSession[]): SessionsResponse {
+  const result: SessionsResponse = { tracks: [], movies: [], episodes: [] };
 
-    if (!response.ok) {
-      const text = await response.text();
-      throw new Error(
-        `Jellyfin API Error (${response.status}): ${text || "Unknown error"}`
-      );
-    }
-
-    const data = await response.json();
-    const enrichedSessions: EnrichedSession[] = data.sessions ?? [];
-
-    const tracks: Track[] = [];
-    const movies: Movie[] = [];
-    const episodes: Episode[] = [];
-
-    enrichedSessions.forEach(({ session, detail }) => {
-      try {
-        const type = session.NowPlayingItem?.Type;
-        if (type === "Audio") {
-          tracks.push(mapToTrack(session, detail));
-        } else if (type === "Movie") {
-          movies.push(mapToMovie(session, detail));
-        } else if (type === "Episode") {
-          episodes.push(mapToEpisode(session, detail));
-        }
-      } catch (err) {
-        console.error("Error mapping Jellyfin session:", err);
+  enrichedSessions.forEach(({ session, detail }) => {
+    try {
+      const type = session.NowPlayingItem.Type;
+      if (type === "Audio") {
+        result.tracks.push(mapToTrack(session, detail));
+      } else if (type === "Movie") {
+        result.movies.push(mapToMovie(session, detail));
+      } else if (type === "Episode") {
+        result.episodes.push(mapToEpisode(session, detail));
       }
-    });
-
-    return { tracks, movies, episodes };
-  } catch (error) {
-    if (isTimeoutError(error)) {
-      throw new Error(
-        "Request timed out. The Jellyfin server may be unresponsive."
-      );
+    } catch (err) {
+      console.error("Error mapping Jellyfin session:", err);
     }
-    throw error;
-  }
+  });
+
+  return result;
 }

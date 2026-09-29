@@ -1,77 +1,14 @@
 import { NextResponse } from "next/server";
 import { applyUsernameMap } from "../../../../../utils/usernameMap";
 import { serverCache, SESSIONS_CACHE_TTL } from "../../../../../utils/serverCache";
+import {
+  mapJellyfinSessions,
+  EnrichedSession,
+  JellyfinItemDetail,
+  JellyfinSession,
+} from "../../../../../utils/jellyfinApi";
 
 const CACHE_KEY = "jellyfin:sessions";
-
-interface JellyfinPerson {
-  Id: string;
-  Name: string;
-  Role?: string;
-  Type: string;
-  PrimaryImageTag?: string;
-}
-
-interface JellyfinItemDetail {
-  People?: JellyfinPerson[];
-  Genres?: string[];
-  Studios?: { Name: string }[];
-  Overview?: string;
-  ProductionYear?: number;
-  OfficialRating?: string;
-  CommunityRating?: number;
-  Taglines?: string[];
-  BackdropImageTags?: string[];
-}
-
-interface JellyfinMediaStream {
-  Type: "Video" | "Audio" | "Subtitle" | "EmbeddedImage";
-  Codec?: string;
-  Profile?: string;
-  Width?: number;
-  Height?: number;
-  BitRate?: number;
-  Channels?: number;
-  ChannelLayout?: string;
-  IsDefault?: boolean;
-}
-
-interface JellyfinSession {
-  Id: string;
-  UserId: string;
-  UserName: string;
-  DeviceName: string;
-  Client: string;
-  IsActive: boolean;
-  PlayState?: {
-    IsPaused?: boolean;
-    PositionTicks?: number;
-  };
-  NowPlayingItem?: {
-    Id: string;
-    Name: string;
-    Type: string;
-    SeriesId?: string;
-    SeriesName?: string;
-    IndexNumber?: number;
-    ParentIndexNumber?: number;
-    RunTimeTicks?: number;
-    ImageTags?: { Primary?: string };
-    ProductionYear?: number;
-    AlbumArtist?: string;
-    Album?: string;
-    Artists?: string[];
-    MediaStreams?: JellyfinMediaStream[];
-  };
-  TranscodingInfo?: {
-    IsVideoDirect?: boolean;
-    IsAudioDirect?: boolean;
-    VideoCodec?: string;
-    AudioCodec?: string;
-    CompletionPercentage?: number;
-    Bitrate?: number;
-  };
-}
 
 function jellyfinAuthHeader(apiKey: string): string {
   return `MediaBrowser Token="${apiKey}", Client="NowPlaying", Device="Server", DeviceId="now-playing-server", Version="1.0"`;
@@ -129,11 +66,10 @@ export async function GET() {
 
     const sessions: JellyfinSession[] = await res.json();
     const activeSessions = sessions.filter(
-      (s): s is JellyfinSession & { NowPlayingItem: NonNullable<JellyfinSession["NowPlayingItem"]> } =>
-        s.IsActive && s.NowPlayingItem != null,
+      (s): s is EnrichedSession["session"] => !!s.IsActive && s.NowPlayingItem != null,
     );
 
-    const enriched = await Promise.all(
+    const enriched: EnrichedSession[] = await Promise.all(
       activeSessions.map(async (session) => {
         const item = session.NowPlayingItem;
         const detail = await fetchItemDetail(
@@ -154,23 +90,23 @@ export async function GET() {
             detail.People = seriesDetail.People;
           }
         }
-        const safeSession: typeof session & { RemoteEndPoint?: unknown } = { ...session };
-        delete safeSession.RemoteEndPoint;
-        const nowPlayingItem = safeSession.NowPlayingItem as Record<string, unknown> | undefined;
-        if (nowPlayingItem) {
-          delete nowPlayingItem.Path;
-          delete nowPlayingItem.MediaSources;
-        }
 
         return {
-          session: { ...safeSession, UserName: applyUsernameMap(session.UserName) },
+          session: {
+            ...session,
+            UserName: session.UserName && applyUsernameMap(session.UserName),
+          },
           detail,
         };
       }),
     );
 
-    serverCache.set(CACHE_KEY, { sessions: enriched }, SESSIONS_CACHE_TTL);
-    return NextResponse.json({ sessions: enriched });
+    // Build the response field-by-field so nothing unlisted (endpoints, file
+    // paths, device ids) can reach the client
+    const data = mapJellyfinSessions(enriched);
+
+    serverCache.set(CACHE_KEY, data, SESSIONS_CACHE_TTL);
+    return NextResponse.json(data);
   } catch (error) {
     console.error("Error fetching from Jellyfin:", error);
     return NextResponse.json(
