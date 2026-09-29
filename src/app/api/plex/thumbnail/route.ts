@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const SAFE_PATH_RE = /^\/[a-zA-Z0-9/_\-.]+$/;
+// Only metadata image paths (e.g. /library/metadata/123/thumb/1700000000).
+// The token is attached upstream, so anything looser turns this route into
+// an authenticated proxy to the entire Plex API.
+const SAFE_PATH_RE = /^\/library\/metadata\/\d+\/(thumb|art)(\/\d+)?$/;
 const ALLOWED_QUALITIES = new Set(["low", "medium", "high"]);
 
 export async function GET(request: NextRequest) {
@@ -13,7 +16,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Path required" }, { status: 400 });
   }
 
-  if (!SAFE_PATH_RE.test(path) || path.includes("..")) {
+  if (!SAFE_PATH_RE.test(path)) {
     return NextResponse.json({ error: "Invalid path" }, { status: 400 });
   }
 
@@ -80,11 +83,16 @@ export async function GET(request: NextRequest) {
       throw new Error(`Plex API Error: ${response.status}`);
     }
 
+    const contentType = response.headers.get("Content-Type") || "";
+    if (!contentType.startsWith("image/")) {
+      throw new Error(`Unexpected content type from Plex: ${contentType}`);
+    }
+
     const buffer = await response.arrayBuffer();
 
     return new NextResponse(buffer, {
       headers: {
-        "Content-Type": response.headers.get("Content-Type") || "image/jpeg",
+        "Content-Type": contentType,
         "Cache-Control": "public, max-age=604800",
       },
     });
