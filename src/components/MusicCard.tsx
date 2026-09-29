@@ -169,7 +169,7 @@ function MusicCard({ track }: MusicCardProps) {
           {track.album}
         </p>
         {(track.duration || track.audioCodec) && (
-          <p className="text-gray-400 text-xs mt-2 flex items-center gap-2">
+          <p className="text-gray-400 text-sm mt-2 flex items-center gap-2">
             {track.duration ? <span>{formatDuration(track.duration, { seconds: true })}</span> : null}
             {track.duration && track.audioCodec ? (
               <span className="text-gray-600">•</span>
