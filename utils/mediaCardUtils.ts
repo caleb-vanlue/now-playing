@@ -1,15 +1,20 @@
-export const formatDuration = (duration: number): string => {
+// "1h 30m" / "45m"; with `seconds`, durations under an hour show "3m 42s"
+export const formatDuration = (
+  duration: number,
+  { seconds = false }: { seconds?: boolean } = {}
+): string => {
+  const totalSeconds = Math.round(duration / 1000);
+  if (seconds && totalSeconds < 3600) {
+    const m = Math.floor(totalSeconds / 60);
+    const s = totalSeconds % 60;
+    if (m === 0) return `${s}s`;
+    return s === 0 ? `${m}m` : `${m}m ${s}s`;
+  }
   const minutes = Math.round(duration / 60000);
   if (minutes >= 60) {
     return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
   }
   return `${minutes}m`;
-};
-
-export const formatDurationMMSS = (duration: number): string => {
-  const minutes = Math.floor((duration / 60000) % 60);
-  const seconds = Math.floor((duration / 1000) % 60);
-  return `${minutes}:${String(seconds).padStart(2, "0")}`;
 };
 
 // Maps raw resolution strings (Plex) or pixel heights as strings (Jellyfin) to

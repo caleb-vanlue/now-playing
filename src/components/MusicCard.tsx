@@ -5,7 +5,7 @@ import { Track } from "../../types/media";
 import { getResponsiveThumbnailUrl } from "../../utils/api";
 import { useSpotifyTrack } from "../hooks/useSpotifyTrack";
 import { useLyrics } from "../hooks/useLyrics";
-import { formatDurationMMSS } from "../../utils/mediaCardUtils";
+import { formatDuration } from "../../utils/mediaCardUtils";
 import { BaseMediaCard } from "./BaseMediaCard";
 import { ProgressInfo } from "./CardComponents";
 import { UserAvatar } from "./UserAvatar";
@@ -24,7 +24,7 @@ interface MusicDetailContentProps {
 function MusicDetailContent({ track, spotifyUrl }: MusicDetailContentProps) {
   const { lyrics, instrumental, loading: lyricsLoading } = useLyrics(track);
 
-  const formattedDuration = track.duration ? formatDurationMMSS(track.duration) : "0:00";
+  const formattedDuration = track.duration ? formatDuration(track.duration, { seconds: true }) : "0s";
 
   return (
     <>
@@ -168,9 +168,13 @@ function MusicCard({ track }: MusicCardProps) {
         <p className="text-gray-400" title={track.album}>
           {track.album}
         </p>
-        {track.audioCodec && (
-          <p className="text-gray-400 text-xs mt-2">
-            {track.quality || track.audioCodec}
+        {(track.duration || track.audioCodec) && (
+          <p className="text-gray-400 text-xs mt-2 flex items-center gap-2">
+            {track.duration ? <span>{formatDuration(track.duration, { seconds: true })}</span> : null}
+            {track.duration && track.audioCodec ? (
+              <span className="text-gray-600">•</span>
+            ) : null}
+            {track.audioCodec && <span>{track.quality || track.audioCodec}</span>}
           </p>
         )}
       </>
