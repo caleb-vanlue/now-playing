@@ -2,6 +2,7 @@ import {
   MediaData,
   HistoryData,
   HistoryItem,
+  HistoryEntry,
   BaseMedia,
   Episode,
   Movie,
@@ -114,6 +115,34 @@ export async function fetchMediaData(signal?: AbortSignal): Promise<MediaData> {
 
 const HISTORY_MAX = 250;
 
+// Plays of the same item finishing this close together were watched together
+const HISTORY_MERGE_WINDOW_S = { video: 3 * 60, track: 60 };
+
+// Expects items sorted newest first
+function mergeSimultaneousPlays(items: HistoryItem[]): HistoryEntry[] {
+  const entries: HistoryEntry[] = [];
+  const latestByKey = new Map<string, HistoryEntry>();
+
+  for (const { userName, ...item } of items) {
+    const key = `${item.source}:${item.id}`;
+    const window =
+      item.type === "track" ? HISTORY_MERGE_WINDOW_S.track : HISTORY_MERGE_WINDOW_S.video;
+    const entry = latestByKey.get(key);
+
+    if (entry && entry.viewedAt - item.viewedAt <= window) {
+      if (!entry.userNames.includes(userName)) entry.userNames.push(userName);
+      entry.playCount++;
+      continue;
+    }
+
+    const created: HistoryEntry = { ...item, userNames: [userName], playCount: 1 };
+    entries.push(created);
+    latestByKey.set(key, created);
+  }
+
+  return entries;
+}
+
 export async function fetchHistory(
   signal?: AbortSignal,
   limit = 25
@@ -142,17 +171,20 @@ export async function fetchHistory(
   }
   const results = await Promise.allSettled(fetches);
 
-  const allItems = results.flatMap((result) => {
-    if (result.status === "fulfilled") {
-      return result.value.items || [];
-    }
-    return [];
-  });
+  const perSource = results.map((result) =>
+    result.status === "fulfilled" ? result.value.items || [] : []
+  );
+  const allItems = perSource.flat();
 
   allItems.sort((a, b) => b.viewedAt - a.viewedAt);
 
-  const hasMore = allItems.length > clampedLimit && clampedLimit < HISTORY_MAX;
-  return { items: allItems.slice(0, clampedLimit), hasMore };
+  // Merge before paging so a page holds `limit` rows. Merging can shrink the list
+  // below the limit, so a source that filled its fetch also means more exist.
+  const entries = mergeSimultaneousPlays(allItems);
+  const sourceTruncated = perSource.some((items) => items.length >= fetchLimit);
+  const hasMore =
+    (entries.length > clampedLimit || sourceTruncated) && clampedLimit < HISTORY_MAX;
+  return { items: entries.slice(0, clampedLimit), hasMore };
 }
 
 export function getThumbnailUrl(

@@ -1,20 +1,21 @@
 import React, { useState, useMemo, useEffect, useRef, memo } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { HistoryItem } from "../../types/media";
+import { HistoryEntry } from "../../types/media";
+import { formatNames } from "../../utils/mediaCardUtils";
 import { SourceIcon } from "./CardComponents";
 import { TimeAgo } from "./TimeAgo";
 
 interface HistoryTableProps {
-  items: HistoryItem[];
+  items: HistoryEntry[];
   loading?: boolean;
   loadingMore?: boolean;
   hasMore?: boolean;
   onLoadMore?: () => void;
 }
 
-function historyItemKey(item: HistoryItem): string {
-  return `${item.source}-${item.id}-${item.viewedAt}-${item.userName}`;
+function historyItemKey(item: HistoryEntry): string {
+  return `${item.source}-${item.id}-${item.viewedAt}-${item.userNames.join(",")}`;
 }
 
 const HistoryItemCard = memo(
@@ -22,7 +23,7 @@ const HistoryItemCard = memo(
     item,
     index,
   }: {
-    item: HistoryItem;
+    item: HistoryEntry;
     index: number;
   }) => {
     const [hasImageError, setHasImageError] = useState(false);
@@ -106,8 +107,9 @@ const HistoryItemCard = memo(
               )}
             </div>
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs text-gray-400">
-                Played by {item.userName}
+              <span className="text-xs text-gray-400" title={item.userNames.join(", ")}>
+                Played by {formatNames(item.userNames)}
+                {item.userNames.length === 1 && item.playCount > 1 && ` · ${item.playCount} devices`}
               </span>
               <TimeAgo
                 date={viewedDate}
@@ -143,7 +145,7 @@ export default function HistoryTable({ items, loading, loadingMore, hasMore, onL
   const filteredItems = useMemo(() => {
     let filtered = items;
     if (selectedUser !== "all")
-      filtered = filtered.filter((item) => item.userName === selectedUser);
+      filtered = filtered.filter((item) => item.userNames.includes(selectedUser));
     if (selectedType !== "all")
       filtered = filtered.filter((item) => item.type === selectedType);
     if (selectedSource !== "all")
@@ -153,7 +155,7 @@ export default function HistoryTable({ items, loading, loadingMore, hasMore, onL
 
   const users = useMemo(() => {
     const set = new Set<string>();
-    items.forEach((item) => set.add(item.userName));
+    items.forEach((item) => item.userNames.forEach((name) => set.add(name)));
     return Array.from(set).sort();
   }, [items]);
 

@@ -47,6 +47,7 @@ function CardContentComponent<T extends BaseMedia>(props: CardContentProps<T>) {
         avatarError={avatarError}
         onAvatarError={onAvatarError}
         since={item.startTime}
+        streams={item.streams}
       />
     </div>
   );
@@ -192,6 +193,9 @@ function BaseMediaCardComponent<T extends BaseMedia>({
 
   const handleAvatarError = useCallback(() => setAvatarError(true), [setAvatarError]);
 
+  // A merged card is "playing" while any of its streams is; progress still follows the primary
+  const groupState = item.streams?.some((s) => s.state === "playing") ? "playing" : item.state;
+
   return (
     <div
       ref={cardRef}
@@ -203,7 +207,7 @@ function BaseMediaCardComponent<T extends BaseMedia>({
       >
         <div className="relative overflow-hidden">
           {renderThumbnail(item)}
-          <PlayingStateIndicator state={item.state} />
+          <PlayingStateIndicator state={groupState} />
         </div>
 
         <ProgressBar item={item} transcodeProgress={transcodeProgress} />

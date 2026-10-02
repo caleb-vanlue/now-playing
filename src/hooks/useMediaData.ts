@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { MediaData } from "../../types/media";
 import { fetchMediaData } from "../../utils/api";
 import { reconcileMediaData, hasActivePlayback } from "../../utils/reconcileMediaData";
+import { createSessionGrouper } from "../../utils/groupSessions";
 
 export interface PollingIntervals {
   active: number;
@@ -59,6 +60,7 @@ export function useMediaData({ active, paused, idle }: PollingIntervals) {
   useEffect(() => {
     const intervals = { active, paused, idle };
     let snapshot: MediaData | null = null;
+    const groupSessions = createSessionGrouper();
     let timer: ReturnType<typeof setTimeout> | undefined;
     let controller: AbortController | undefined;
     let retryCount = 0;
@@ -83,7 +85,7 @@ export function useMediaData({ active, paused, idle }: PollingIntervals) {
         snapshot = reconcileMediaData(snapshot, next);
         retryCount = 0;
         // Same reference when nothing changed, so React bails out of the render
-        setMediaData(snapshot);
+        setMediaData(groupSessions(snapshot));
         // Keep the same object while healthy so status consumers don't re-render every poll
         setStatus(CONNECTED_STATUS);
         schedule(getPollingInterval(snapshot, lastActivity, intervals));

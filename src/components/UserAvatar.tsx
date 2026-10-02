@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { TimeAgo } from "./TimeAgo";
+import type { Stream } from "../../types/media";
+import { formatNames, uniqueViewers } from "../../utils/mediaCardUtils";
 
 interface UserAvatarProps {
   userId: string;
@@ -73,7 +75,11 @@ interface UserInfoProps {
   avatarError: boolean;
   onAvatarError: () => void;
   since: string;
+  // Present when the card merges several sessions of the same item
+  streams?: Stream[];
 }
+
+const MAX_STACKED_AVATARS = 3;
 
 export const UserInfo = React.memo(function UserInfo({
   userId,
@@ -81,21 +87,49 @@ export const UserInfo = React.memo(function UserInfo({
   avatarError,
   onAvatarError,
   since,
+  streams,
 }: UserInfoProps) {
+  const viewers = streams ? uniqueViewers(streams) : [];
+  const names = viewers.map((v) => v.userId);
+
   return (
-    <div className="mt-4 flex items-center justify-between">
-      <div className="flex items-center">
-        <UserAvatar
-          userId={userId}
-          userAvatar={userAvatar}
-          avatarError={avatarError}
-          onAvatarError={onAvatarError}
-        />
-        <span className="ml-2 truncate max-w-[80px]" title={userId}>
-          {userId}
-        </span>
-      </div>
-      <TimeAgo date={new Date(since)} className="text-xs text-gray-500" />
+    <div className="mt-4 flex items-center justify-between gap-2">
+      {viewers.length > 1 ? (
+        <div className="flex items-center min-w-0" title={names.join(", ")}>
+          <div className="flex -space-x-2 shrink-0">
+            {viewers.slice(0, MAX_STACKED_AVATARS).map((viewer) => (
+              <div
+                key={viewer.userId}
+                className="rounded-full ring-2 ring-[var(--card-background)]"
+              >
+                <SelfContainedUserAvatar userId={viewer.userId} userAvatar={viewer.userAvatar} />
+              </div>
+            ))}
+          </div>
+          <span className="ml-2 truncate">{formatNames(names)}</span>
+        </div>
+      ) : (
+        <div className="flex items-center min-w-0">
+          <UserAvatar
+            userId={userId}
+            userAvatar={userAvatar}
+            avatarError={avatarError}
+            onAvatarError={onAvatarError}
+          />
+          <span className="ml-2 truncate max-w-[80px]" title={userId}>
+            {userId}
+          </span>
+          {streams && (
+            <span
+              className="ml-1.5 text-xs text-gray-500 whitespace-nowrap"
+              title={streams.map((s) => s.player).join(", ")}
+            >
+              · {streams.length} devices
+            </span>
+          )}
+        </div>
+      )}
+      <TimeAgo date={new Date(since)} className="text-xs text-gray-500 shrink-0" />
     </div>
   );
 });

@@ -9,6 +9,7 @@ import {
   formatQuality,
   getBestDisplayRating,
   formatAudioChannels,
+  getPlaybackType,
 } from "../../utils/mediaCardUtils";
 import { getRatingIcon } from "../../utils/ratingIcons";
 import { BaseMediaCard } from "./BaseMediaCard";
@@ -19,6 +20,7 @@ import {
   CastGrid,
   GenresSection,
   WritersSection,
+  StreamsSection,
 } from "./CardComponents";
 import { SelfContainedUserAvatar } from "./UserAvatar";
 import {
@@ -104,43 +106,42 @@ function TVShowDetailContent({ episode }: { episode: Episode }) {
             <p>{(episode.bitrate / 1000).toFixed(1)} Mbps</p>
           </div>
         )}
-        <div className="stagger-item stagger-delay-8">
-          <p className="text-gray-400 text-sm">Playback Type</p>
-          <p>
-            {episode.videoDecision === "copy" && episode.audioDecision === "copy"
-              ? "Direct Play"
-              : episode.videoDecision === "transcode" && episode.audioDecision === "transcode"
-                ? "Full Transcode"
-                : episode.videoDecision === "transcode"
-                  ? "Video Transcode"
-                  : episode.audioDecision === "transcode"
-                    ? "Audio Transcode"
-                    : "Direct Play"}
-            {episode.transcodeHwRequested && " (HW)"}
-          </p>
-        </div>
-        <div className="stagger-item stagger-delay-9">
-          <p className="text-gray-400 text-sm">Device</p>
-          <p>{episode.player}</p>
-        </div>
-        <div className="stagger-item stagger-delay-10">
-          <p className="text-gray-400 text-sm">User</p>
-          <div className="flex items-center">
-            <SelfContainedUserAvatar userId={episode.userId} userAvatar={episode.userAvatar} size="medium" />
-            <span className="ml-2">{episode.userId}</span>
+        {!episode.streams && (
+          <div className="stagger-item stagger-delay-8">
+            <p className="text-gray-400 text-sm">Playback Type</p>
+            <p>{getPlaybackType(episode)}</p>
           </div>
-        </div>
+        )}
+        {!episode.streams && (
+          <div className="stagger-item stagger-delay-9">
+            <p className="text-gray-400 text-sm">Device</p>
+            <p>{episode.player}</p>
+          </div>
+        )}
+        {!episode.streams && (
+          <div className="stagger-item stagger-delay-10">
+            <p className="text-gray-400 text-sm">User</p>
+            <div className="flex items-center">
+              <SelfContainedUserAvatar userId={episode.userId} userAvatar={episode.userAvatar} size="medium" />
+              <span className="ml-2">{episode.userId}</span>
+            </div>
+          </div>
+        )}
         <div className="stagger-item stagger-delay-15">
           <p className="text-gray-400 text-sm">Started</p>
           <p>
             <time dateTime={startedAt.toISOString()}>{startedAt.toLocaleTimeString()}</time>
           </p>
         </div>
-        <div className="stagger-item stagger-delay-16">
-          <p className="text-gray-400 text-sm">Status</p>
-          <p className="capitalize">{episode.state}</p>
-        </div>
+        {!episode.streams && (
+          <div className="stagger-item stagger-delay-16">
+            <p className="text-gray-400 text-sm">Status</p>
+            <p className="capitalize">{episode.state}</p>
+          </div>
+        )}
       </motion.div>
+
+      <StreamsSection streams={episode.streams} showPlaybackType />
 
       <WritersSection writers={episode.writers} />
     </>

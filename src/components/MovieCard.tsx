@@ -7,6 +7,7 @@ import {
   formatQuality,
   getBestDisplayRating,
   formatAudioChannels,
+  getPlaybackType,
 } from "../../utils/mediaCardUtils";
 import { getRatingIcon } from "../../utils/ratingIcons";
 import { BaseMediaCard } from "./BaseMediaCard";
@@ -17,6 +18,7 @@ import {
   CastGrid,
   GenresSection,
   WritersSection,
+  StreamsSection,
 } from "./CardComponents";
 import { SelfContainedUserAvatar } from "./UserAvatar";
 import {
@@ -101,43 +103,42 @@ function MovieDetailContent({ movie }: { movie: Movie }) {
             <p>{(movie.bitrate / 1000).toFixed(1)} Mbps</p>
           </div>
         )}
-        <div className="stagger-item stagger-delay-7">
-          <p className="text-gray-400 text-sm">Playback Type</p>
-          <p>
-            {movie.videoDecision === "copy" && movie.audioDecision === "copy"
-              ? "Direct Play"
-              : movie.videoDecision === "transcode" && movie.audioDecision === "transcode"
-                ? "Full Transcode"
-                : movie.videoDecision === "transcode"
-                  ? "Video Transcode"
-                  : movie.audioDecision === "transcode"
-                    ? "Audio Transcode"
-                    : "Direct Play"}
-            {movie.transcodeHwRequested && " (HW)"}
-          </p>
-        </div>
-        <div className="stagger-item stagger-delay-8">
-          <p className="text-gray-400 text-sm">Device</p>
-          <p>{movie.player}</p>
-        </div>
-        <div className="stagger-item stagger-delay-9">
-          <p className="text-gray-400 text-sm">User</p>
-          <div className="flex items-center">
-            <SelfContainedUserAvatar userId={movie.userId} userAvatar={movie.userAvatar} size="medium" />
-            <span className="ml-2">{movie.userId}</span>
+        {!movie.streams && (
+          <div className="stagger-item stagger-delay-7">
+            <p className="text-gray-400 text-sm">Playback Type</p>
+            <p>{getPlaybackType(movie)}</p>
           </div>
-        </div>
+        )}
+        {!movie.streams && (
+          <div className="stagger-item stagger-delay-8">
+            <p className="text-gray-400 text-sm">Device</p>
+            <p>{movie.player}</p>
+          </div>
+        )}
+        {!movie.streams && (
+          <div className="stagger-item stagger-delay-9">
+            <p className="text-gray-400 text-sm">User</p>
+            <div className="flex items-center">
+              <SelfContainedUserAvatar userId={movie.userId} userAvatar={movie.userAvatar} size="medium" />
+              <span className="ml-2">{movie.userId}</span>
+            </div>
+          </div>
+        )}
         <div className="stagger-item stagger-delay-14">
           <p className="text-gray-400 text-sm">Started</p>
           <p>
             <time dateTime={startedAt.toISOString()}>{startedAt.toLocaleTimeString()}</time>
           </p>
         </div>
-        <div className="stagger-item stagger-delay-15">
-          <p className="text-gray-400 text-sm">Status</p>
-          <p className="capitalize">{movie.state}</p>
-        </div>
+        {!movie.streams && (
+          <div className="stagger-item stagger-delay-15">
+            <p className="text-gray-400 text-sm">Status</p>
+            <p className="capitalize">{movie.state}</p>
+          </div>
+        )}
       </motion.div>
+
+      <StreamsSection streams={movie.streams} showPlaybackType />
 
       <WritersSection writers={movie.writers} />
     </>

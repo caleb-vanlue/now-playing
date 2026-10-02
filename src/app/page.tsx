@@ -94,7 +94,8 @@ export default function MediaPage() {
   const sessionRevision = useMemo(
     () =>
       [...tracks, ...movies, ...episodes]
-        .map((item) => `${item.sessionId}:${item.id}`)
+        // Merged cards hide their secondary sessions; count each one
+        .flatMap((item) => (item.streams ?? [item]).map((s) => `${s.sessionId}:${item.id}`))
         .sort()
         .join("|"),
     [tracks, movies, episodes]

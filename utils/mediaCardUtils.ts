@@ -1,3 +1,5 @@
+import type { Stream } from "../types/media";
+
 // "1h 30m" / "45m"; with `seconds`, durations under an hour show "3m 42s"
 export const formatDuration = (
   duration: number,
@@ -135,3 +137,33 @@ export const formatAudioChannels = (
       return `${channels}.0`; // Default format
   }
 };
+
+type PlaybackDecisions = Pick<Stream, "videoDecision" | "audioDecision" | "transcodeHwRequested">;
+
+export function getPlaybackType({ videoDecision, audioDecision, transcodeHwRequested }: PlaybackDecisions): string {
+  const label =
+    videoDecision === "transcode" && audioDecision === "transcode"
+      ? "Full Transcode"
+      : videoDecision === "transcode"
+        ? "Video Transcode"
+        : audioDecision === "transcode"
+          ? "Audio Transcode"
+          : "Direct Play";
+  return transcodeHwRequested ? `${label} (HW)` : label;
+}
+
+// Distinct users across a merged card's streams, in stream order
+export function uniqueViewers(streams: Stream[]): Pick<Stream, "userId" | "userAvatar">[] {
+  const seen = new Map<string, Pick<Stream, "userId" | "userAvatar">>();
+  for (const { userId, userAvatar } of streams) {
+    if (!seen.has(userId)) seen.set(userId, { userId, userAvatar });
+  }
+  return [...seen.values()];
+}
+
+// "Caleb" / "Caleb & Alex" / "Caleb, Alex +2"
+export function formatNames(names: string[]): string {
+  if (names.length <= 1) return names[0] ?? "";
+  if (names.length === 2) return `${names[0]} & ${names[1]}`;
+  return `${names[0]}, ${names[1]} +${names.length - 2}`;
+}

@@ -10,6 +10,20 @@ export interface Person {
   thumb?: string;
 }
 
+// One device's playback within a merged card
+export interface Stream {
+  sessionId: string;
+  userId: string;
+  userAvatar?: string;
+  player: string;
+  state: "playing" | "paused";
+  viewOffset?: number;
+  syncedAt: number;
+  videoDecision?: string;
+  audioDecision?: string;
+  transcodeHwRequested?: boolean;
+}
+
 export interface BaseMedia {
   id: string;
   source: "plex" | "jellyfin";
@@ -31,6 +45,9 @@ export interface BaseMedia {
   audioDecision?: string;
   transcodeProgress?: number;
   transcodeHwRequested?: boolean;
+  // Set client-side when 2+ sessions of the same item play in sync; the item's
+  // own fields describe the primary (earliest-started) stream
+  streams?: Stream[];
 }
 
 export interface Track extends BaseMedia {
@@ -124,8 +141,16 @@ export interface HistoryItem {
   userName: string;
 }
 
+// A history row after simultaneous plays of the same item are merged client-side
+export interface HistoryEntry extends Omit<HistoryItem, "userName"> {
+  userNames: string[];
+  // Raw plays merged into this row; exceeds userNames.length when one account
+  // played on several devices
+  playCount: number;
+}
+
 export interface HistoryData {
-  items: HistoryItem[];
+  items: HistoryEntry[];
   hasMore: boolean;
 }
 

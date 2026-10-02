@@ -3,8 +3,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { SiPlex, SiJellyfin } from "react-icons/si";
 import { HiChevronDown } from "react-icons/hi";
-import { Rating, Person } from "../../types/media";
-import { calculateProgress, getRatingSource } from "../../utils/mediaCardUtils";
+import { Rating, Person, Stream } from "../../types/media";
+import { calculateProgress, getPlaybackType, getRatingSource } from "../../utils/mediaCardUtils";
+import { SelfContainedUserAvatar } from "./UserAvatar";
 import { useLiveViewOffset, ProgressSource } from "../hooks/useLiveViewOffset";
 import { useNow } from "../hooks/useNow";
 import { getRatingIcon } from "../../utils/ratingIcons";
@@ -190,6 +191,53 @@ export function SummarySection({ summary, delay = 0.2 }: { summary: string; dela
     >
       <p className="text-gray-400 text-sm">Summary</p>
       <p className="text-sm leading-tight">{summary}</p>
+    </motion.div>
+  );
+}
+
+// Every device in a merged card; replaces the single Device/User/Status rows
+export function StreamsSection({
+  streams,
+  showPlaybackType = false,
+  delay = 0.45,
+}: {
+  streams?: Stream[];
+  showPlaybackType?: boolean;
+  delay?: number;
+}) {
+  if (!streams) return null;
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay }}
+      className="mt-4"
+    >
+      <p className="text-gray-400 text-sm mb-2">Streams ({streams.length})</p>
+      <ul className="space-y-2">
+        {streams.map((stream) => (
+          <li
+            key={stream.sessionId}
+            className="flex items-center gap-3 bg-gray-800/50 rounded-lg p-2"
+          >
+            <SelfContainedUserAvatar userId={stream.userId} userAvatar={stream.userAvatar} />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm truncate">{stream.userId}</p>
+              <p className="text-xs text-gray-400 truncate">
+                {stream.player}
+                {showPlaybackType && ` · ${getPlaybackType(stream)}`}
+              </p>
+            </div>
+            <span
+              className={`shrink-0 text-xs px-2 py-0.5 rounded-full ${
+                stream.state === "playing" ? "bg-green-500/20 text-green-400" : "bg-gray-700 text-gray-300"
+              }`}
+            >
+              {stream.state === "playing" ? "Playing" : "Paused"}
+            </span>
+          </li>
+        ))}
+      </ul>
     </motion.div>
   );
 }
