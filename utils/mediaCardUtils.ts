@@ -1,4 +1,4 @@
-import type { Stream } from "../types/media";
+import type { BaseMedia, Stream } from "../types/media";
 
 // "1h 30m" / "45m"; with `seconds`, durations under an hour show "3m 42s"
 export const formatDuration = (
@@ -150,6 +150,26 @@ export function getPlaybackType({ videoDecision, audioDecision, transcodeHwReque
           ? "Audio Transcode"
           : "Direct Play";
   return transcodeHwRequested ? `${label} (HW)` : label;
+}
+
+export function toStream(item: BaseMedia): Stream {
+  return {
+    sessionId: item.sessionId,
+    userId: item.userId,
+    userAvatar: item.userAvatar,
+    player: item.player,
+    state: item.state,
+    viewOffset: item.viewOffset,
+    syncedAt: item.syncedAt,
+    videoDecision: item.videoDecision,
+    audioDecision: item.audioDecision,
+    transcodeHwRequested: item.transcodeHwRequested,
+  };
+}
+
+// A merged card's streams, or the card's own session as a single stream
+export function getStreams(item: BaseMedia): Stream[] {
+  return item.streams ?? [toStream(item)];
 }
 
 // Distinct users across a merged card's streams, in stream order

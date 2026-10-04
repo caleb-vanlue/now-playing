@@ -3,8 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { SiPlex, SiJellyfin } from "react-icons/si";
 import { HiChevronDown } from "react-icons/hi";
-import { Rating, Person, Stream } from "../../types/media";
-import { calculateProgress, getPlaybackType, getRatingSource } from "../../utils/mediaCardUtils";
+import { Rating, Person, BaseMedia } from "../../types/media";
+import { calculateProgress, getPlaybackType, getRatingSource, getStreams } from "../../utils/mediaCardUtils";
 import { SelfContainedUserAvatar } from "./UserAvatar";
 import { useLiveViewOffset, ProgressSource } from "../hooks/useLiveViewOffset";
 import { useNow } from "../hooks/useNow";
@@ -195,17 +195,17 @@ export function SummarySection({ summary, delay = 0.2 }: { summary: string; dela
   );
 }
 
-// Every device in a merged card; replaces the single Device/User/Status rows
+// Who is watching on which device — one row per session, merged or not
 export function StreamsSection({
-  streams,
+  item,
   showPlaybackType = false,
   delay = 0.45,
 }: {
-  streams?: Stream[];
+  item: BaseMedia;
   showPlaybackType?: boolean;
   delay?: number;
 }) {
-  if (!streams) return null;
+  const streams = getStreams(item);
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -213,7 +213,9 @@ export function StreamsSection({
       transition={{ delay }}
       className="mt-4"
     >
-      <p className="text-gray-400 text-sm mb-2">Streams ({streams.length})</p>
+      <p className="text-gray-400 text-sm mb-2">
+        {streams.length === 1 ? "Stream" : `Streams (${streams.length})`}
+      </p>
       <ul className="space-y-2">
         {streams.map((stream) => (
           <li

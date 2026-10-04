@@ -8,7 +8,6 @@ import { useLyrics } from "../hooks/useLyrics";
 import { formatDuration } from "../../utils/mediaCardUtils";
 import { BaseMediaCard } from "./BaseMediaCard";
 import { ProgressInfo, StreamsSection } from "./CardComponents";
-import { UserAvatar } from "./UserAvatar";
 import {
   YearBadge,
   SpotifyBadge,
@@ -91,30 +90,7 @@ function MusicDetailContent({ track, spotifyUrl }: MusicDetailContentProps) {
           </div>
         ) : null}
 
-        {!track.streams && (
-          <div className="stagger-item stagger-delay-6">
-            <p className="text-gray-400 text-sm">Device</p>
-            <p>{track.player}</p>
-          </div>
-        )}
-
-        {!track.streams && (
-          <div className="stagger-item stagger-delay-7">
-            <p className="text-gray-400 text-sm">User</p>
-            <div className="flex items-center">
-              <UserAvatar
-                userId={track.userId}
-                userAvatar={track.userAvatar}
-                avatarError={false}
-                onAvatarError={() => {}}
-                size="small"
-              />
-              <span className="ml-2">{track.userId}</span>
-            </div>
-          </div>
-        )}
-
-        <div className="stagger-item stagger-delay-8">
+        <div className="stagger-item stagger-delay-6">
           <p className="text-gray-400 text-sm">Started</p>
           <p>
             <time dateTime={new Date(track.startTime).toISOString()}>
@@ -122,16 +98,9 @@ function MusicDetailContent({ track, spotifyUrl }: MusicDetailContentProps) {
             </time>
           </p>
         </div>
-
-        {!track.streams && (
-          <div className="stagger-item stagger-delay-9">
-            <p className="text-gray-400 text-sm">Status</p>
-            <p className="capitalize">{track.state}</p>
-          </div>
-        )}
       </motion.div>
 
-      <StreamsSection streams={track.streams} />
+      <StreamsSection item={track} />
     </>
   );
 }

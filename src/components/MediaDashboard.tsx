@@ -18,14 +18,13 @@ export default function MediaDashboard({ children }: MediaDashboardProps) {
   // Only the very first load blocks the UI; on failure the overlay yields to the error toast
   const showLoading = loading && !mediaData;
 
-  const counts = useMemo(() => {
-    const musicCount = mediaData?.tracks?.length || 0;
-    const moviesCount = mediaData?.movies?.length || 0;
-    const tvShowsCount = mediaData?.episodes?.length || 0;
-    const totalCount = musicCount + moviesCount + tvShowsCount;
-
-    return { musicCount, moviesCount, tvShowsCount, totalCount };
-  }, [mediaData]);
+  // Merged cards hold several sessions; count every stream, not every card
+  const totalCount = useMemo(
+    () =>
+      [...(mediaData?.tracks ?? []), ...(mediaData?.movies ?? []), ...(mediaData?.episodes ?? [])]
+        .reduce((sum, item) => sum + (item.streams?.length ?? 1), 0),
+    [mediaData]
+  );
 
   const headerContent = useMemo(
     () => (
@@ -52,8 +51,8 @@ export default function MediaDashboard({ children }: MediaDashboardProps) {
               aria-hidden="true"
             ></span>
             <span>
-              {counts.totalCount} active session
-              {counts.totalCount !== 1 ? "s" : ""}
+              {totalCount} active session
+              {totalCount !== 1 ? "s" : ""}
             </span>
           </div>
         </button>
@@ -86,7 +85,7 @@ export default function MediaDashboard({ children }: MediaDashboardProps) {
         </div>
       </div>
     ),
-    [counts.totalCount, isConnected, theme, setTheme],
+    [totalCount, isConnected, theme, setTheme],
   );
 
   return (

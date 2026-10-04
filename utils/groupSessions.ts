@@ -1,4 +1,5 @@
-import type { BaseMedia, MediaData, Stream } from "../types/media";
+import type { BaseMedia, MediaData } from "../types/media";
+import { toStream } from "./mediaCardUtils";
 
 interface SyncWindow {
   // Streams this close together join a card
@@ -18,21 +19,6 @@ interface Group<T extends BaseMedia> {
 function liveOffset(item: BaseMedia, now: number): number {
   const base = item.viewOffset ?? 0;
   return item.state === "playing" ? base + Math.max(0, now - item.syncedAt) : base;
-}
-
-function toStream(item: BaseMedia): Stream {
-  return {
-    sessionId: item.sessionId,
-    userId: item.userId,
-    userAvatar: item.userAvatar,
-    player: item.player,
-    state: item.state,
-    viewOffset: item.viewOffset,
-    syncedAt: item.syncedAt,
-    videoDecision: item.videoDecision,
-    audioDecision: item.audioDecision,
-    transcodeHwRequested: item.transcodeHwRequested,
-  };
 }
 
 // Input is sorted by startTime, so a cluster's first member in list order is its primary
