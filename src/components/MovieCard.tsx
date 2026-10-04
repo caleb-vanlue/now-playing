@@ -51,6 +51,8 @@ function MovieDetailContent({ movie }: { movie: Movie }) {
 
       <RelatedCarousel items={related} loading={relatedLoading} />
 
+      <StreamsSection item={movie} showPlaybackType />
+
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -108,8 +110,6 @@ function MovieDetailContent({ movie }: { movie: Movie }) {
           </p>
         </div>
       </motion.div>
-
-      <StreamsSection item={movie} showPlaybackType />
 
       <WritersSection writers={movie.writers} />
     </>

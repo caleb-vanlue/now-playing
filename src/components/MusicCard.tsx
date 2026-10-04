@@ -51,11 +51,13 @@ function MusicDetailContent({ track, spotifyUrl }: MusicDetailContentProps) {
 
       <LyricsPanel lyrics={lyrics} instrumental={instrumental} loading={lyricsLoading} />
 
+      <StreamsSection item={track} delay={0.25} />
+
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.3 }}
-        className="grid grid-cols-2 gap-3"
+        className="grid grid-cols-2 gap-3 mt-4"
       >
         <div className="stagger-item stagger-delay-1">
           <p className="text-gray-400 text-sm">Artist</p>
@@ -100,7 +102,6 @@ function MusicDetailContent({ track, spotifyUrl }: MusicDetailContentProps) {
         </div>
       </motion.div>
 
-      <StreamsSection item={track} />
     </>
   );
 }

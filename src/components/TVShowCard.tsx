@@ -54,6 +54,8 @@ function TVShowDetailContent({ episode }: { episode: Episode }) {
 
       <RelatedCarousel items={related} loading={relatedLoading} />
 
+      <StreamsSection item={episode} showPlaybackType />
+
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -111,8 +113,6 @@ function TVShowDetailContent({ episode }: { episode: Episode }) {
           </p>
         </div>
       </motion.div>
-
-      <StreamsSection item={episode} showPlaybackType />
 
       <WritersSection writers={episode.writers} />
     </>
