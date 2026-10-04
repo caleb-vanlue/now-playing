@@ -11,6 +11,7 @@ import {
 } from "../types/media";
 import { fetchWithTimeout, isTimeoutError, getThumbnailUrl as getPlexThumbnailUrl } from "./plexApi";
 import { jellyfinThumbnailUrl } from "./jellyfinApi";
+import { MERGE_WINDOW_MS } from "./groupSessions";
 
 interface ServiceConfig {
   plex: boolean;
@@ -115,8 +116,6 @@ export async function fetchMediaData(signal?: AbortSignal): Promise<MediaData> {
 
 const HISTORY_MAX = 250;
 
-// Plays of the same item finishing this close together were watched together
-const HISTORY_MERGE_WINDOW_S = { video: 3 * 60, track: 60 };
 
 // Expects items sorted newest first
 function mergeSimultaneousPlays(items: HistoryItem[]): HistoryEntry[] {
@@ -125,8 +124,9 @@ function mergeSimultaneousPlays(items: HistoryItem[]): HistoryEntry[] {
 
   for (const { userName, ...item } of items) {
     const key = `${item.source}:${item.id}`;
+    // viewedAt is unix seconds
     const window =
-      item.type === "track" ? HISTORY_MERGE_WINDOW_S.track : HISTORY_MERGE_WINDOW_S.video;
+      (item.type === "track" ? MERGE_WINDOW_MS.track : MERGE_WINDOW_MS.video) / 1000;
     const entry = latestByKey.get(key);
 
     if (entry && entry.viewedAt - item.viewedAt <= window) {
