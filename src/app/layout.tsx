@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
-import { MediaDataProvider } from "../components/MediaDataContext";
 import { ThemeProvider } from "../contexts/ThemeContext";
 import ServiceWorkerRegistrar from "../components/ServiceWorkerRegistrar";
 
@@ -49,7 +48,7 @@ export default function RootLayout({
       >
         <ServiceWorkerRegistrar />
         <ThemeProvider>
-          <MediaDataProvider>{children}</MediaDataProvider>
+          {children}
         </ThemeProvider>
       </body>
     </html>

@@ -146,6 +146,7 @@ Copy `.env.example` to `.env`. At least one of Plex or Jellyfin must be configur
 | `SPOTIFY_CLIENT_SECRET`     | Spotify Developer app Client Secret                  | Optional          |
 | `NEXT_PUBLIC_FETCH_TIMEOUT` | Upstream API request timeout in ms                   | Optional (8000)   |
 | `USERNAME_MAP`              | Display-name overrides, e.g. `alice:Alice,bob99:Bob` | Optional          |
+| `STATUS_KEY`                | Enables the private `/status` page (see below)       | Optional          |
 
 ### Obtaining a Plex Token
 
@@ -161,6 +162,19 @@ Full instructions: [support.plex.tv/articles/204059436](https://support.plex.tv/
 2. Go to **Administration → API Keys → +**
 3. Give it a name (e.g. "Now Playing") and save
 4. The key needs admin-level access to list all users' playback history
+
+### Status Page
+
+Set `STATUS_KEY` to a long random value (e.g. `openssl rand -hex 32`) to enable `/status`, a private page for the instance. Without the key, `/status` and `/api/status` return 404. The page shows:
+
+- Each media server's connection: live WebSocket, polling, or unreachable, with the last error
+- Who is watching the dashboard right now (location, browser, device, IP, live or polling)
+- Peak viewers, unique visitors (24 h / 7 d) and connections in the last 24 h
+- What's playing, the session hub's state, process memory, and a recent event log
+
+After you enter the key, a signed cookie keeps you signed in for 30 days. Changing `STATUS_KEY` signs everyone out. Scripts can call `/api/status` with `Authorization: Bearer <key>`.
+
+Stats are kept in memory and reset when the server restarts. Location comes from Cloudflare: country works out of the box, and city and region need **Rules → Managed Transforms → Add visitor location headers** turned on in the Cloudflare dashboard. Visitors on your LAN, localhost, or a CGNAT range like Tailscale don't go through Cloudflare, so they show as **Local network**.
 
 ### Setting Up Spotify Integration
 
@@ -181,6 +195,7 @@ Full instructions: [support.plex.tv/articles/204059436](https://support.plex.tv/
 | `/api/jellyfin/history`   | Jellyfin playback history (all users)                                  |
 | `/api/jellyfin/thumbnail` | Proxied Jellyfin media thumbnails                                      |
 | `/api/spotify/search`     | Spotify track search                                                   |
+| `/api/status`             | Instance health and viewer stats (requires `STATUS_KEY`)               |
 
 ## Acknowledgments
 

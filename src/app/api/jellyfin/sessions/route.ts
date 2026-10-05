@@ -1,10 +1,14 @@
 import { NextResponse } from "next/server";
+import { describeClient, monitor } from "../../../../../utils/monitor";
 import { serverCache, SESSIONS_CACHE_TTL } from "../../../../../utils/serverCache";
 import { fetchJellyfinSessions } from "../../../../../utils/sessionSources";
 
 const CACHE_KEY = "jellyfin:sessions";
 
-export async function GET() {
+export async function GET(request: Request) {
+  // Browsers only call this when the live stream is unavailable
+  monitor.recordPoll(describeClient(request));
+
   if (!process.env.JELLYFIN_URL || !process.env.JELLYFIN_API_KEY) {
     return NextResponse.json(
       { error: "Jellyfin configuration missing" },

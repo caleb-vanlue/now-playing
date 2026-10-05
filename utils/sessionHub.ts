@@ -4,6 +4,7 @@ import type {
   SessionsResponse,
   SessionStreamMessage,
 } from "../types/media";
+import type { NowPlayingStatus, SourceMode, SourceStatus, StatusSnapshot } from "../types/status";
 import {
   configuredSources,
   SESSION_FETCHERS,
@@ -12,6 +13,7 @@ import {
 } from "./sessionSources";
 import { jellyfinSessionFeed } from "./jellyfinSocket";
 import { plexSessionFeed } from "./plexSocket";
+import { monitor } from "./monitor";
 
 // Live upstream connections; a source without one is polled
 const FEEDS: Partial<Record<SessionSource, SessionFeed>> = {
@@ -58,10 +60,44 @@ interface SourceState {
   // The feed is connected and delivering, so polling is paused
   live: boolean;
   stopFeed?: () => void;
+  // For the status page
+  mode: SourceMode;
+  modeSince: number;
+  lastUpdate: number | null;
 }
 
 function hasPlaying(data: SessionsResponse | null): boolean {
   return !!data && CATEGORIES.some((c) => data[c].some((item) => item.state === "playing"));
+}
+
+function modeOf(state: SourceState): SourceMode {
+  if (state.live) return "live";
+  if (state.error) return "error";
+  return state.settled ? "polling" : "connecting";
+}
+
+// Upstream errors can echo request URLs, which may carry credentials
+function redact(message: string): string {
+  let result = message;
+  for (const secret of [process.env.PLEX_TOKEN, process.env.JELLYFIN_API_KEY]) {
+    if (secret) result = result.split(secret).join("***");
+  }
+  return result;
+}
+
+function nowPlaying(source: SessionSource, data: SessionsResponse): NowPlayingStatus[] {
+  const entry = (item: Item, title: string): NowPlayingStatus => ({
+    source,
+    user: item.userId,
+    title,
+    player: item.player,
+    state: item.state,
+  });
+  return [
+    ...data.tracks.map((t) => entry(t, `${t.artist} – ${t.title}`)),
+    ...data.movies.map((m) => entry(m, m.year ? `${m.title} (${m.year})` : m.title)),
+    ...data.episodes.map((e) => entry(e, `${e.showTitle} S${e.season}E${e.episode} – ${e.title}`)),
+  ];
 }
 
 function retryDelay(failures: number): number {
@@ -124,11 +160,13 @@ class SessionHub {
   // Bumped on stop so fetches from a previous run are ignored
   private generation = 0;
   private shutdownTimer?: ReturnType<typeof setTimeout>;
+  private stopsAt: number | null = null;
   private broadcastTimer?: ReturnType<typeof setTimeout>;
 
   subscribe(listener: Listener): () => void {
     this.listeners.add(listener);
     clearTimeout(this.shutdownTimer);
+    this.stopsAt = null;
 
     if (!this.running) this.start();
     else if (this.isReady()) listener(this.snapshot());
@@ -136,6 +174,7 @@ class SessionHub {
     return () => {
       if (!this.listeners.delete(listener) || this.listeners.size > 0) return;
       clearTimeout(this.shutdownTimer);
+      this.stopsAt = Date.now() + IDLE_SHUTDOWN_MS;
       this.shutdownTimer = setTimeout(() => this.stop(), IDLE_SHUTDOWN_MS);
     };
   }
@@ -151,10 +190,35 @@ class SessionHub {
     }
   }
 
+  /** Upstream health and current sessions, for the owner's status page. */
+  getStatus(): Omit<StatusSnapshot, "now" | "process" | "viewers" | "stats" | "events"> {
+    const sources: SourceStatus[] = [];
+    const playing: NowPlayingStatus[] = [];
+    for (const [source, state] of this.sources) {
+      const sessions = state.data ? nowPlaying(source, state.data) : [];
+      playing.push(...sessions);
+      sources.push({
+        source,
+        mode: state.mode,
+        since: state.modeSince,
+        lastUpdate: state.lastUpdate,
+        failures: state.failures,
+        lastError: state.error ? redact(state.error.message) : null,
+        sessions: sessions.length,
+      });
+    }
+    return {
+      hub: { running: this.running, subscribers: this.listeners.size, stopsAt: this.stopsAt },
+      sources,
+      nowPlaying: playing,
+    };
+  }
+
   private start(): void {
     this.running = true;
     this.sources.clear();
     const generation = this.generation;
+    monitor.log("info", "Session hub started");
 
     for (const source of configuredSources()) {
       const state: SourceState = {
@@ -166,6 +230,9 @@ class SessionHub {
         lastFetch: 0,
         failures: 0,
         live: false,
+        mode: "connecting",
+        modeSince: Date.now(),
+        lastUpdate: null,
       };
       this.sources.set(source, state);
 
@@ -192,7 +259,9 @@ class SessionHub {
   }
 
   private stop(): void {
+    monitor.log("info", "Session hub stopped (no viewers)");
     this.running = false;
+    this.stopsAt = null;
     this.generation++;
     clearTimeout(this.broadcastTimer);
     this.broadcastTimer = undefined;
@@ -211,6 +280,7 @@ class SessionHub {
     state.live = true;
     clearTimeout(state.timer);
     this.settle(state, this.ingest(state, data));
+    this.noteMode(source, state);
   }
 
   private onFeedDisconnect(source: SessionSource, generation: number): void {
@@ -218,6 +288,7 @@ class SessionHub {
     if (!state || generation !== this.generation || !state.live) return;
     console.warn(`${source} sessions: feed lost, polling until it reconnects`);
     state.live = false;
+    this.noteMode(source, state);
     if (!state.fetching) this.poll(source, generation);
   }
 
@@ -225,6 +296,7 @@ class SessionHub {
   private ingest(state: SourceState, data: SessionsResponse): boolean {
     let changed = state.error !== null;
     const observedAt = Date.now();
+    state.lastUpdate = observedAt;
     if (!state.data || isMeaningfulChange(state.data, state.observedAt, data, observedAt)) {
       state.data = data;
       state.observedAt = observedAt;
@@ -272,6 +344,7 @@ class SessionHub {
     }
 
     this.settle(state, changed);
+    this.noteMode(source, state);
 
     const delay = state.error
       ? retryDelay(state.failures)
@@ -279,6 +352,19 @@ class SessionHub {
         ? POLL_PLAYING_MS
         : POLL_IDLE_MS;
     state.timer = setTimeout(() => this.poll(source, generation), delay);
+  }
+
+  private noteMode(source: SessionSource, state: SourceState): void {
+    const mode = modeOf(state);
+    if (mode === state.mode) return;
+    const label = SOURCE_LABELS[source];
+    if (mode === "live") monitor.log("info", `${label}: live connection established`);
+    else if (mode === "error") {
+      monitor.log("error", `${label}: unreachable — ${redact(state.error?.message ?? "unknown error")}`);
+    } else if (state.mode === "live") monitor.log("warn", `${label}: live connection lost, polling`);
+    else monitor.log("info", `${label}: polling`);
+    state.mode = mode;
+    state.modeSince = Date.now();
   }
 
   private isReady(): boolean {

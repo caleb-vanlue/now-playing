@@ -1,4 +1,5 @@
 import { sessionHub } from "../../../../../utils/sessionHub";
+import { describeClient, monitor } from "../../../../../utils/monitor";
 
 // Keeps idle connections from being dropped by proxies
 const HEARTBEAT_MS = 20_000;
@@ -29,12 +30,14 @@ export async function GET(request: Request) {
         send(`data: ${JSON.stringify(message)}\n\n`);
       });
       if (refresh) sessionHub.refresh();
+      const untrack = monitor.trackStream(describeClient(request));
       const heartbeat = setInterval(() => send(": ping\n\n"), HEARTBEAT_MS);
 
       cleanup = () => {
         cleanup = () => {};
         clearInterval(heartbeat);
         unsubscribe();
+        untrack();
       };
 
       request.signal.addEventListener(

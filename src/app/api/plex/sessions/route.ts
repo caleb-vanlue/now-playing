@@ -1,10 +1,14 @@
 import { NextResponse } from "next/server";
+import { describeClient, monitor } from "../../../../../utils/monitor";
 import { serverCache, SESSIONS_CACHE_TTL } from "../../../../../utils/serverCache";
 import { fetchPlexSessions } from "../../../../../utils/sessionSources";
 
 const CACHE_KEY = "plex:sessions";
 
-export async function GET() {
+export async function GET(request: Request) {
+  // Browsers only call this when the live stream is unavailable
+  monitor.recordPoll(describeClient(request));
+
   if (!process.env.PLEX_URL || !process.env.PLEX_TOKEN) {
     return NextResponse.json(
       { error: "Plex configuration missing" },

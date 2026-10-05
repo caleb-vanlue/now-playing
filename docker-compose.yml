@@ -16,6 +16,7 @@ services:
       - SPOTIFY_CLIENT_ID=${SPOTIFY_CLIENT_ID}
       - SPOTIFY_CLIENT_SECRET=${SPOTIFY_CLIENT_SECRET}
       - USERNAME_MAP=${USERNAME_MAP}
+      - STATUS_KEY=${STATUS_KEY}
     restart: unless-stopped
     extra_hosts:
       - "host.docker.internal:host-gateway"

@@ -9,7 +9,7 @@ import MusicCard from "../components/MusicCard";
 import MovieCard from "../components/MovieCard";
 import TVShowCard from "../components/TVShowCard";
 import HistoryTable from "../components/HistoryTable";
-import { useMediaSessions } from "../components/MediaDataContext";
+import { MediaDataProvider, useMediaSessions } from "../components/MediaDataContext";
 import { useHistory } from "../hooks/useHistory";
 import { useSwipeable } from "react-swipeable";
 import { useGridKeyboardNavigation } from "../hooks/useGridKeyboardNavigation";
@@ -54,7 +54,17 @@ const EmptyState = memo(({ type }: { type: MediaType }) => {
 
 EmptyState.displayName = "EmptyState";
 
+// Provided here rather than in the layout so other routes (like /status)
+// don't open a session stream
 export default function MediaPage() {
+  return (
+    <MediaDataProvider>
+      <Dashboard />
+    </MediaDataProvider>
+  );
+}
+
+function Dashboard() {
   const mediaData = useMediaSessions();
   const [activeTab, setActiveTab] = useState<MediaType>("all");
 

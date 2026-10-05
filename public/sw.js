@@ -49,6 +49,9 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
+  // The status page holds private data and is useless offline
+  if (url.pathname.startsWith("/status")) return;
+
   // Network-first for navigation requests (page HTML), cached copy when offline
   if (request.mode === "navigate") {
     event.respondWith(
