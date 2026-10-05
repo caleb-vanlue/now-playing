@@ -10,7 +10,7 @@ interface SyncWindow {
 
 // Plays of the same item this close together count as watched together — shared
 // by live cards and history so both merge the same way
-export const MERGE_WINDOW_MS = { video: 10 * 60_000, track: 60_000 };
+export const MERGE_WINDOW_MS = { video: 5 * 60_000, track: 60_000 };
 
 const VIDEO_WINDOW: SyncWindow = { merge: MERGE_WINDOW_MS.video, split: MERGE_WINDOW_MS.video + 30_000 };
 const TRACK_WINDOW: SyncWindow = { merge: MERGE_WINDOW_MS.track, split: MERGE_WINDOW_MS.track + 15_000 };
