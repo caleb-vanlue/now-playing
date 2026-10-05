@@ -191,7 +191,7 @@ class SessionHub {
   }
 
   /** Upstream health and current sessions, for the owner's status page. */
-  getStatus(): Omit<StatusSnapshot, "now" | "process" | "viewers" | "stats" | "events"> {
+  getStatus(): Pick<StatusSnapshot, "hub" | "sources" | "nowPlaying"> {
     const sources: SourceStatus[] = [];
     const playing: NowPlayingStatus[] = [];
     for (const [source, state] of this.sources) {

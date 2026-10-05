@@ -15,6 +15,8 @@ export function buildStatusSnapshot(): StatusSnapshot {
     ...sessionHub.getStatus(),
     viewers: monitor.viewers(),
     stats: monitor.stats(),
+    locations: monitor.locationStats(),
+    visits: monitor.recentVisits(),
     events: monitor.recentEvents(),
   };
 }

@@ -1,7 +1,13 @@
 import { createHash, randomUUID } from "node:crypto";
 import { BlockList, isIP } from "node:net";
 import { userAgent } from "next/server";
-import type { ClientInfo, MonitorEvent, ViewerStatus } from "../types/status";
+import type {
+  ClientInfo,
+  LocationStat,
+  MonitorEvent,
+  VisitLogEntry,
+  ViewerStatus,
+} from "../types/status";
 
 // A polling client that hasn't fetched for this long has left. The slowest
 // fallback interval is 5 min, so idle pollers drop off between polls
@@ -9,6 +15,15 @@ const POLLER_TIMEOUT_MS = 6 * 60_000;
 const MAX_EVENTS = 100;
 const DAY_MS = 24 * 60 * 60_000;
 const WEEK_MS = 7 * DAY_MS;
+// Reconnects and polling fallbacks within this gap are the same visit
+const VISIT_GAP_MS = 30 * 60_000;
+const MAX_LOCATIONS = 500;
+const MAX_VISIT_LOG = 500;
+
+interface LocationEntry extends LocationStat {
+  // Visitor key → last seen at this location
+  visitorKeys: Map<string, number>;
+}
 
 /**
  * In-memory record of who is watching, for the owner's status page. Nothing
@@ -23,6 +38,9 @@ class Monitor {
   private visitors = new Map<string, number>();
   private connections: number[] = [];
   private peak = { count: 0, at: null as number | null };
+  // Kept for the life of the process, least recently seen first
+  private locations = new Map<string, LocationEntry>();
+  private visitLog: VisitLogEntry[] = [];
 
   /** Registers an SSE connection; call the returned function when it closes. */
   trackStream(client: ClientInfo): () => void {
@@ -80,12 +98,72 @@ class Monitor {
     return [...this.events].reverse();
   }
 
+  /** Every location seen since start, most recent first. */
+  locationStats(): LocationStat[] {
+    return [...this.locations.values()].reverse().map((entry) => ({
+      local: entry.local,
+      country: entry.country,
+      region: entry.region,
+      city: entry.city,
+      visitors: entry.visitors,
+      visits: entry.visits,
+      firstSeen: entry.firstSeen,
+      lastSeen: entry.lastSeen,
+    }));
+  }
+
+  /** Recent visits, newest first. */
+  recentVisits(): VisitLogEntry[] {
+    return [...this.visitLog].reverse();
+  }
+
   private noteVisit(client: ClientInfo, now: number): void {
     if (client.bot) return;
-    this.visitors.set(hashKey(client.ip), now);
+    const visitor = hashKey(client.ip);
+    this.visitors.set(visitor, now);
     this.connections.push(now);
     const count = this.streams.size + this.pollers.size;
     if (count > this.peak.count) this.peak = { count, at: now };
+    this.noteLocation(client, visitor, now);
+  }
+
+  private noteLocation(client: ClientInfo, visitor: string, now: number): void {
+    const { local } = client;
+    const place = local
+      ? { local }
+      : { local, country: client.country, region: client.region, city: client.city };
+    const key = local ? "local" : `${place.country ?? ""}|${place.region ?? ""}|${place.city ?? ""}`;
+
+    let entry = this.locations.get(key);
+    if (entry) {
+      // Re-insert so the map stays ordered by last seen
+      this.locations.delete(key);
+    } else {
+      entry = { ...place, visitors: 0, visits: 0, firstSeen: now, lastSeen: now, visitorKeys: new Map() };
+    }
+    this.locations.set(key, entry);
+    entry.lastSeen = now;
+
+    const previous = entry.visitorKeys.get(visitor);
+    entry.visitorKeys.set(visitor, now);
+    if (previous === undefined) entry.visitors++;
+    if (previous === undefined || now - previous >= VISIT_GAP_MS) {
+      entry.visits++;
+      this.visitLog.push({
+        ...place,
+        at: now,
+        visitor: visitor.slice(0, 6),
+        browser: client.browser,
+        os: client.os,
+        device: client.device,
+      });
+      if (this.visitLog.length > MAX_VISIT_LOG) this.visitLog.shift();
+    }
+
+    if (this.locations.size > MAX_LOCATIONS) {
+      const oldest = this.locations.keys().next().value;
+      if (oldest !== undefined) this.locations.delete(oldest);
+    }
   }
 
   private prune(now: number): void {

@@ -6,11 +6,14 @@ import { logout } from "../../app/status/actions";
 import { useNow } from "../../hooks/useNow";
 import type {
   ClientInfo,
+  LocationStat,
   MonitorEvent,
+  Place,
   SourceMode,
   SourceStatus,
   StatusSnapshot,
   ViewerStatus,
+  VisitLogEntry,
 } from "../../../types/status";
 
 const REFRESH_MS = 5_000;
@@ -49,21 +52,25 @@ function formatClock(at: number): string {
 }
 
 // Regional-indicator letters render as the country's flag
-function flag(client: ClientInfo): string {
-  const { country } = client;
-  if (client.local) return "🏠";
+function flag(place: Place): string {
+  const { country } = place;
+  if (place.local) return "🏠";
   if (!country || !/^[A-Z]{2}$/.test(country) || country === "T1") return "🌐";
   return String.fromCodePoint(...[...country].map((c) => 0x1f1a5 + c.charCodeAt(0)));
 }
 
-function location(client: ClientInfo): string {
-  if (client.local) return "Local network";
-  if (client.country === "T1") return "Tor";
-  const parts = [client.city, client.region, client.country].filter(Boolean);
+function location(place: Place): string {
+  if (place.local) return "Local network";
+  if (place.country === "T1") return "Tor";
+  const parts = [place.city, place.region, place.country].filter(Boolean);
   return parts.length ? parts.join(", ") : "Unknown";
 }
 
-function deviceLabel(client: ClientInfo): string {
+function formatDateTime(at: number): string {
+  return new Date(at).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+}
+
+function deviceLabel(client: Pick<ClientInfo, "browser" | "os" | "bot">): string {
   const software = [client.browser, client.os && `on ${client.os}`].filter(Boolean).join(" ");
   const label = software || "Unknown browser";
   return client.bot ? `${label} (bot)` : label;
@@ -142,6 +149,98 @@ function ViewerRow({ viewer, now }: { viewer: ViewerStatus; now: number }) {
   );
 }
 
+function LocationsCard({
+  locations,
+  visits,
+  startedAt,
+  now,
+  mounted,
+}: {
+  locations: LocationStat[];
+  visits: VisitLogEntry[];
+  startedAt: number;
+  now: number;
+  mounted: boolean;
+}) {
+  const [tab, setTab] = useState<"locations" | "log">("locations");
+  const tabClass = (active: boolean) =>
+    `rounded-md px-2.5 py-1 text-xs ${active ? "bg-white/10 text-white" : "text-gray-400 hover:text-gray-200"}`;
+
+  return (
+    <Card title={`Visitors since ${mounted ? formatDateTime(startedAt) : "start"}`}>
+      <div className="mb-3 flex gap-1" role="tablist">
+        <button type="button" role="tab" aria-selected={tab === "locations"} className={tabClass(tab === "locations")} onClick={() => setTab("locations")}>
+          Locations ({locations.length})
+        </button>
+        <button type="button" role="tab" aria-selected={tab === "log"} className={tabClass(tab === "log")} onClick={() => setTab("log")}>
+          Visit log ({visits.length})
+        </button>
+      </div>
+
+      {tab === "locations" ? (
+        locations.length === 0 ? (
+          <p className="text-sm text-gray-400">No visitors yet.</p>
+        ) : (
+          <div className="max-h-96 overflow-y-auto">
+            <table className="w-full text-sm">
+              <thead className="sticky top-0 bg-[var(--card-background)] text-left text-xs text-gray-400">
+                <tr>
+                  <th className="py-1 font-normal">Location</th>
+                  <th className="py-1 text-right font-normal">Visitors</th>
+                  <th className="py-1 text-right font-normal">Visits</th>
+                  <th className="py-1 pl-3 text-right font-normal">Last seen</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {locations.map((stat) => (
+                  <tr key={`${stat.local}|${stat.country}|${stat.region}|${stat.city}`}>
+                    <td className="max-w-0 py-1.5">
+                      <div className="flex items-center gap-2">
+                        <span aria-hidden="true">{flag(stat)}</span>
+                        <span className="truncate">{location(stat)}</span>
+                      </div>
+                    </td>
+                    <td className="py-1.5 text-right tabular-nums">{stat.visitors}</td>
+                    <td className="py-1.5 text-right tabular-nums">{stat.visits}</td>
+                    <td
+                      className="whitespace-nowrap py-1.5 pl-3 text-right tabular-nums text-gray-400"
+                      title={mounted ? `First seen ${formatDateTime(stat.firstSeen)}` : undefined}
+                    >
+                      {formatDuration(now - stat.lastSeen)} ago
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )
+      ) : visits.length === 0 ? (
+        <p className="text-sm text-gray-400">No visits yet.</p>
+      ) : (
+        <ol className="max-h-96 divide-y divide-white/5 overflow-y-auto">
+          {visits.map((visit) => (
+            <li key={`${visit.at}-${visit.visitor}`} className="flex items-center gap-3 py-1.5 text-sm">
+              <span className="w-24 shrink-0 text-xs tabular-nums text-gray-500">
+                {mounted ? formatDateTime(visit.at) : ""}
+              </span>
+              <span aria-hidden="true">{flag(visit)}</span>
+              <div className="min-w-0 flex-1">
+                <div className="truncate">{location(visit)}</div>
+                <div className="truncate text-xs text-gray-400">
+                  {deviceLabel({ ...visit, bot: false })} · {visit.device}
+                </div>
+              </div>
+              <span className="shrink-0 font-mono text-xs text-gray-500" title="Visitor ID (hashed IP)">
+                {visit.visitor}
+              </span>
+            </li>
+          ))}
+        </ol>
+      )}
+    </Card>
+  );
+}
+
 export default function StatusDashboard({ initial }: { initial: StatusSnapshot }) {
   const router = useRouter();
   const [snapshot, setSnapshot] = useState(initial);
@@ -192,7 +291,7 @@ export default function StatusDashboard({ initial }: { initial: StatusSnapshot }
     };
   }, [router]);
 
-  const { hub, sources, viewers, stats, nowPlaying, events } = snapshot;
+  const { hub, sources, viewers, stats, nowPlaying, locations, visits, events } = snapshot;
   const streaming = viewers.filter((v) => v.mode === "stream").length;
   // Cloudflare sent a country but no state or city: its location headers are off
   const missingLocation = viewers.some(
@@ -269,6 +368,14 @@ export default function StatusDashboard({ initial }: { initial: StatusSnapshot }
             )}
           </Card>
         </div>
+
+        <LocationsCard
+          locations={locations}
+          visits={visits}
+          startedAt={snapshot.process.startedAt}
+          now={now}
+          mounted={mounted}
+        />
 
         <div className="grid gap-4 lg:grid-cols-3">
           <Card title={`Now playing (${nowPlaying.length})`}>
