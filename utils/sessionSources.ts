@@ -11,6 +11,18 @@ import {
 
 export type SessionSource = BaseMedia["source"];
 
+/**
+ * A live upstream connection that pushes a source's full session list. While
+ * it's disconnected, the hub covers the gap by polling.
+ */
+export interface SessionFeedHandlers {
+  onSessions(data: SessionsResponse): void;
+  onDisconnect(): void;
+}
+
+// Starts the feed; returns a function that stops it for good
+export type SessionFeed = (handlers: SessionFeedHandlers) => () => void;
+
 export function configuredSources(): SessionSource[] {
   const sources: SessionSource[] = [];
   if (process.env.PLEX_URL && process.env.PLEX_TOKEN) sources.push("plex");

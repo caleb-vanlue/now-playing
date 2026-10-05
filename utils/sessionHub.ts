@@ -4,10 +4,23 @@ import type {
   SessionsResponse,
   SessionStreamMessage,
 } from "../types/media";
-import { configuredSources, SESSION_FETCHERS, SessionSource } from "./sessionSources";
+import {
+  configuredSources,
+  SESSION_FETCHERS,
+  SessionFeed,
+  SessionSource,
+} from "./sessionSources";
+import { jellyfinSessionFeed } from "./jellyfinSocket";
+
+// Sources with a live upstream connection; the rest are polled
+const FEEDS: Partial<Record<SessionSource, SessionFeed>> = {
+  jellyfin: jellyfinSessionFeed,
+};
 
 const POLL_PLAYING_MS = 10_000;
 const POLL_IDLE_MS = 30_000;
+// A feed that hasn't delivered by then is backed up by polling
+const FEED_CONNECT_GRACE_MS = 5_000;
 // Upstream work stops this long after the last viewer leaves; a page reload
 // shouldn't tear everything down
 const IDLE_SHUTDOWN_MS = 2 * 60_000;
@@ -40,6 +53,9 @@ interface SourceState {
   lastFetch: number;
   failures: number;
   timer?: ReturnType<typeof setTimeout>;
+  // The feed is connected and delivering, so polling is paused
+  live: boolean;
+  stopFeed?: () => void;
 }
 
 function hasPlaying(data: SessionsResponse | null): boolean {
@@ -94,9 +110,10 @@ function advance<T extends Item>(items: T[], elapsed: number): T[] {
 
 /**
  * Single owner of upstream session tracking. However many browsers are
- * watching, each media server is queried by one loop here, and every change is
- * pushed to all subscribers. Upstream work starts with the first subscriber and
- * stops a while after the last one leaves.
+ * watching, each media server has one live connection (or, failing that, one
+ * polling loop) here, and every change is pushed to all subscribers. Upstream
+ * work starts with the first subscriber and stops a while after the last one
+ * leaves.
  */
 class SessionHub {
   private listeners = new Set<Listener>();
@@ -121,12 +138,12 @@ class SessionHub {
     };
   }
 
-  /** Fetches every source now, unless one just did. */
+  /** Fetches every polled source now, unless one just did. Live feeds are already current. */
   refresh(): void {
     if (!this.running) return;
     const now = Date.now();
     for (const [source, state] of this.sources) {
-      if (!state.fetching && now - state.lastFetch > REFRESH_MIN_GAP_MS) {
+      if (!state.live && !state.fetching && now - state.lastFetch > REFRESH_MIN_GAP_MS) {
         this.poll(source, this.generation);
       }
     }
@@ -135,8 +152,10 @@ class SessionHub {
   private start(): void {
     this.running = true;
     this.sources.clear();
+    const generation = this.generation;
+
     for (const source of configuredSources()) {
-      this.sources.set(source, {
+      const state: SourceState = {
         data: null,
         observedAt: 0,
         error: null,
@@ -144,8 +163,27 @@ class SessionHub {
         fetching: false,
         lastFetch: 0,
         failures: 0,
-      });
-      this.poll(source, this.generation);
+        live: false,
+      };
+      this.sources.set(source, state);
+
+      const feed = FEEDS[source];
+      // Node < 22 has no built-in WebSocket; those servers just poll
+      if (!feed || typeof WebSocket === "undefined") {
+        this.poll(source, generation);
+        continue;
+      }
+
+      try {
+        state.stopFeed = feed({
+          onSessions: (data) => this.onFeedSessions(source, data, generation),
+          onDisconnect: () => this.onFeedDisconnect(source, generation),
+        });
+        state.timer = setTimeout(() => this.poll(source, generation), FEED_CONNECT_GRACE_MS);
+      } catch (err) {
+        console.error(`Could not start ${source} feed; polling instead:`, err);
+        this.poll(source, generation);
+      }
     }
     // Nothing configured: viewers get an empty snapshot rather than waiting forever
     if (this.sources.size === 0) this.scheduleBroadcast();
@@ -155,33 +193,68 @@ class SessionHub {
     this.running = false;
     this.generation++;
     clearTimeout(this.broadcastTimer);
-    for (const state of this.sources.values()) clearTimeout(state.timer);
+    this.broadcastTimer = undefined;
+    for (const state of this.sources.values()) {
+      clearTimeout(state.timer);
+      state.stopFeed?.();
+    }
     // Drop data too: offsets can't be projected across a gap with no fetches
     this.sources.clear();
   }
 
+  private onFeedSessions(source: SessionSource, data: SessionsResponse, generation: number): void {
+    const state = this.sources.get(source);
+    if (!state || generation !== this.generation) return;
+    if (!state.live) console.info(`${source} sessions: live`);
+    state.live = true;
+    clearTimeout(state.timer);
+    this.settle(state, this.ingest(state, data));
+  }
+
+  private onFeedDisconnect(source: SessionSource, generation: number): void {
+    const state = this.sources.get(source);
+    if (!state || generation !== this.generation || !state.live) return;
+    console.warn(`${source} sessions: feed lost, polling until it reconnects`);
+    state.live = false;
+    if (!state.fetching) this.poll(source, generation);
+  }
+
+  // Returns whether viewers need to hear about it
+  private ingest(state: SourceState, data: SessionsResponse): boolean {
+    let changed = state.error !== null;
+    const observedAt = Date.now();
+    if (!state.data || isMeaningfulChange(state.data, state.observedAt, data, observedAt)) {
+      state.data = data;
+      state.observedAt = observedAt;
+      changed = true;
+    }
+    state.error = null;
+    state.failures = 0;
+    return changed;
+  }
+
+  private settle(state: SourceState, changed: boolean): void {
+    if (!state.settled) {
+      state.settled = true;
+      changed = true;
+    }
+    if (changed) this.scheduleBroadcast();
+  }
+
   private async poll(source: SessionSource, generation: number): Promise<void> {
     const state = this.sources.get(source);
-    if (!state) return;
+    if (!state || state.live) return;
     clearTimeout(state.timer);
     state.fetching = true;
 
     let changed = false;
     try {
       const data = await SESSION_FETCHERS[source]();
-      if (generation !== this.generation) return;
-
-      const observedAt = Date.now();
-      if (!state.data || isMeaningfulChange(state.data, state.observedAt, data, observedAt)) {
-        state.data = data;
-        state.observedAt = observedAt;
-        changed = true;
-      }
-      if (state.error) changed = true;
-      state.error = null;
-      state.failures = 0;
+      // The feed took over mid-fetch and is at least as fresh
+      if (generation !== this.generation || state.live) return;
+      changed = this.ingest(state, data);
     } catch (err) {
-      if (generation !== this.generation) return;
+      if (generation !== this.generation || state.live) return;
 
       console.error(`Error fetching ${source} sessions:`, err);
       // A failed source contributes nothing rather than going stale
@@ -196,11 +269,7 @@ class SessionHub {
       }
     }
 
-    if (!state.settled) {
-      state.settled = true;
-      changed = true;
-    }
-    if (changed) this.scheduleBroadcast();
+    this.settle(state, changed);
 
     const delay = state.error
       ? retryDelay(state.failures)
