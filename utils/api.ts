@@ -38,6 +38,22 @@ const SOURCE_LABELS: Record<BaseMedia["source"], string> = {
   jellyfin: "Jellyfin",
 };
 
+// Stamp with the client clock so progress interpolates from receipt time
+export function stampSessions(data: SessionsResponse): MediaData {
+  const now = Date.now();
+  const stamp = <T extends SessionItem<BaseMedia>>(item: T) => ({
+    ...item,
+    syncedAt: now,
+    startTime: new Date(now - (item.viewOffset || 0)).toISOString(),
+  });
+
+  return {
+    tracks: data.tracks.map(stamp),
+    movies: data.movies.map(stamp),
+    episodes: data.episodes.map(stamp),
+  };
+}
+
 async function fetchSessions(
   source: BaseMedia["source"],
   signal?: AbortSignal
@@ -57,20 +73,7 @@ async function fetchSessions(
     }
 
     const data: SessionsResponse = await response.json();
-
-    // Stamp with the client clock so progress interpolates from receipt time
-    const now = Date.now();
-    const stamp = <T extends SessionItem<BaseMedia>>(item: T) => ({
-      ...item,
-      syncedAt: now,
-      startTime: new Date(now - (item.viewOffset || 0)).toISOString(),
-    });
-
-    return {
-      tracks: data.tracks.map(stamp),
-      movies: data.movies.map(stamp),
-      episodes: data.episodes.map(stamp),
-    };
+    return stampSessions(data);
   } catch (error) {
     if (isTimeoutError(error)) {
       throw new Error(`Request timed out. The ${label} server may be unresponsive.`);

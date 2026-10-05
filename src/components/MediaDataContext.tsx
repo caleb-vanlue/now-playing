@@ -9,13 +9,14 @@ interface MediaStatusContextValue extends MediaStatus {
   refreshData: () => void;
 }
 
-// Split so status-only updates (every poll) don't re-render session consumers,
+// Split so status-only updates don't re-render session consumers,
 // and unchanged session data (same reference) doesn't re-render anything.
 const MediaSessionsContext = createContext<MediaData | null | undefined>(undefined);
 const MediaStatusContext = createContext<MediaStatusContextValue | undefined>(undefined);
 
 interface MediaDataProviderProps {
   children: ReactNode;
+  // Sessions are pushed live; these only apply when falling back to polling
   activePollingInterval?: number;
   pausedPollingInterval?: number;
   idlePollingInterval?: number;

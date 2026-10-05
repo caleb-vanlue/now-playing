@@ -130,6 +130,14 @@ export interface SessionsResponse {
   episodes: SessionItem<Episode>[];
 }
 
+// Pushed by /api/sessions/stream: every configured source's sessions merged,
+// with playing items' viewOffset current as of sending
+export interface SessionStreamMessage {
+  sessions: SessionsResponse;
+  // Set when every configured source is unreachable
+  error?: string;
+}
+
 export interface HistoryItem {
   id: string;
   source: "plex" | "jellyfin";
