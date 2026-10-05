@@ -81,6 +81,8 @@ interface PlexTranscodeSession {
 
 export interface PlexSession {
   ratingKey: string;
+  // Identifies the session in websocket notifications; never sent to the client
+  sessionKey?: string;
   title: string;
   thumb?: string;
   type: string;
@@ -133,7 +135,7 @@ function mapPeople(tags: PlexTag[] | undefined, limit?: number): Person[] | unde
   return tags?.slice(0, limit).map(({ tag, role, thumb }) => ({ tag, role, thumb }));
 }
 
-function mapPlexState(plexState: string | undefined): "playing" | "paused" {
+export function mapPlexState(plexState: string | undefined): "playing" | "paused" {
   return plexState === "playing" ? "playing" : "paused";
 }
 
@@ -245,25 +247,42 @@ function mapToTrack(session: PlexTrackSession): SessionItem<Track> {
 
 // ── Public API ────────────────────────────────────────────────────────────────
 
+export type PlexSessionEntry =
+  | { category: "tracks"; item: SessionItem<Track> }
+  | { category: "movies"; item: SessionItem<Movie> }
+  | { category: "episodes"; item: SessionItem<Episode> };
+
+/** Server-side: maps one raw /status/sessions item to the fields the UI renders. */
+export function mapPlexSession(session: PlexSession): PlexSessionEntry | null {
+  try {
+    if (session.type === "track") {
+      return { category: "tracks", item: mapToTrack(session as PlexTrackSession) };
+    } else if (session.type === "movie") {
+      return { category: "movies", item: mapToMovie(session) };
+    } else if (session.type === "episode") {
+      return { category: "episodes", item: mapToEpisode(session as PlexEpisodeSession) };
+    }
+  } catch (err) {
+    console.error(`Error mapping Plex ${session.type}:`, err);
+  }
+  return null;
+}
+
+export function collectPlexSessions(entries: Iterable<PlexSessionEntry>): SessionsResponse {
+  const result: SessionsResponse = { tracks: [], movies: [], episodes: [] };
+  for (const entry of entries) {
+    if (entry.category === "tracks") result.tracks.push(entry.item);
+    else if (entry.category === "movies") result.movies.push(entry.item);
+    else result.episodes.push(entry.item);
+  }
+  return result;
+}
+
 /** Server-side: maps raw /status/sessions metadata to the fields the UI renders. */
 export function mapPlexSessions(sessions: PlexSession[]): SessionsResponse {
-  const result: SessionsResponse = { tracks: [], movies: [], episodes: [] };
-
-  for (const session of sessions) {
-    try {
-      if (session.type === "track") {
-        result.tracks.push(mapToTrack(session as PlexTrackSession));
-      } else if (session.type === "movie") {
-        result.movies.push(mapToMovie(session));
-      } else if (session.type === "episode") {
-        result.episodes.push(mapToEpisode(session as PlexEpisodeSession));
-      }
-    } catch (err) {
-      console.error(`Error mapping Plex ${session.type}:`, err);
-    }
-  }
-
-  return result;
+  return collectPlexSessions(
+    sessions.map(mapPlexSession).filter((entry): entry is PlexSessionEntry => entry !== null)
+  );
 }
 
 export function getThumbnailUrl(

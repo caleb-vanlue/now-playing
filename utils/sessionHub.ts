@@ -11,9 +11,11 @@ import {
   SessionSource,
 } from "./sessionSources";
 import { jellyfinSessionFeed } from "./jellyfinSocket";
+import { plexSessionFeed } from "./plexSocket";
 
-// Sources with a live upstream connection; the rest are polled
+// Live upstream connections; a source without one is polled
 const FEEDS: Partial<Record<SessionSource, SessionFeed>> = {
+  plex: plexSessionFeed,
   jellyfin: jellyfinSessionFeed,
 };
 

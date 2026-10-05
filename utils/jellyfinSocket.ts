@@ -7,6 +7,7 @@ import {
   jellyfinAuthHeader,
   SessionFeed,
 } from "./sessionSources";
+import { openWebSocket, reconnectDelay, webSocketUrl } from "./upstreamSocket";
 
 // "initialDelayMs,intervalMs": the server pushes the session list on session
 // events, at most this often
@@ -18,23 +19,6 @@ interface SocketMessage {
   Data?: unknown;
 }
 
-// Node's built-in WebSocket (undici) accepts request headers, which Jellyfin
-// requires for auth; the DOM typings only know the browser constructor
-type NodeWebSocketConstructor = new (
-  url: string,
-  init?: { headers?: Record<string, string> }
-) => WebSocket;
-
-function socketUrl(baseUrl: string): string {
-  const url = new URL("socket", baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`);
-  url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
-  return url.toString();
-}
-
-function reconnectDelay(failures: number): number {
-  return Math.min(5000 * Math.pow(1.5, failures - 1), 60_000);
-}
-
 /**
  * Jellyfin pushes the full session list over its WebSocket whenever playback
  * changes, but sends nothing on subscribe, so each connection is seeded with
@@ -43,7 +27,6 @@ function reconnectDelay(failures: number): number {
 export const jellyfinSessionFeed: SessionFeed = ({ onSessions, onDisconnect }) => {
   const JELLYFIN_URL = process.env.JELLYFIN_URL!;
   const JELLYFIN_API_KEY = process.env.JELLYFIN_API_KEY!;
-  const NodeWebSocket = WebSocket as unknown as NodeWebSocketConstructor;
 
   let stopped = false;
   let socket: WebSocket | undefined;
@@ -63,8 +46,9 @@ export const jellyfinSessionFeed: SessionFeed = ({ onSessions, onDisconnect }) =
   const connect = () => {
     let ws: WebSocket;
     try {
-      ws = new NodeWebSocket(socketUrl(JELLYFIN_URL), {
-        headers: { Authorization: jellyfinAuthHeader(JELLYFIN_API_KEY) },
+      // Jellyfin 12 rejects the api_key query parameter; auth must be a header
+      ws = openWebSocket(webSocketUrl(JELLYFIN_URL, "socket"), {
+        Authorization: jellyfinAuthHeader(JELLYFIN_API_KEY),
       });
     } catch (err) {
       // Runs from a timer too, where a throw would take down the server

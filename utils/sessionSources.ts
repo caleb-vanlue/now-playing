@@ -32,7 +32,8 @@ export function configuredSources(): SessionSource[] {
 
 // ── Plex ──────────────────────────────────────────────────────────────────────
 
-export async function fetchPlexSessions(): Promise<SessionsResponse> {
+/** Raw /status/sessions metadata, with display names already mapped. */
+export async function fetchRawPlexSessions(): Promise<PlexSession[]> {
   const PLEX_URL = process.env.PLEX_URL;
   const PLEX_TOKEN = process.env.PLEX_TOKEN;
   if (!PLEX_URL || !PLEX_TOKEN) throw new Error("Plex configuration missing");
@@ -56,10 +57,13 @@ export async function fetchPlexSessions(): Promise<SessionsResponse> {
   sessions.forEach((s) => {
     if (s.User?.title) s.User.title = applyUsernameMap(s.User.title);
   });
+  return sessions;
+}
 
+export async function fetchPlexSessions(): Promise<SessionsResponse> {
   // Build the response field-by-field so nothing unlisted (addresses, file
   // paths, device ids) can reach the client
-  return mapPlexSessions(sessions);
+  return mapPlexSessions(await fetchRawPlexSessions());
 }
 
 // ── Jellyfin ──────────────────────────────────────────────────────────────────
