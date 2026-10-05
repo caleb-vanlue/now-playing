@@ -315,7 +315,7 @@ class SessionHub {
 
     const allFailed = this.sources.size > 0 && failed.length === this.sources.size;
     return allFailed
-      ? { sessions, error: `Unable to reach ${failed.join(" or ")}. Retrying…` }
+      ? { sessions, error: `Unable to reach ${failed.join(" or ")}.` }
       : { sessions };
   }
 }

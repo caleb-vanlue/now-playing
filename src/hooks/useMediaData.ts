@@ -14,6 +14,8 @@ export interface MediaStatus {
   loading: boolean;
   error: Error | null;
   isConnected: boolean;
+  // Updates are pushed from the session stream rather than polled
+  live: boolean;
 }
 
 const INACTIVITY_THRESHOLD_MS = 10 * 60 * 1000;
@@ -51,9 +53,12 @@ const INITIAL_STATUS: MediaStatus = {
   loading: true,
   error: null,
   isConnected: true,
+  live: false,
 };
 
-const CONNECTED_STATUS: MediaStatus = { loading: false, error: null, isConnected: true };
+// Shared objects so status consumers don't re-render on every healthy update
+const LIVE_STATUS: MediaStatus = { loading: false, error: null, isConnected: true, live: true };
+const POLLING_STATUS: MediaStatus = { loading: false, error: null, isConnected: true, live: false };
 
 /**
  * Live session data, pushed from the server's session stream. If the stream
@@ -80,13 +85,12 @@ export function useMediaData({ active, paused, idle }: PollingIntervals) {
     let streamFailures = 0;
     let streamBlockedUntil = 0;
 
-    const apply = (next: MediaData): MediaData => {
+    const apply = (next: MediaData, live: boolean): MediaData => {
       const current = reconcileMediaData(snapshot, next);
       snapshot = current;
       // Same reference when nothing changed, so React bails out of the render
       setMediaData(groupSessions(current));
-      // Keep the same object while healthy so status consumers don't re-render every update
-      setStatus(CONNECTED_STATUS);
+      setStatus(live ? LIVE_STATUS : POLLING_STATUS);
       return current;
     };
 
@@ -96,6 +100,7 @@ export function useMediaData({ active, paused, idle }: PollingIntervals) {
         loading: false,
         error: err instanceof Error ? err : new Error("An unknown error occurred"),
         isConnected: false,
+        live: false,
       }));
     };
 
@@ -145,7 +150,7 @@ export function useMediaData({ active, paused, idle }: PollingIntervals) {
           const message: SessionStreamMessage = JSON.parse(event.data);
           // The server keeps retrying its sources; keep showing the last data meanwhile
           if (message.error) fail(new Error(message.error));
-          else apply(stampSessions(message.sessions));
+          else apply(stampSessions(message.sessions), true);
         } catch (err) {
           console.error("Invalid session stream message:", err);
         }
@@ -173,7 +178,7 @@ export function useMediaData({ active, paused, idle }: PollingIntervals) {
         if (current.signal.aborted) return;
 
         retryCount = 0;
-        schedule(getPollingInterval(apply(next), lastActivity, intervals));
+        schedule(getPollingInterval(apply(next, false), lastActivity, intervals));
       } catch (err) {
         // Superseded by a newer poll or unmounted; that owner handles scheduling
         if (current.signal.aborted) return;

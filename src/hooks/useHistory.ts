@@ -3,6 +3,9 @@ import { HistoryData } from "../../types/media";
 import { fetchHistory } from "../../utils/api";
 
 const PAGE_SIZE = 25;
+// Servers record a play shortly after it stops, so a refetch waits until this
+// long after the sessions last changed
+const SESSION_CHANGE_DELAY_MS = 2_000;
 const EMPTY: HistoryData["items"] = [];
 
 interface UseHistoryOptions {
@@ -42,10 +45,26 @@ export function useHistory({ active, revision }: UseHistoryOptions) {
     }
   }, []);
 
+  const revisionChangedAtRef = useRef(0);
+  // Declared before the fetch effect so it runs first in the same commit
+  useEffect(() => {
+    revisionChangedAtRef.current = Date.now();
+  }, [revision]);
+
   useEffect(() => {
     if (!active || fetchedRevisionRef.current === revision) return;
-    fetchedRevisionRef.current = revision;
-    load(limitRef.current);
+
+    const fetchNow = () => {
+      fetchedRevisionRef.current = revision;
+      load(limitRef.current);
+    };
+    const wait = revisionChangedAtRef.current + SESSION_CHANGE_DELAY_MS - Date.now();
+    if (fetchedRevisionRef.current === null || wait <= 0) {
+      fetchNow();
+      return;
+    }
+    const timer = setTimeout(fetchNow, wait);
+    return () => clearTimeout(timer);
   }, [active, revision, load]);
 
   useEffect(() => () => controllerRef.current?.abort(), []);

@@ -12,7 +12,7 @@ interface MediaDashboardProps {
 
 export default function MediaDashboard({ children }: MediaDashboardProps) {
   const mediaData = useMediaSessions();
-  const { loading, error, isConnected, refreshData } = useMediaStatus();
+  const { loading, error, isConnected, live, refreshData } = useMediaStatus();
   const { theme, setTheme } = useTheme();
 
   // Only the very first load blocks the UI; on failure the overlay yields to the error toast
@@ -43,11 +43,21 @@ export default function MediaDashboard({ children }: MediaDashboardProps) {
             </div>
           </div>
           <div className="text-gray-400 text-sm mt-1 flex items-center gap-2">
-            <span aria-live="polite" aria-atomic="true">
-              {isConnected ? "Connected" : "Disconnected"}
+            <span
+              aria-live="polite"
+              aria-atomic="true"
+              title={
+                isConnected && !live
+                  ? "Live updates unavailable; refreshing periodically"
+                  : undefined
+              }
+            >
+              {!isConnected ? "Disconnected" : live ? "Live" : "Connected"}
             </span>
             <span
-              className={`w-2 h-2 rounded-full flex-shrink-0 ${isConnected ? "bg-green-500" : "bg-red-500"}`}
+              className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                !isConnected ? "bg-red-500" : live ? "bg-green-500" : "bg-yellow-500"
+              }`}
               aria-hidden="true"
             ></span>
             <span>
@@ -85,7 +95,7 @@ export default function MediaDashboard({ children }: MediaDashboardProps) {
         </div>
       </div>
     ),
-    [totalCount, isConnected, theme, setTheme],
+    [totalCount, isConnected, live, theme, setTheme],
   );
 
   return (
