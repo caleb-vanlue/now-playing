@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useState, useMemo, useCallback, memo } from "react";
-import Image from "next/image";
 import MediaDashboard from "../components/MediaDashboard";
 import PageTransition from "../components/PageTransition";
 import NavigationTabs from "../components/NavigationTabs";
+import ServiceLinksMenu from "../components/ServiceLinksMenu";
 import MusicCard from "../components/MusicCard";
 import MovieCard from "../components/MovieCard";
 import TVShowCard from "../components/TVShowCard";
@@ -13,8 +13,6 @@ import { useMediaSessions } from "../components/MediaDataContext";
 import { useHistory } from "../hooks/useHistory";
 import { useSwipeable } from "react-swipeable";
 import { useGridKeyboardNavigation } from "../hooks/useGridKeyboardNavigation";
-import { SiPlex, SiJellyfin } from "react-icons/si";
-import { HiDotsHorizontal } from "react-icons/hi";
 
 type MediaType = "all" | "music" | "movies" | "tvshows" | "history";
 
@@ -57,7 +55,6 @@ const EmptyState = memo(({ type }: { type: MediaType }) => {
 EmptyState.displayName = "EmptyState";
 
 export default function MediaPage() {
-  const [serviceLinksOpen, setServiceLinksOpen] = useState(false);
   const mediaData = useMediaSessions();
   const [activeTab, setActiveTab] = useState<MediaType>("all");
 
@@ -269,45 +266,7 @@ export default function MediaPage() {
           <PageTransition key={activeTab}>{renderContent}</PageTransition>
         </div>
       </div>
-      <div
-        className={`fixed bottom-6 right-6 z-50 flex items-center transition-all duration-300 rounded-full backdrop-blur-md [mask-image:radial-gradient(ellipse_at_center,black_62%,transparent_90%)] ${serviceLinksOpen ? "gap-3 px-8 py-4 bg-[var(--background)]/85 opacity-100" : "px-5 py-3 bg-[var(--background)]/65 opacity-50 hover:opacity-100"}`}
-        onMouseEnter={() => setServiceLinksOpen(true)}
-        onMouseLeave={() => setServiceLinksOpen(false)}
-      >
-        {/* Ellipsis — collapsed trigger */}
-        <div className={`transition-all duration-200 flex items-center justify-center overflow-hidden ${serviceLinksOpen ? "w-0 opacity-0 pointer-events-none" : "w-5 h-5 opacity-100"}`}>
-          <HiDotsHorizontal className="w-5 h-5 text-gray-400 shrink-0" />
-        </div>
-
-        {/* Service links — expanded state */}
-        <a
-          href="https://www.plex.tv"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Visit Plex website"
-          className={`transition-all duration-200 text-[#e5a00d] hover:opacity-80 overflow-hidden shrink-0 ${serviceLinksOpen ? "w-7 h-7 opacity-100" : "w-0 h-0 opacity-0 pointer-events-none"}`}
-        >
-          <SiPlex style={{ width: "100%", height: "100%", display: "block" }} />
-        </a>
-        <a
-          href="https://github.com/caleb-vanlue/now-playing"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="View project on GitHub"
-          className={`transition-all duration-200 hover:opacity-80 overflow-hidden shrink-0 ${serviceLinksOpen ? "w-9 h-9 opacity-100" : "w-0 h-0 opacity-0 pointer-events-none"}`}
-        >
-          <Image src="/images/logos/github-mark-white.svg" alt="GitHub" width={36} height={36} className="w-full h-full" />
-        </a>
-        <a
-          href="https://jellyfin.org"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Visit Jellyfin website"
-          className={`transition-all duration-200 text-[#00a4dc] hover:opacity-80 overflow-hidden shrink-0 ${serviceLinksOpen ? "w-[22px] h-[22px] opacity-100" : "w-0 h-0 opacity-0 pointer-events-none"}`}
-        >
-          <SiJellyfin style={{ width: "100%", height: "100%", display: "block" }} />
-        </a>
-      </div>
+      <ServiceLinksMenu />
     </MediaDashboard>
   );
 }
