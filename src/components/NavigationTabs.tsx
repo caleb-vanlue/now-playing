@@ -71,7 +71,7 @@ const NavigationTabs = React.memo(function NavigationTabs({
 
   return (
     <nav
-      className="relative flex border-b border-gray-800/50 theme-bg-nav backdrop-blur-sm -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 overflow-x-auto scrollbar-hide"
+      className="relative flex border-b border-gray-800/50 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 overflow-x-auto scrollbar-hide"
       aria-label="Media type navigation"
     >
       <div role="tablist" className="flex space-x-5 sm:space-x-8">

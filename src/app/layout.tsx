@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
@@ -26,6 +26,14 @@ export const metadata: Metadata = {
     statusBarStyle: "black-translucent",
     title: "Now Playing",
   },
+};
+
+// cover lets the fixed header run under the status bar in the installed app;
+// safe-area insets keep content out of it
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 const themeInitScript = `(function(){try{var t=localStorage.getItem("now-playing-theme"),bg=t==="plex"?"#141414":"#0d1117";document.documentElement.style.background=bg;var m=document.createElement("meta");m.name="theme-color";m.content=bg;document.head.appendChild(m);if(t==="plex")document.documentElement.setAttribute("data-theme","plex")}catch(e){}})()`;

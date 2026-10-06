@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useCallback, memo } from "react";
+import React, { useState, useMemo, useCallback, useEffect, memo } from "react";
 import MediaDashboard from "../components/MediaDashboard";
 import PageTransition from "../components/PageTransition";
 import NavigationTabs from "../components/NavigationTabs";
@@ -160,6 +160,11 @@ function Dashboard() {
     [tracks.length, movies.length, episodes.length]
   );
 
+  // Tabs share one page scroll; start each at the top
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+  }, [activeTab]);
+
   const handleTabClick = useCallback((href: string) => {
     const tab = href.substring(1) as MediaType;
     setActiveTab(tab);
@@ -253,28 +258,27 @@ function Dashboard() {
   }, [activeTab, tracks, movies, episodes, history, historyLoading, historyLoadingMore, historyHasMore, loadMoreHistory, setItemRef, handleKeyDown]);
 
   return (
-    <MediaDashboard>
-      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 bg-[var(--accent)] text-white px-4 py-2 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2">
+    <MediaDashboard
+      nav={
+        <NavigationTabs
+          items={navItems}
+          onTabClick={handleTabClick}
+          activeTab={`#${activeTab}`}
+        />
+      }
+    >
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 bg-[var(--accent)] text-white px-4 py-2 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2">
         Skip to main content
       </a>
-      <div className="flex flex-col h-full overflow-hidden">
-        <div className="flex-shrink-0 px-4 sm:px-6 lg:px-8 pb-1 sm:pb-2">
-          <NavigationTabs
-            items={navItems}
-            onTabClick={handleTabClick}
-            activeTab={`#${activeTab}`}
-          />
-        </div>
-        <div
-          id="main-content"
-          className="flex-1 h-full overflow-y-auto px-4 sm:px-6 lg:px-8 pb-16"
-          {...swipeHandlers}
-          role="tabpanel"
-          aria-labelledby={`#${activeTab}`}
-          tabIndex={0}
-        >
-          <PageTransition key={activeTab}>{renderContent}</PageTransition>
-        </div>
+      <div
+        id="main-content"
+        className="flex-1 px-4 sm:px-6 lg:px-8 pt-1 sm:pt-2 pb-16"
+        {...swipeHandlers}
+        role="tabpanel"
+        aria-labelledby={`#${activeTab}`}
+        tabIndex={0}
+      >
+        <PageTransition key={activeTab}>{renderContent}</PageTransition>
       </div>
       <ServiceLinksMenu />
     </MediaDashboard>

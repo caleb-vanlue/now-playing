@@ -68,7 +68,7 @@ export default function ServiceLinksMenu() {
   return (
     <div
       ref={menuRef}
-      className={`fixed bottom-6 right-6 z-50 flex items-center transition-all duration-300 rounded-full backdrop-blur-md [mask-image:radial-gradient(ellipse_at_center,black_62%,transparent_90%)] ${open ? "gap-3 px-8 py-4 bg-[var(--background)]/85 opacity-100" : "px-5 py-3 bg-[var(--background)]/65 opacity-50 hover:opacity-100"}`}
+      className={`fixed bottom-[calc(1.5rem+env(safe-area-inset-bottom))] right-[calc(1.5rem+env(safe-area-inset-right))] z-50 flex items-center transition-all duration-300 rounded-full backdrop-blur-md [mask-image:radial-gradient(ellipse_at_center,black_62%,transparent_90%)] ${open ? "gap-3 px-8 py-4 bg-[var(--background)]/85 opacity-100" : "px-5 py-3 bg-[var(--background)]/65 opacity-50 hover:opacity-100"}`}
       onMouseEnter={handleEnter}
       onMouseLeave={handleLeave}
     >
