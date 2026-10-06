@@ -74,7 +74,7 @@ const NavigationTabs = React.memo(function NavigationTabs({
       className="relative flex border-b border-gray-800/50 theme-bg-nav backdrop-blur-sm -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 overflow-x-auto scrollbar-hide"
       aria-label="Media type navigation"
     >
-      <div role="tablist" className="flex space-x-8">
+      <div role="tablist" className="flex space-x-5 sm:space-x-8">
         {items.map((item, index) => {
           const isActive = currentActive === item.href;
           return (
@@ -89,7 +89,7 @@ const NavigationTabs = React.memo(function NavigationTabs({
               tabIndex={isActive ? 0 : -1}
               onClick={() => onTabClick(item.href)}
               onKeyDown={(e) => handleKeyDown(e, index)}
-              className={`relative py-3 px-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] rounded ${
+              className={`relative py-2.5 sm:py-3 px-1 whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] rounded ${
                 isActive ? "text-white" : "text-gray-400 hover:text-white"
               }`}
             >

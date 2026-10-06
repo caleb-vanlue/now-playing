@@ -28,21 +28,21 @@ export default function MediaDashboard({ children }: MediaDashboardProps) {
 
   const headerContent = useMemo(
     () => (
-      <div className="w-full flex flex-col md:flex-row md:items-center md:justify-between items-center">
+      <div className="w-full flex items-center justify-between gap-3">
         <button
-          className="flex flex-col mb-3 md:mb-0 items-center md:items-start text-center md:text-left focus:outline-none"
+          className="flex flex-col min-w-0 items-start text-left focus:outline-none"
           onClick={() => document.getElementById("main-content")?.scrollTo({ top: 0, behavior: "smooth" })}
           aria-label="Scroll to top"
         >
-          <div className="flex items-center justify-center md:justify-start">
-            <div className="text-3xl sm:text-4xl font-bold">Now Playing</div>
-            <div className="flex items-center ml-2">
+          <div className="flex items-center">
+            <div className="text-2xl sm:text-4xl font-bold whitespace-nowrap">Now Playing</div>
+            <div className="hidden sm:flex items-center ml-2">
               <span className="text-2xl">🎶</span>
               <span className="text-2xl ml-1">🎬</span>
               <span className="text-2xl ml-1">📺</span>
             </div>
           </div>
-          <div className="text-gray-400 text-sm mt-1 flex items-center gap-2">
+          <div className="text-gray-400 text-xs sm:text-sm sm:mt-1 flex items-center gap-2 whitespace-nowrap">
             <span
               aria-live="polite"
               aria-atomic="true"
@@ -66,7 +66,7 @@ export default function MediaDashboard({ children }: MediaDashboardProps) {
             </span>
           </div>
         </button>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-shrink-0 items-center gap-2 sm:gap-3">
           <button
             onClick={() => setTheme("plex")}
             aria-label="Switch to Plex theme"
@@ -77,7 +77,7 @@ export default function MediaDashboard({ children }: MediaDashboardProps) {
                 : "text-gray-500 hover:text-gray-300"
             }`}
           >
-            <SiPlex size={32} />
+            <SiPlex className="w-7 h-7 sm:w-8 sm:h-8" />
           </button>
           <span className="text-gray-700 text-sm">|</span>
           <button
@@ -90,7 +90,7 @@ export default function MediaDashboard({ children }: MediaDashboardProps) {
                 : "text-gray-500 hover:text-gray-300"
             }`}
           >
-            <SiJellyfin size={26} />
+            <SiJellyfin className="w-[22px] h-[22px] sm:w-[26px] sm:h-[26px]" />
           </button>
         </div>
       </div>
@@ -132,7 +132,7 @@ export default function MediaDashboard({ children }: MediaDashboardProps) {
 
       <div className="fixed inset-0 flex flex-col bg-animated-gradient text-white overflow-hidden">
         <header
-          className="flex-shrink-0 z-20 theme-bg-header backdrop-blur-md px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-2 border-b border-gray-800/30 shadow-lg"
+          className="flex-shrink-0 z-20 theme-bg-header backdrop-blur-md px-4 sm:px-6 lg:px-8 pt-3 sm:pt-6 pb-2 border-b border-gray-800/30 shadow-lg"
         >
           {headerContent}
         </header>

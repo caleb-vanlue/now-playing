@@ -258,7 +258,7 @@ function Dashboard() {
         Skip to main content
       </a>
       <div className="flex flex-col h-full overflow-hidden">
-        <div className="flex-shrink-0 px-4 sm:px-6 lg:px-8 pb-2">
+        <div className="flex-shrink-0 px-4 sm:px-6 lg:px-8 pb-1 sm:pb-2">
           <NavigationTabs
             items={navItems}
             onTabClick={handleTabClick}
