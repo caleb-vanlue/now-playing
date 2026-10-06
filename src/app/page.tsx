@@ -151,7 +151,8 @@ function Dashboard() {
 
   const navItems = useMemo(
     () => [
-      { href: "#all", label: "All", count: tracks.length + movies.length + episodes.length },
+      // No badge on All; it would just repeat the per-type counts
+      { href: "#all", label: "All", count: 0 },
       { href: "#music", label: "Music", count: tracks.length },
       { href: "#movies", label: "Movies", count: movies.length },
       { href: "#tvshows", label: "TV Shows", count: episodes.length },
