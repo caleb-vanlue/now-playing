@@ -1,11 +1,12 @@
 "use client";
 
 import React, { createContext, useContext, ReactNode, useMemo, useEffect } from "react";
-import { useMediaData, MediaStatus } from "../hooks/useMediaData";
+import { useMediaData, MediaHealth, MediaStatus } from "../hooks/useMediaData";
 import { MediaData } from "../../types/media";
 import { prefetchLyrics } from "../hooks/useLyrics";
 
 interface MediaStatusContextValue extends MediaStatus {
+  health: MediaHealth | null;
   refreshData: () => void;
 }
 
@@ -28,7 +29,7 @@ export function MediaDataProvider({
   pausedPollingInterval = 120000, // 2 minutes when paused
   idlePollingInterval = 300000, // 5 minutes when idle
 }: MediaDataProviderProps) {
-  const { mediaData, status, refreshData } = useMediaData({
+  const { mediaData, status, health, refreshData } = useMediaData({
     active: activePollingInterval,
     paused: pausedPollingInterval,
     idle: idlePollingInterval,
@@ -39,7 +40,10 @@ export function MediaDataProvider({
     tracks?.forEach(prefetchLyrics);
   }, [tracks]);
 
-  const statusValue = useMemo(() => ({ ...status, refreshData }), [status, refreshData]);
+  const statusValue = useMemo(
+    () => ({ ...status, health, refreshData }),
+    [status, health, refreshData]
+  );
 
   return (
     <MediaStatusContext.Provider value={statusValue}>

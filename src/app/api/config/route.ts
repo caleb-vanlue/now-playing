@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
-import { getPlexConfig } from "../../../../utils/plexConfig";
+import type { ServiceConfig } from "../../../../types/media";
+import { getPlexConfig, setupState } from "../../../../utils/plexConfig";
 
 export async function GET() {
-  return NextResponse.json({
+  return NextResponse.json<ServiceConfig>({
     plex: !!getPlexConfig(),
     jellyfin: !!(process.env.JELLYFIN_URL && process.env.JELLYFIN_API_KEY),
+    setup: setupState(),
   });
 }

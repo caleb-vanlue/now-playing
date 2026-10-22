@@ -1,8 +1,10 @@
 import type {
   BaseMedia,
+  ServiceHealth,
   SessionItem,
   SessionsResponse,
   SessionStreamMessage,
+  SourceHealth,
 } from "../types/media";
 import type { NowPlayingStatus, SourceMode, SourceStatus, StatusSnapshot } from "../types/status";
 import {
@@ -14,7 +16,7 @@ import {
 import { jellyfinSessionFeed } from "./jellyfinSocket";
 import { plexSessionFeed } from "./plexSocket";
 import { monitor } from "./monitor";
-import { getPlexConfig, PlexAuthError } from "./plexConfig";
+import { getPlexConfig, PlexAuthError, setupState } from "./plexConfig";
 
 // Live upstream connections; a source without one is polled
 const FEEDS: Partial<Record<SessionSource, SessionFeed>> = {
@@ -78,6 +80,13 @@ function modeOf(state: SourceState): SourceMode {
   if (state.error instanceof PlexAuthError) return "unauthorized";
   if (state.error) return "error";
   return state.settled ? "polling" : "connecting";
+}
+
+// What viewers are told; "connecting" never reaches them, since nothing is
+// sent until every source has settled
+function healthOf(mode: SourceMode): SourceHealth {
+  if (mode === "unauthorized") return "unauthorized";
+  return mode === "error" ? "unreachable" : "connected";
 }
 
 // Upstream errors can echo request URLs, which may carry credentials
@@ -382,6 +391,8 @@ class SessionHub {
   private noteMode(source: SessionSource, state: SourceState): void {
     const mode = modeOf(state);
     if (mode === state.mode) return;
+    // e.g. unreachable -> unauthorized changes no data but changes the banner
+    if (healthOf(mode) !== healthOf(state.mode)) this.scheduleBroadcast();
     const label = SOURCE_LABELS[source];
     if (mode === "live") monitor.log("info", `${label}: live connection established`);
     else if (mode === "unauthorized") monitor.log("warn", `${label}: token rejected; sign in again to reconnect`);
@@ -415,8 +426,10 @@ class SessionHub {
     const sessions: SessionsResponse = { tracks: [], movies: [], episodes: [] };
     // Labels only: upstream error text can include server URLs and tokens
     const failed: string[] = [];
+    const health: ServiceHealth = {};
 
     for (const [source, state] of this.sources) {
+      health[source] = healthOf(modeOf(state));
       if (state.error) failed.push(SOURCE_LABELS[source]);
       if (!state.data) continue;
       const elapsed = now - state.observedAt;
@@ -426,9 +439,8 @@ class SessionHub {
     }
 
     const allFailed = this.sources.size > 0 && failed.length === this.sources.size;
-    return allFailed
-      ? { sessions, error: `Unable to reach ${failed.join(" or ")}.` }
-      : { sessions };
+    const message: SessionStreamMessage = { sessions, sources: health, setup: setupState() };
+    return allFailed ? { ...message, error: `Unable to reach ${failed.join(" or ")}.` } : message;
   }
 }
 

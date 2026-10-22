@@ -134,8 +134,30 @@ export interface SessionsResponse {
 // with playing items' viewOffset current as of sending
 export interface SessionStreamMessage {
   sessions: SessionsResponse;
+  // One entry per configured source; empty when no server is connected
+  sources: ServiceHealth;
+  setup: SetupState;
   // Set when every configured source is unreachable
   error?: string;
+}
+
+// "unauthorized": the server rejected the token, so the owner must sign in again
+export type SourceHealth = "connected" | "unreachable" | "unauthorized";
+
+export type ServiceHealth = Partial<Record<BaseMedia["source"], SourceHealth>>;
+
+export type SetupState =
+  // Waiting for the operator to claim it with the setup code
+  | "unclaimed"
+  | "claimed"
+  // PLEX_TOKEN is set, so sign-in is off
+  | "env";
+
+// Public: says whether anything is connected, never where or to what
+export interface ServiceConfig {
+  plex: boolean;
+  jellyfin: boolean;
+  setup: SetupState;
 }
 
 export interface HistoryItem {

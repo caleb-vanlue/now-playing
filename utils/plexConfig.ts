@@ -1,16 +1,10 @@
+import type { SetupState } from "../types/media";
 import { readInstance } from "./instanceStore";
 
 export interface PlexConfig {
   url: string;
   token: string;
 }
-
-export type SetupState =
-  // Waiting for the operator to claim it with the setup code
-  | "unclaimed"
-  | "claimed"
-  // PLEX_TOKEN is set, so sign-in is off
-  | "env";
 
 export const PLEX_PRODUCT = "Now Playing";
 
