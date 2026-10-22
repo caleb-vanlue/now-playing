@@ -9,8 +9,13 @@ import { setupState } from "./plexConfig";
  * and changes on every restart.
  */
 
+// Holds a Plex sign-in in progress: for claiming (only after the setup code)
+// or for the owner signing back in
 export const SETUP_COOKIE = "np_setup";
 export const SETUP_COOKIE_MAX_AGE_S = 15 * 60;
+// Proves the owner signed in with the claiming Plex account
+export const OWNER_COOKIE = "np_owner";
+export const OWNER_COOKIE_MAX_AGE_S = 7 * 24 * 60 * 60;
 
 // Retiring the code after this many misses keeps guessing hopeless: each new
 // code is 60 random bits that only the logs show
@@ -119,4 +124,29 @@ export function readSetupCookie(value: string | undefined): string | null {
   if (!id || !expiry || !signature) return null;
   if (!safeEqual(signature, sign(`${id}.${expiry}`))) return null;
   return Number(expiry) > Date.now() ? id : null;
+}
+
+// ── Owner cookie ─────────────────────────────────────────────────────────────
+// "<expiry>.<signature>", signed over the owner's Plex uuid, so it stops
+// working if the instance is reset or claimed by someone else
+
+function signOwner(uuid: string, expiry: string): string {
+  return createHmac("sha256", readInstance().secret).update(`owner:${uuid}:${expiry}`).digest("hex");
+}
+
+export function newOwnerCookie(uuid: string): string {
+  const expiry = String(Date.now() + OWNER_COOKIE_MAX_AGE_S * 1000);
+  return `${expiry}.${signOwner(uuid, expiry)}`;
+}
+
+export function isOwnerCookie(value: string | undefined): boolean {
+  const owner = readInstance().owner;
+  const [expiry, signature] = value?.split(".") ?? [];
+  if (!owner || !expiry || !signature) return false;
+  return safeEqual(signature, signOwner(owner.uuid, expiry)) && Number(expiry) > Date.now();
+}
+
+export function isOwnerUuid(uuid: string): boolean {
+  const owner = readInstance().owner;
+  return !!owner && safeEqual(uuid, owner.uuid);
 }

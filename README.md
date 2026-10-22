@@ -163,6 +163,8 @@ Plex is connected by signing in on the instance, so no Plex token sits in your e
 
 **Why a setup code?** Until someone connects a server, anyone who finds the URL could open `/setup`. The code is printed only to the server logs, so only someone who runs the instance can claim it. It changes on every restart, and after 10 wrong guesses it's replaced with a new one. Once the instance is claimed, `/setup` stops accepting codes.
 
+**Managing it later.** Open `/setup` and sign in with the same Plex account that claimed the instance; any other account is refused. From there you can reconnect (for example after removing the device on plex.tv), switch servers, change the server address, or disconnect. Disconnecting keeps you as the owner, so nobody else can connect a server in the meantime. The sign-in lasts 7 days on that browser.
+
 **Where it's saved.** The connection is stored in `DATA_DIR/instance.json` (default `./data`, `/app/data` in Docker), readable only by the server's user. Put `DATA_DIR` on a persistent volume. On Railway, add a volume to the service mounted at `/app/data`. Without one, each redeploy starts unclaimed and needs the setup steps again.
 
 **Starting over.** Set `RESET_OWNER=true` and restart: the owner and Plex connection are removed and a new setup code is printed. Remove `RESET_OWNER` before the next restart, or it will reset again. Only someone who can change the environment can do this.

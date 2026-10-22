@@ -16,7 +16,12 @@ import {
 import {
   checkSetupCode,
   discardSetupCode,
+  isOwnerCookie,
+  isOwnerUuid,
+  newOwnerCookie,
   newSetupCookie,
+  OWNER_COOKIE,
+  OWNER_COOKIE_MAX_AGE_S,
   readSetupCookie,
   SETUP_COOKIE,
   SETUP_COOKIE_MAX_AGE_S,
@@ -31,14 +36,29 @@ export interface CodeState {
   error?: string;
 }
 
+async function cookieOptions(maxAge: number) {
+  return {
+    httpOnly: true,
+    // Behind Cloudflare/Railway the origin sees http, so trust the proxy's header
+    secure: (await headers()).get("x-forwarded-proto") === "https",
+    // Lax, not strict: Plex's sign-in page sends the browser back here
+    sameSite: "lax" as const,
+    path: "/setup",
+    maxAge,
+  };
+}
+
+async function clientLabel(): Promise<string> {
+  const { ip, country } = describeClient({ headers: await headers() });
+  return `${ip}${country ? ` (${country})` : ""}`;
+}
+
 export async function submitCode(_prev: CodeState, formData: FormData): Promise<CodeState> {
   if (setupState() !== "unclaimed") redirect("/setup");
 
-  const requestHeaders = await headers();
   const result = checkSetupCode(String(formData.get("code") ?? ""));
   if (result !== "ok") {
-    const { ip, country } = describeClient({ headers: requestHeaders });
-    monitor.log("warn", `Wrong setup code from ${ip}${country ? ` (${country})` : ""}`);
+    monitor.log("warn", `Wrong setup code from ${await clientLabel()}`);
     await new Promise((resolve) => setTimeout(resolve, FAILED_CODE_DELAY_MS));
     return {
       error:
@@ -48,30 +68,39 @@ export async function submitCode(_prev: CodeState, formData: FormData): Promise<
     };
   }
 
-  const { value } = newSetupCookie();
-  (await cookies()).set(SETUP_COOKIE, value, {
-    httpOnly: true,
-    // Behind Cloudflare/Railway the origin sees http, so trust the proxy's header
-    secure: requestHeaders.get("x-forwarded-proto") === "https",
-    sameSite: "lax",
-    path: "/setup",
-    maxAge: SETUP_COOKIE_MAX_AGE_S,
-  });
+  (await cookies()).set(SETUP_COOKIE, newSetupCookie().value, await cookieOptions(SETUP_COOKIE_MAX_AGE_S));
   redirect("/setup");
 }
 
 export type StepResult<T = SetupView> = { ok: true; value: T } | { ok: false; error: string };
 
-// Every step re-checks the cookie and that nobody has claimed the instance since
-async function currentSessionId(): Promise<string | null> {
-  if (setupState() !== "unclaimed") return null;
-  return readSetupCookie((await cookies()).get(SETUP_COOKIE)?.value);
+const SESSION_EXPIRED = "Setup timed out. Reload the page and start again.";
+const NOT_OWNER = "Sign in as the owner first.";
+
+/**
+ * The sign-in session for this browser. Claiming needs one made by entering the
+ * setup code; on a claimed instance anyone may start a Plex sign-in, since only
+ * the owner's account gets anywhere with it.
+ */
+async function signInSessionId(create = false): Promise<string | null> {
+  const state = setupState();
+  if (state === "env") return null;
+
+  const jar = await cookies();
+  const id = readSetupCookie(jar.get(SETUP_COOKIE)?.value);
+  if (id || state !== "claimed" || !create) return id;
+
+  const cookie = newSetupCookie();
+  jar.set(SETUP_COOKIE, cookie.value, await cookieOptions(SETUP_COOKIE_MAX_AGE_S));
+  return cookie.id;
 }
 
-const SESSION_EXPIRED = "Setup timed out. Reload the page and enter the setup code again.";
+async function isOwner(): Promise<boolean> {
+  return setupState() === "claimed" && isOwnerCookie((await cookies()).get(OWNER_COOKIE)?.value);
+}
 
 export async function startSignIn(): Promise<StepResult<string>> {
-  const id = await currentSessionId();
+  const id = await signInSessionId(true);
   if (!id) return { ok: false, error: SESSION_EXPIRED };
 
   try {
@@ -92,7 +121,7 @@ export async function startSignIn(): Promise<StepResult<string>> {
 }
 
 export async function pollSignIn(): Promise<StepResult> {
-  const id = await currentSessionId();
+  const id = await signInSessionId();
   if (!id) return { ok: false, error: SESSION_EXPIRED };
 
   const session = getSetupSession(id);
@@ -113,36 +142,54 @@ export async function pollSignIn(): Promise<StepResult> {
   }
   if (!token) return { ok: true, value: viewOf(session) };
 
+  // The sign-in token is only used here; a server's own token is what's kept
+  session.pinId = undefined;
   try {
-    const [user, servers] = await Promise.all([getUser(token), getOwnedServers(token)]);
-    // The sign-in token is done with; only a server's own token is kept
-    session.pinId = undefined;
+    const user = await getUser(token);
+    if (setupState() === "claimed") {
+      if (!isOwnerUuid(user.uuid)) {
+        monitor.log("warn", `Owner sign-in refused for Plex account ${user.username} from ${await clientLabel()}`);
+        return { ok: false, error: "This instance belongs to another Plex account." };
+      }
+      (await cookies()).set(
+        OWNER_COOKIE,
+        newOwnerCookie(user.uuid),
+        await cookieOptions(OWNER_COOKIE_MAX_AGE_S)
+      );
+      monitor.log("info", `Owner signed in to /setup from ${await clientLabel()}`);
+    }
     session.user = user;
-    session.servers = servers;
+    session.servers = await getOwnedServers(token);
     return { ok: true, value: viewOf(session) };
   } catch (err) {
     console.error("Could not read the Plex account:", err);
-    session.pinId = undefined;
     return { ok: false, error: "Signed in, but couldn't read your Plex servers. Start again." };
   }
 }
 
+function parseAddress(address: string): string | null | undefined {
+  const typed = address.trim();
+  if (!typed) return null;
+  return /^https?:\/\/[^\s]+$/i.test(typed) ? typed : undefined;
+}
+
+const BAD_ADDRESS = "Enter an address like http://192.168.1.10:32400.";
+
 export async function connectServer(serverId: string, address: string): Promise<StepResult<null>> {
-  const id = await currentSessionId();
+  const id = await signInSessionId();
   if (!id) return { ok: false, error: SESSION_EXPIRED };
+
+  const claiming = setupState() === "unclaimed";
+  if (!claiming && !(await isOwner())) return { ok: false, error: NOT_OWNER };
 
   const session = getSetupSession(id);
   const server = session.servers?.find((s) => s.id === serverId);
   if (!session.user || !server) return { ok: false, error: "Pick one of your servers." };
 
   const preferred: string[] = [];
-  const typed = address.trim();
-  if (typed) {
-    if (!/^https?:\/\/[^\s]+$/i.test(typed)) {
-      return { ok: false, error: "Enter an address like http://192.168.1.10:32400." };
-    }
-    preferred.push(typed);
-  }
+  const typed = parseAddress(address);
+  if (typed === undefined) return { ok: false, error: BAD_ADDRESS };
+  if (typed) preferred.push(typed);
   // A non-secret override, e.g. host.docker.internal when Plex runs alongside
   const envUrl = process.env.PLEX_URL?.trim();
   if (envUrl) preferred.push(envUrl);
@@ -159,7 +206,9 @@ export async function connectServer(serverId: string, address: string): Promise<
   try {
     updateInstance((data) => ({
       ...data,
-      owner: { uuid: user.uuid, username: user.username, claimedAt: Date.now() },
+      // Claiming and connecting are saved together, so stopping halfway never
+      // leaves an owner with no server, or a server with no owner
+      owner: data.owner ?? { uuid: user.uuid, username: user.username, claimedAt: Date.now() },
       plex: { url, token: server.token, serverId: server.id, serverName: server.name },
     }));
   } catch (err) {
@@ -170,10 +219,71 @@ export async function connectServer(serverId: string, address: string): Promise<
     };
   }
 
-  discardSetupCode();
-  endSetupSessions();
-  (await cookies()).delete({ name: SETUP_COOKIE, path: "/setup" });
-  monitor.log("info", `Instance claimed by Plex account ${user.username}; connected to ${server.name}`);
+  const jar = await cookies();
+  if (claiming) {
+    discardSetupCode();
+    endSetupSessions();
+    // Whoever claimed it is the owner; skip a second sign-in to manage it
+    jar.set(OWNER_COOKIE, newOwnerCookie(user.uuid), await cookieOptions(OWNER_COOKIE_MAX_AGE_S));
+    monitor.log("info", `Instance claimed by Plex account ${user.username}; connected to ${server.name}`);
+  } else {
+    // The servers listed came with tokens; don't keep them around
+    session.servers = undefined;
+    session.user = undefined;
+    monitor.log("info", `Owner connected Plex server ${server.name}`);
+  }
+  jar.delete({ name: SETUP_COOKIE, path: "/setup" });
   sessionHub.reconfigure("plex");
   return { ok: true, value: null };
+}
+
+export async function changeAddress(address: string): Promise<StepResult<null>> {
+  if (!(await isOwner())) return { ok: false, error: NOT_OWNER };
+
+  const plex = readInstance().plex;
+  if (!plex) return { ok: false, error: "Connect a server first." };
+  const typed = parseAddress(address);
+  if (!typed) return { ok: false, error: BAD_ADDRESS };
+
+  const url = await findWorkingUri(
+    { id: plex.serverId, name: plex.serverName, token: plex.token, uris: [] },
+    [typed]
+  );
+  if (!url) return { ok: false, error: `${plex.serverName} didn't answer at that address.` };
+
+  try {
+    updateInstance((data) => (data.plex ? { ...data, plex: { ...data.plex, url } } : data));
+  } catch (err) {
+    console.error("Could not save the Plex address:", err);
+    return { ok: false, error: "Couldn't save. Check that DATA_DIR is on a writable volume." };
+  }
+  monitor.log("info", "Owner changed the Plex server address");
+  sessionHub.reconfigure("plex");
+  return { ok: true, value: null };
+}
+
+export async function disconnect(): Promise<StepResult<null>> {
+  if (!(await isOwner())) return { ok: false, error: NOT_OWNER };
+
+  try {
+    // The owner stays, so only they can connect a server again
+    updateInstance((data) => {
+      const next = { ...data };
+      delete next.plex;
+      return next;
+    });
+  } catch (err) {
+    console.error("Could not remove the Plex connection:", err);
+    return { ok: false, error: "Couldn't save. Check that DATA_DIR is on a writable volume." };
+  }
+  monitor.log("info", "Owner disconnected Plex");
+  sessionHub.reconfigure("plex");
+  return { ok: true, value: null };
+}
+
+export async function signOut(): Promise<void> {
+  const jar = await cookies();
+  jar.delete({ name: OWNER_COOKIE, path: "/setup" });
+  jar.delete({ name: SETUP_COOKIE, path: "/setup" });
+  redirect("/setup");
 }

@@ -22,7 +22,13 @@ export function NotConnected({ setup }: { setup: SetupState }) {
             and enter the setup code from the server logs.
           </p>
         ) : (
-          <p className="text-sm text-gray-500">The owner needs to reconnect it.</p>
+          <p className="text-sm text-gray-500">
+            The owner can reconnect it from{" "}
+            <Link href="/setup" className="text-[var(--accent)] hover:underline">
+              /setup
+            </Link>
+            .
+          </p>
         )}
       </div>
     </div>
@@ -50,9 +56,17 @@ export function SourceProblems({ sources }: { sources: ServiceHealth }) {
                 : "bg-amber-950/60 text-amber-200 ring-amber-500/30"
             }`}
           >
-            {signedOut
-              ? `${label} is signed out. The owner needs to sign in again.`
-              : `Can't reach ${label} right now. Retrying automatically.`}
+            {signedOut ? (
+              <>
+                {label} is signed out. The owner can reconnect it from{" "}
+                <Link href="/setup" className="underline">
+                  /setup
+                </Link>
+                .
+              </>
+            ) : (
+              `Can't reach ${label} right now. Retrying automatically.`
+            )}
           </div>
         );
       })}
