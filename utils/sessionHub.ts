@@ -14,6 +14,7 @@ import {
 import { jellyfinSessionFeed } from "./jellyfinSocket";
 import { plexSessionFeed } from "./plexSocket";
 import { monitor } from "./monitor";
+import { getPlexConfig, PlexAuthError } from "./plexConfig";
 
 // Live upstream connections; a source without one is polled
 const FEEDS: Partial<Record<SessionSource, SessionFeed>> = {
@@ -23,6 +24,8 @@ const FEEDS: Partial<Record<SessionSource, SessionFeed>> = {
 
 const POLL_PLAYING_MS = 10_000;
 const POLL_IDLE_MS = 30_000;
+// A rejected token won't start working by itself, so check back rarely
+const POLL_UNAUTHORIZED_MS = 5 * 60_000;
 // A feed that hasn't delivered by then is backed up by polling
 const FEED_CONNECT_GRACE_MS = 5_000;
 // Upstream work stops this long after the last viewer leaves; a page reload
@@ -72,6 +75,7 @@ function hasPlaying(data: SessionsResponse | null): boolean {
 
 function modeOf(state: SourceState): SourceMode {
   if (state.live) return "live";
+  if (state.error instanceof PlexAuthError) return "unauthorized";
   if (state.error) return "error";
   return state.settled ? "polling" : "connecting";
 }
@@ -79,7 +83,7 @@ function modeOf(state: SourceState): SourceMode {
 // Upstream errors can echo request URLs, which may carry credentials
 function redact(message: string): string {
   let result = message;
-  for (const secret of [process.env.PLEX_TOKEN, process.env.JELLYFIN_API_KEY]) {
+  for (const secret of [getPlexConfig()?.token, process.env.PLEX_TOKEN, process.env.JELLYFIN_API_KEY]) {
     if (secret) result = result.split(secret).join("***");
   }
   return result;
@@ -190,6 +194,22 @@ class SessionHub {
     }
   }
 
+  /**
+   * Picks up a source whose connection was added, changed or removed (e.g. by
+   * signing in on /setup) without disturbing the others.
+   */
+  reconfigure(source: SessionSource): void {
+    if (!this.running) return;
+    const old = this.sources.get(source);
+    if (old) {
+      clearTimeout(old.timer);
+      old.stopFeed?.();
+      this.sources.delete(source);
+    }
+    if (configuredSources().includes(source)) this.startSource(source, this.generation);
+    this.scheduleBroadcast();
+  }
+
   /** Upstream health and current sessions, for the owner's status page. */
   getStatus(): Pick<StatusSnapshot, "hub" | "sources" | "nowPlaying"> {
     const sources: SourceStatus[] = [];
@@ -220,42 +240,44 @@ class SessionHub {
     const generation = this.generation;
     monitor.log("info", "Session hub started");
 
-    for (const source of configuredSources()) {
-      const state: SourceState = {
-        data: null,
-        observedAt: 0,
-        error: null,
-        settled: false,
-        fetching: false,
-        lastFetch: 0,
-        failures: 0,
-        live: false,
-        mode: "connecting",
-        modeSince: Date.now(),
-        lastUpdate: null,
-      };
-      this.sources.set(source, state);
-
-      const feed = FEEDS[source];
-      // Node < 22 has no built-in WebSocket; those servers just poll
-      if (!feed || typeof WebSocket === "undefined") {
-        this.poll(source, generation);
-        continue;
-      }
-
-      try {
-        state.stopFeed = feed({
-          onSessions: (data) => this.onFeedSessions(source, data, generation),
-          onDisconnect: () => this.onFeedDisconnect(source, generation),
-        });
-        state.timer = setTimeout(() => this.poll(source, generation), FEED_CONNECT_GRACE_MS);
-      } catch (err) {
-        console.error(`Could not start ${source} feed; polling instead:`, err);
-        this.poll(source, generation);
-      }
-    }
+    for (const source of configuredSources()) this.startSource(source, generation);
     // Nothing configured: viewers get an empty snapshot rather than waiting forever
     if (this.sources.size === 0) this.scheduleBroadcast();
+  }
+
+  private startSource(source: SessionSource, generation: number): void {
+    const state: SourceState = {
+      data: null,
+      observedAt: 0,
+      error: null,
+      settled: false,
+      fetching: false,
+      lastFetch: 0,
+      failures: 0,
+      live: false,
+      mode: "connecting",
+      modeSince: Date.now(),
+      lastUpdate: null,
+    };
+    this.sources.set(source, state);
+
+    const feed = FEEDS[source];
+    // Node < 22 has no built-in WebSocket; those servers just poll
+    if (!feed || typeof WebSocket === "undefined") {
+      this.poll(source, generation);
+      return;
+    }
+
+    try {
+      state.stopFeed = feed({
+        onSessions: (data) => this.onFeedSessions(source, data, generation),
+        onDisconnect: () => this.onFeedDisconnect(source, generation),
+      });
+      state.timer = setTimeout(() => this.poll(source, generation), FEED_CONNECT_GRACE_MS);
+    } catch (err) {
+      console.error(`Could not start ${source} feed; polling instead:`, err);
+      this.poll(source, generation);
+    }
   }
 
   private stop(): void {
@@ -324,11 +346,12 @@ class SessionHub {
     let changed = false;
     try {
       const data = await SESSION_FETCHERS[source]();
-      // The feed took over mid-fetch and is at least as fresh
-      if (generation !== this.generation || state.live) return;
+      // The feed took over mid-fetch and is at least as fresh, or the source
+      // was reconfigured and this fetch used the old connection
+      if (generation !== this.generation || state.live || this.sources.get(source) !== state) return;
       changed = this.ingest(state, data);
     } catch (err) {
-      if (generation !== this.generation || state.live) return;
+      if (generation !== this.generation || state.live || this.sources.get(source) !== state) return;
 
       console.error(`Error fetching ${source} sessions:`, err);
       // A failed source contributes nothing rather than going stale
@@ -346,7 +369,9 @@ class SessionHub {
     this.settle(state, changed);
     this.noteMode(source, state);
 
-    const delay = state.error
+    const delay = state.error instanceof PlexAuthError
+      ? POLL_UNAUTHORIZED_MS
+      : state.error
       ? retryDelay(state.failures)
       : hasPlaying(state.data)
         ? POLL_PLAYING_MS
@@ -359,6 +384,7 @@ class SessionHub {
     if (mode === state.mode) return;
     const label = SOURCE_LABELS[source];
     if (mode === "live") monitor.log("info", `${label}: live connection established`);
+    else if (mode === "unauthorized") monitor.log("warn", `${label}: token rejected; sign in again to reconnect`);
     else if (mode === "error") {
       monitor.log("error", `${label}: unreachable — ${redact(state.error?.message ?? "unknown error")}`);
     } else if (state.mode === "live") monitor.log("warn", `${label}: live connection lost, polling`);

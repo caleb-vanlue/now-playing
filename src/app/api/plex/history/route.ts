@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { HistoryItem } from "../../../../../types/media";
 import { applyUsernameMap } from "../../../../../utils/usernameMap";
+import { getPlexConfig, PlexConfig, plexHeaders } from "../../../../../utils/plexConfig";
 import { serverCache, HISTORY_CACHE_TTL } from "../../../../../utils/serverCache";
 
 interface PlexHistoryItem {
@@ -24,16 +25,10 @@ interface PlexAccount {
   name: string;
 }
 
-async function fetchAccountMap(
-  plexUrl: string,
-  plexToken: string
-): Promise<Map<number, string>> {
+async function fetchAccountMap(plex: PlexConfig): Promise<Map<number, string>> {
   const map = new Map<number, string>();
   try {
-    const res = await fetch(
-      `${plexUrl}/accounts?X-Plex-Token=${plexToken}`,
-      { headers: { Accept: "application/json" } }
-    );
+    const res = await fetch(`${plex.url}/accounts`, { headers: plexHeaders(plex.token) });
     if (!res.ok) return map;
     const data = await res.json();
     const accounts: PlexAccount[] =
@@ -46,10 +41,9 @@ async function fetchAccountMap(
 }
 
 export async function GET(request: Request) {
-  const PLEX_URL = process.env.PLEX_URL;
-  const PLEX_TOKEN = process.env.PLEX_TOKEN;
+  const plex = getPlexConfig();
 
-  if (!PLEX_URL || !PLEX_TOKEN) {
+  if (!plex) {
     return NextResponse.json(
       { error: "Plex configuration missing" },
       { status: 500 }
@@ -67,10 +61,10 @@ export async function GET(request: Request) {
   try {
     const [historyRes, accountMap] = await Promise.all([
       fetch(
-        `${PLEX_URL}/status/sessions/history/all?X-Plex-Token=${PLEX_TOKEN}&sort=${sort}&limit=${limit}`,
-        { headers: { Accept: "application/json" } }
+        `${plex.url}/status/sessions/history/all?${new URLSearchParams({ sort, limit })}`,
+        { headers: plexHeaders(plex.token) }
       ),
-      fetchAccountMap(PLEX_URL, PLEX_TOKEN),
+      fetchAccountMap(plex),
     ]);
 
     if (!historyRes.ok) {

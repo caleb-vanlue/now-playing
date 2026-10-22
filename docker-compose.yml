@@ -8,8 +8,8 @@ services:
       - "0.0.0.0:3003:3003"
     environment:
       - NODE_ENV=${NODE_ENV:-production}
+      # Optional: an address for Plex that the sign-in should try first
       - PLEX_URL=${PLEX_URL}
-      - PLEX_TOKEN=${PLEX_TOKEN}
       - JELLYFIN_URL=${JELLYFIN_URL}
       - JELLYFIN_API_KEY=${JELLYFIN_API_KEY}
       - NEXT_PUBLIC_FETCH_TIMEOUT=${FETCH_TIMEOUT:-8000}
@@ -17,6 +17,9 @@ services:
       - SPOTIFY_CLIENT_SECRET=${SPOTIFY_CLIENT_SECRET}
       - USERNAME_MAP=${USERNAME_MAP}
       - STATUS_KEY=${STATUS_KEY}
+    volumes:
+      # Holds the Plex connection made on /setup; without it, a new container starts unclaimed
+      - ./data:/app/data
     restart: unless-stopped
     extra_hosts:
       - "host.docker.internal:host-gateway"

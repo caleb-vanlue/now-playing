@@ -2,6 +2,7 @@ import type { BaseMedia, SessionsResponse } from "../types/media";
 import { applyUsernameMap } from "./usernameMap";
 import { serverCache, ITEM_DETAIL_CACHE_TTL } from "./serverCache";
 import { fetchWithTimeout, mapPlexSessions, PlexSession } from "./plexApi";
+import { getPlexConfig, PlexAuthError, plexHeaders } from "./plexConfig";
 import {
   mapJellyfinSessions,
   EnrichedSession,
@@ -25,7 +26,7 @@ export type SessionFeed = (handlers: SessionFeedHandlers) => () => void;
 
 export function configuredSources(): SessionSource[] {
   const sources: SessionSource[] = [];
-  if (process.env.PLEX_URL && process.env.PLEX_TOKEN) sources.push("plex");
+  if (getPlexConfig()) sources.push("plex");
   if (process.env.JELLYFIN_URL && process.env.JELLYFIN_API_KEY) sources.push("jellyfin");
   return sources;
 }
@@ -34,20 +35,14 @@ export function configuredSources(): SessionSource[] {
 
 /** Raw /status/sessions metadata, with display names already mapped. */
 export async function fetchRawPlexSessions(): Promise<PlexSession[]> {
-  const PLEX_URL = process.env.PLEX_URL;
-  const PLEX_TOKEN = process.env.PLEX_TOKEN;
-  if (!PLEX_URL || !PLEX_TOKEN) throw new Error("Plex configuration missing");
+  const plex = getPlexConfig();
+  if (!plex) throw new Error("Plex configuration missing");
 
-  const response = await fetchWithTimeout(
-    `${PLEX_URL}/status/sessions?X-Plex-Token=${PLEX_TOKEN}`,
-    {
-      headers: {
-        Accept: "application/json",
-        "X-Plex-Client-Identifier": "NowPlaying-Dashboard",
-      },
-    }
-  );
+  const response = await fetchWithTimeout(`${plex.url}/status/sessions`, {
+    headers: plexHeaders(plex.token),
+  });
 
+  if (response.status === 401) throw new PlexAuthError();
   if (!response.ok) {
     throw new Error(`Plex API Error: ${response.status}`);
   }

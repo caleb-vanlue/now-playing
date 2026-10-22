@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getPlexConfig, plexHeaders } from "../../../../../utils/plexConfig";
 
 // Only metadata image paths (e.g. /library/metadata/123/thumb/1700000000).
 // The token is attached upstream, so anything looser turns this route into
@@ -29,10 +30,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Invalid width" }, { status: 400 });
   }
 
-  const PLEX_URL = process.env.PLEX_URL;
-  const PLEX_TOKEN = process.env.PLEX_TOKEN;
+  const plex = getPlexConfig();
 
-  if (!PLEX_URL || !PLEX_TOKEN) {
+  if (!plex) {
     return NextResponse.json(
       { error: "Plex configuration missing" },
       { status: 500 }
@@ -40,9 +40,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const plexParams = new URLSearchParams({
-      "X-Plex-Token": PLEX_TOKEN,
-    });
+    const plexParams = new URLSearchParams();
 
     const qualitySettings = {
       low: { width: 200, height: 200, quality: 60 },
@@ -71,12 +69,10 @@ export async function GET(request: NextRequest) {
     plexParams.append("minSize", "1");
     plexParams.append("upscale", "0");
 
-    const imageUrl = `${PLEX_URL}${path}?${plexParams.toString()}`;
+    const imageUrl = `${plex.url}${path}?${plexParams.toString()}`;
 
     const response = await fetch(imageUrl, {
-      headers: {
-        Accept: "image/webp,image/jpeg,image/*",
-      },
+      headers: plexHeaders(plex.token, "image/webp,image/jpeg,image/*"),
     });
 
     if (!response.ok) {

@@ -25,6 +25,7 @@ const MODE_STYLES: Record<SourceMode, { label: string; dot: string; text: string
   polling: { label: "Polling", dot: "bg-amber-400", text: "text-amber-400" },
   connecting: { label: "Connecting", dot: "bg-sky-400", text: "text-sky-400" },
   error: { label: "Unreachable", dot: "bg-red-500", text: "text-red-400" },
+  unauthorized: { label: "Signed out", dot: "bg-red-500", text: "text-red-400" },
 };
 
 const EVENT_COLORS: Record<MonitorEvent["level"], string> = {
