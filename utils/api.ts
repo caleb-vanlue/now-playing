@@ -6,31 +6,43 @@ import {
   BaseMedia,
   Episode,
   Movie,
+  ServiceConfig,
+  ServiceHealth,
   SessionItem,
   SessionsResponse,
+  SetupState,
+  SourceHealth,
 } from "../types/media";
 import { fetchWithTimeout, isTimeoutError, getThumbnailUrl as getPlexThumbnailUrl } from "./plexApi";
 import { jellyfinThumbnailUrl } from "./jellyfinApi";
 import { MERGE_WINDOW_MS } from "./groupSessions";
 
-interface ServiceConfig {
-  plex: boolean;
-  jellyfin: boolean;
-}
-
 let configPromise: Promise<ServiceConfig> | null = null;
 
-// Shared by concurrent callers; a failure is not cached so the next poll retries
+// Shared by concurrent callers; a failure is not cached so the next poll
+// retries, and neither is "nothing connected", so a server connected on
+// /setup shows up without a reload
 function getServiceConfig(): Promise<ServiceConfig> {
   configPromise ??= fetch("/api/config")
     .then((res) =>
       res.ok ? (res.json() as Promise<ServiceConfig>) : Promise.reject(new Error(`Config: ${res.status}`))
     )
+    .then((config) => {
+      if (!config.plex && !config.jellyfin) configPromise = null;
+      return config;
+    })
     .catch((error) => {
       configPromise = null;
       throw error;
     });
   return configPromise;
+}
+
+/** A source's sessions request failed; `health` says whether it was the sign-in. */
+class SourceFetchError extends Error {
+  constructor(message: string, readonly health: SourceHealth) {
+    super(message);
+  }
 }
 
 const SOURCE_LABELS: Record<BaseMedia["source"], string> = {
@@ -67,8 +79,15 @@ async function fetchSessions(
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(
-        `${label} API Error (${response.status}): ${errorText || "Unknown error"}`
+      let health: SourceHealth = "unreachable";
+      try {
+        if (JSON.parse(errorText).reason === "unauthorized") health = "unauthorized";
+      } catch {
+        // Not JSON, e.g. a proxy's error page
+      }
+      throw new SourceFetchError(
+        `${label} API Error (${response.status}): ${errorText || "Unknown error"}`,
+        health
       );
     }
 
@@ -82,24 +101,44 @@ async function fetchSessions(
   }
 }
 
-export async function fetchMediaData(signal?: AbortSignal): Promise<MediaData> {
+export interface PolledMediaData {
+  data: MediaData;
+  sources: ServiceHealth;
+  setup: SetupState;
+}
+
+/** Thrown when every source failed; still says which ones and why. */
+export class AllSourcesFailedError extends Error {
+  constructor(cause: unknown, readonly sources: ServiceHealth, readonly setup: SetupState) {
+    super(cause instanceof Error ? cause.message : String(cause));
+  }
+}
+
+export async function fetchMediaData(signal?: AbortSignal): Promise<PolledMediaData> {
   const config = await getServiceConfig();
 
-  const configuredFetches: Promise<MediaData>[] = [];
-  if (config.plex) configuredFetches.push(fetchSessions("plex", signal));
-  if (config.jellyfin) configuredFetches.push(fetchSessions("jellyfin", signal));
-
-  if (configuredFetches.length === 0) {
-    return { tracks: [], movies: [], episodes: [] };
+  const configured = (["plex", "jellyfin"] as const).filter((source) => config[source]);
+  if (configured.length === 0) {
+    return { data: { tracks: [], movies: [], episodes: [] }, sources: {}, setup: config.setup };
   }
 
-  const results = await Promise.allSettled(configuredFetches);
+  const results = await Promise.allSettled(configured.map((source) => fetchSessions(source, signal)));
 
   // A cancelled poll must surface as cancellation, not as partial data or a failure
   signal?.throwIfAborted();
 
+  const sources: ServiceHealth = {};
+  results.forEach((result, i) => {
+    sources[configured[i]] =
+      result.status === "fulfilled"
+        ? "connected"
+        : result.reason instanceof SourceFetchError
+          ? result.reason.health
+          : "unreachable";
+  });
+
   if (results.every((r) => r.status === "rejected")) {
-    throw (results[0] as PromiseRejectedResult).reason;
+    throw new AllSourcesFailedError((results[0] as PromiseRejectedResult).reason, sources, config.setup);
   }
 
   const merged = results.reduce(
@@ -114,7 +153,7 @@ export async function fetchMediaData(signal?: AbortSignal): Promise<MediaData> {
     { tracks: [], movies: [], episodes: [] } as MediaData
   );
 
-  return merged;
+  return { data: merged, sources, setup: config.setup };
 }
 
 const HISTORY_MAX = 250;

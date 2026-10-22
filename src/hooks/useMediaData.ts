@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { MediaData, SessionStreamMessage } from "../../types/media";
-import { fetchMediaData, stampSessions } from "../../utils/api";
+import { MediaData, ServiceHealth, SessionStreamMessage, SetupState } from "../../types/media";
+import { AllSourcesFailedError, fetchMediaData, stampSessions } from "../../utils/api";
 import { reconcileMediaData, hasActivePlayback } from "../../utils/reconcileMediaData";
 import { createSessionGrouper } from "../../utils/groupSessions";
 
@@ -16,6 +16,13 @@ export interface MediaStatus {
   isConnected: boolean;
   // Updates are pushed from the session stream rather than polled
   live: boolean;
+}
+
+// Which media servers are connected and how they're doing; null until the
+// first stream message or poll
+export interface MediaHealth {
+  sources: ServiceHealth;
+  setup: SetupState;
 }
 
 const INACTIVITY_THRESHOLD_MS = 10 * 60 * 1000;
@@ -70,6 +77,7 @@ const POLLING_STATUS: MediaStatus = { loading: false, error: null, isConnected: 
 export function useMediaData({ active, paused, idle }: PollingIntervals) {
   const [mediaData, setMediaData] = useState<MediaData | null>(null);
   const [status, setStatus] = useState<MediaStatus>(INITIAL_STATUS);
+  const [health, setHealth] = useState<MediaHealth | null>(null);
   const refreshRef = useRef<() => void>(() => {});
 
   useEffect(() => {
@@ -92,6 +100,15 @@ export function useMediaData({ active, paused, idle }: PollingIntervals) {
       setMediaData(groupSessions(current));
       setStatus(live ? LIVE_STATUS : POLLING_STATUS);
       return current;
+    };
+
+    // Same reference while unchanged, so consumers don't re-render every update
+    const noteHealth = (sources: ServiceHealth, setup: SetupState) => {
+      setHealth((prev) =>
+        prev && prev.setup === setup && JSON.stringify(prev.sources) === JSON.stringify(sources)
+          ? prev
+          : { sources, setup }
+      );
     };
 
     const fail = (err: unknown) => {
@@ -148,6 +165,7 @@ export function useMediaData({ active, paused, idle }: PollingIntervals) {
         retryCount = 0;
         try {
           const message: SessionStreamMessage = JSON.parse(event.data);
+          noteHealth(message.sources, message.setup);
           // The server keeps retrying its sources; keep showing the last data meanwhile
           if (message.error) fail(new Error(message.error));
           else apply(stampSessions(message.sessions), true);
@@ -178,12 +196,14 @@ export function useMediaData({ active, paused, idle }: PollingIntervals) {
         if (current.signal.aborted) return;
 
         retryCount = 0;
-        schedule(getPollingInterval(apply(next, false), lastActivity, intervals));
+        noteHealth(next.sources, next.setup);
+        schedule(getPollingInterval(apply(next.data, false), lastActivity, intervals));
       } catch (err) {
         // Superseded by a newer poll or unmounted; that owner handles scheduling
         if (current.signal.aborted) return;
 
         console.error("Error fetching media data:", err);
+        if (err instanceof AllSourcesFailedError) noteHealth(err.sources, err.setup);
         retryCount++;
         fail(err);
         schedule(getRetryDelay(retryCount));
@@ -229,5 +249,5 @@ export function useMediaData({ active, paused, idle }: PollingIntervals) {
 
   const refreshData = useCallback(() => refreshRef.current(), []);
 
-  return { mediaData, status, refreshData };
+  return { mediaData, status, health, refreshData };
 }

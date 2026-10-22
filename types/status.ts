@@ -27,7 +27,8 @@ export interface ViewerStatus extends ClientInfo {
   lastSeen: number;
 }
 
-export type SourceMode = "live" | "polling" | "error" | "connecting";
+// "unauthorized": the server rejected the token, so it needs a new sign-in
+export type SourceMode = "live" | "polling" | "error" | "connecting" | "unauthorized";
 
 export interface SourceStatus {
   source: "plex" | "jellyfin";

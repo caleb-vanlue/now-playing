@@ -6,6 +6,7 @@ import { SiPlex, SiJellyfin } from "react-icons/si";
 import { useMediaSessions, useMediaStatus } from "./MediaDataContext";
 import { useTheme } from "../contexts/ThemeContext";
 import { useCollapsingHeader } from "../hooks/useCollapsingHeader";
+import { NotConnected, SourceProblems } from "./ConnectionNotices";
 
 interface MediaDashboardProps {
   // Rendered in the fixed header, below the title bar
@@ -15,7 +16,7 @@ interface MediaDashboardProps {
 
 export default function MediaDashboard({ nav, children }: MediaDashboardProps) {
   const mediaData = useMediaSessions();
-  const { loading, error, isConnected, live, refreshData } = useMediaStatus();
+  const { loading, error, isConnected, live, health, refreshData } = useMediaStatus();
   const { theme, setTheme } = useTheme();
   const { headerRef, collapsed, headerHeight } = useCollapsingHeader();
 
@@ -30,7 +31,25 @@ export default function MediaDashboard({ nav, children }: MediaDashboardProps) {
     [mediaData]
   );
 
-  const statusDotColor = !isConnected ? "bg-red-500" : live ? "bg-green-500" : "bg-yellow-500";
+  const notConnected = !!health && Object.keys(health.sources).length === 0;
+  // The per-server notices already explain a failure, so the toast would repeat them
+  const sourceProblem =
+    !!health && Object.values(health.sources).some((h) => h !== "connected");
+
+  const statusDotColor = notConnected
+    ? "bg-gray-500"
+    : !isConnected
+      ? "bg-red-500"
+      : live
+        ? "bg-green-500"
+        : "bg-yellow-500";
+  const statusLabel = notConnected
+    ? "Not connected"
+    : !isConnected
+      ? "Disconnected"
+      : live
+        ? "Live"
+        : "Connected";
 
   const headerContent = useMemo(
     () => (
@@ -77,7 +96,7 @@ export default function MediaDashboard({ nav, children }: MediaDashboardProps) {
                       : undefined
                   }
                 >
-                  {!isConnected ? "Disconnected" : live ? "Live" : "Connected"}
+                  {statusLabel}
                 </span>
                 <span
                   className={`w-2 h-2 rounded-full flex-shrink-0 ${statusDotColor}`}
@@ -120,7 +139,7 @@ export default function MediaDashboard({ nav, children }: MediaDashboardProps) {
         </div>
       </div>
     ),
-    [totalCount, isConnected, live, statusDotColor, collapsed, theme, setTheme],
+    [totalCount, isConnected, live, statusDotColor, statusLabel, collapsed, theme, setTheme],
   );
 
   return (
@@ -169,7 +188,7 @@ export default function MediaDashboard({ nav, children }: MediaDashboardProps) {
               {headerContent}
             </div>
           </header>
-          {nav && (
+          {nav && !notConnected && (
             <div className="theme-bg-nav backdrop-blur-sm safe-area-x">
               <div className="px-4 sm:px-6 lg:px-8">{nav}</div>
             </div>
@@ -177,11 +196,18 @@ export default function MediaDashboard({ nav, children }: MediaDashboardProps) {
         </div>
 
         <main className="flex-1 flex flex-col" style={{ paddingTop: headerHeight }}>
-          {children}
+          {notConnected ? (
+            <NotConnected setup={health.setup} />
+          ) : (
+            <>
+              {health && <SourceProblems sources={health.sources} />}
+              {children}
+            </>
+          )}
         </main>
       </div>
 
-      {error && !isConnected && (
+      {error && !isConnected && !sourceProblem && (
         <div
           className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] right-[calc(1rem+env(safe-area-inset-right))] bg-red-900/80 text-white p-4 rounded-lg shadow-lg max-w-md backdrop-blur-sm"
           role="alert"

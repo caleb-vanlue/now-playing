@@ -33,6 +33,9 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env
 
+# instance settings and the Plex token (see DATA_DIR)
+/data
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

@@ -4,6 +4,7 @@ import {
   mapPlexState,
   PlexSessionEntry,
 } from "./plexApi";
+import { getPlexConfig, plexHeaders } from "./plexConfig";
 import { fetchRawPlexSessions, SessionFeed } from "./sessionSources";
 import { openWebSocket, reconnectDelay, webSocketUrl } from "./upstreamSocket";
 
@@ -59,8 +60,8 @@ function currentEntry({ entry, observedAt }: TrackedSession, now: number): PlexS
  * connection is seeded with a fetch, since nothing is sent on connect.
  */
 export const plexSessionFeed: SessionFeed = ({ onSessions, onDisconnect }) => {
-  const PLEX_URL = process.env.PLEX_URL!;
-  const PLEX_TOKEN = process.env.PLEX_TOKEN!;
+  // Read once per feed; the hub restarts the feed when the connection changes
+  const plex = getPlexConfig()!;
 
   let stopped = false;
   let socket: WebSocket | undefined;
@@ -163,10 +164,10 @@ export const plexSessionFeed: SessionFeed = ({ onSessions, onDisconnect }) => {
   const connect = () => {
     let ws: WebSocket;
     try {
-      ws = openWebSocket(webSocketUrl(PLEX_URL, ":/websockets/notifications"), {
-        "X-Plex-Token": PLEX_TOKEN,
-        "X-Plex-Client-Identifier": "NowPlaying-Dashboard",
-      });
+      ws = openWebSocket(
+        webSocketUrl(plex.url, ":/websockets/notifications"),
+        plexHeaders(plex.token)
+      );
     } catch (err) {
       // Runs from a timer too, where a throw would take down the server
       console.error("Plex socket could not be created:", err);

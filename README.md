@@ -102,7 +102,9 @@ _Mobile Views_
    docker-compose up -d
    ```
 
-4. Access the dashboard at [http://localhost:3003](http://localhost:3003).
+4. Access the dashboard at [http://localhost:3003](http://localhost:3003), then [connect Plex](#connecting-plex).
+
+The compose file mounts `./data` at `/app/data`, where the Plex connection is saved. Keep that mount: without it, every new container starts unclaimed and you'd have to set it up again.
 
 ## How Live Updates Work
 
@@ -132,14 +134,14 @@ Everything else (history, artwork, related items, lyrics, Spotify) uses regular 
 
 ## Configuration
 
-Copy `.env.example` to `.env`. At least one of Plex or Jellyfin must be configured — both can be active at the same time.
+Copy `.env.example` to `.env`. At least one of Plex or Jellyfin must be connected — both can be active at the same time. Plex is connected by signing in on the instance (below); Jellyfin uses env vars.
 
 ### Environment Variables
 
 | Variable                    | Description                                          | Required          |
 | --------------------------- | ---------------------------------------------------- | ----------------- |
-| `PLEX_URL`                  | Full URL of your Plex server (with port)             | If using Plex     |
-| `PLEX_TOKEN`                | Plex authentication token                            | If using Plex     |
+| `PLEX_URL`                  | Address of your Plex server to try first at sign-in   | Optional          |
+| `PLEX_TOKEN`                | Legacy: a Plex token, instead of signing in           | Deprecated        |
 | `JELLYFIN_URL`              | Full URL of your Jellyfin server (with port)         | If using Jellyfin |
 | `JELLYFIN_API_KEY`          | Jellyfin API key (admin privileges required)         | If using Jellyfin |
 | `SPOTIFY_CLIENT_ID`         | Spotify Developer app Client ID                      | Optional          |
@@ -147,14 +149,27 @@ Copy `.env.example` to `.env`. At least one of Plex or Jellyfin must be configur
 | `NEXT_PUBLIC_FETCH_TIMEOUT` | Upstream API request timeout in ms                   | Optional (8000)   |
 | `USERNAME_MAP`              | Display-name overrides, e.g. `alice:Alice,bob99:Bob` | Optional          |
 | `STATUS_KEY`                | Enables the private `/status` page (see below)       | Optional          |
+| `DATA_DIR`                  | Where the Plex connection is saved                    | Optional (`./data`) |
+| `RESET_OWNER`               | `true` clears the owner and Plex connection at boot   | Recovery only     |
 
-### Obtaining a Plex Token
+### Connecting Plex
 
-1. Open Plex Web and navigate to any media item
-2. Click ⋮ → "Get Info" → "View XML"
-3. Copy the `X-Plex-Token` value from the URL
+Plex is connected by signing in on the instance, so no Plex token sits in your environment variables, where a hosting provider could leak it. The instance gets its own token, listed as **Now Playing** under [Authorized Devices](https://app.plex.tv/desktop/#!/settings/devices/all) on plex.tv. If it ever leaks, remove that one device; your other devices stay signed in.
 
-Full instructions: [support.plex.tv/articles/204059436](https://support.plex.tv/articles/204059436)
+1. Start the instance and find the **setup code** in its logs (`docker logs now-playing`, or your host's log viewer). It looks like `ABCD-EFGH-JKMN`.
+2. Open `/setup` and enter the code.
+3. Sign in with the Plex account that **owns** the server, then pick the server.
+4. The instance tests the server's addresses and saves the first one that works. If it reaches Plex some other way (for example `http://host.docker.internal:32400`), enter that address, or set `PLEX_URL`.
+
+**Why a setup code?** Until someone connects a server, anyone who finds the URL could open `/setup`. The code is printed only to the server logs, so only someone who runs the instance can claim it. It changes on every restart, and after 10 wrong guesses it's replaced with a new one. Once the instance is claimed, `/setup` stops accepting codes.
+
+**Managing it later.** Open `/setup` and sign in with the same Plex account that claimed the instance; any other account is refused. From there you can reconnect (for example after removing the device on plex.tv), switch servers, change the server address, or disconnect. Disconnecting keeps you as the owner, so nobody else can connect a server in the meantime. The sign-in lasts 7 days on that browser.
+
+**Where it's saved.** The connection is stored in `DATA_DIR/instance.json` (default `./data`, `/app/data` in Docker), readable only by the server's user. Put `DATA_DIR` on a persistent volume. On Railway, add a volume to the service mounted at `/app/data`. Without one, each redeploy starts unclaimed and needs the setup steps again.
+
+**Starting over.** Set `RESET_OWNER=true` and restart: the owner and Plex connection are removed and a new setup code is printed. Remove `RESET_OWNER` before the next restart, or it will reset again. Only someone who can change the environment can do this.
+
+**Legacy `PLEX_TOKEN`.** If `PLEX_URL` and `PLEX_TOKEN` are set, they still work, and the server logs a deprecation warning. Sign-in is off while `PLEX_TOKEN` is set.
 
 ### Obtaining a Jellyfin API Key
 

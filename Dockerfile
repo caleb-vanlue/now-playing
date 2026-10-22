@@ -12,6 +12,9 @@ ENV NEXT_PUBLIC_FETCH_TIMEOUT=${NEXT_PUBLIC_FETCH_TIMEOUT:-8000}
 
 RUN npm run build
 
+# The Plex connection from /setup is saved here; mount a volume on it
+RUN mkdir -p /app/data && chmod 700 /app/data
+
 ENV NODE_ENV=production
 ENV HOSTNAME=0.0.0.0
 ENV PORT=3003

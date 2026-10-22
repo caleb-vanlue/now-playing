@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { RelatedItem } from "../../../../../types/media";
 import { serverCache, RELATED_CACHE_TTL } from "../../../../../utils/serverCache";
+import { getPlexConfig, plexHeaders } from "../../../../../utils/plexConfig";
 
 interface PlexMetadata {
   ratingKey: string;
@@ -15,10 +16,9 @@ interface PlexHub {
 }
 
 export async function GET(request: Request) {
-  const PLEX_URL = process.env.PLEX_URL;
-  const PLEX_TOKEN = process.env.PLEX_TOKEN;
+  const plex = getPlexConfig();
 
-  if (!PLEX_URL || !PLEX_TOKEN) {
+  if (!plex) {
     return NextResponse.json({ error: "Plex configuration missing" }, { status: 500 });
   }
 
@@ -34,8 +34,8 @@ export async function GET(request: Request) {
 
   try {
     const res = await fetch(
-      `${PLEX_URL}/library/metadata/${ratingKey}/related?X-Plex-Token=${PLEX_TOKEN}&excludeFields=summary&limit=20`,
-      { headers: { Accept: "application/json" } }
+      `${plex.url}/library/metadata/${encodeURIComponent(ratingKey)}/related?excludeFields=summary&limit=20`,
+      { headers: plexHeaders(plex.token) }
     );
     if (!res.ok) throw new Error(`Plex API error: ${res.status}`);
 
