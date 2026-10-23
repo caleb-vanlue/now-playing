@@ -122,10 +122,20 @@ async function isServerAt(uri: string, server: OwnedServer): Promise<boolean> {
       { headers: plexHeaders(server.token) },
       CONNECTION_TEST_TIMEOUT_MS
     );
-    if (!res.ok) return false;
+    if (!res.ok) {
+      console.warn(`Plex address test: ${uri} answered ${res.status}`);
+      return false;
+    }
     const body: { MediaContainer?: { machineIdentifier?: string } } = await res.json();
-    return body.MediaContainer?.machineIdentifier === server.id;
-  } catch {
+    if (body.MediaContainer?.machineIdentifier === server.id) return true;
+    console.warn(`Plex address test: ${uri} is a different Plex server`);
+    return false;
+  } catch (err) {
+    // fetch hides the network error (refused, TLS, DNS) in `cause`
+    const cause = err instanceof Error && err.cause instanceof Error ? err.cause : err;
+    const code = (cause as { code?: string })?.code;
+    const message = cause instanceof Error ? cause.message : String(cause);
+    console.warn(`Plex address test: ${uri} failed: ${code ? `${code} ` : ""}${message}`);
     return false;
   }
 }
