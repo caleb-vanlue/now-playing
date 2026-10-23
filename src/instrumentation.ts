@@ -5,7 +5,9 @@ export async function register() {
   const { readInstance } = await import("../utils/instanceStore");
   const { warnIfEnvToken } = await import("../utils/plexConfig");
   const { announceSetupCode } = await import("../utils/setupAuth");
+  const { trustPlexDirectChain } = await import("../utils/plexTls");
 
+  trustPlexDirectChain();
   // Loading the store at boot applies RESET_OWNER and surfaces an unreadable file early
   readInstance();
   warnIfEnvToken();
